@@ -1,6 +1,6 @@
 "use strict";
 const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVER=window.DRIVER||[],JAPAN=window.JAPAN||[],
-  NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[];
+  NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[],TRAVEL=window.TRAVEL||[];
 let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
 function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w1";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
@@ -111,6 +111,7 @@ function initPane(id){
   if(id==="l-prefix")ensureExtra(buildPrefix);
   if(id==="l-reg")ensureExtra(buildRegister);
   if(id==="t-driver")buildDriver();
+  if(id==="t-travel")buildTravel();
   if(id==="p-quiz")buildQuiz();
   if(id==="p-daily")buildDaily();
   if(id==="p-fill")buildFill();
@@ -162,6 +163,7 @@ function buildDriver(){if(CAR.d)return;const dTabs=$("dTabs");dTabs.innerHTML=DR
   const dsb=$("dShuffle");if(dsb)dsb.onclick=()=>CAR.d.shuffle();
 }
 /* ニュース */
+function buildTravel(){if($("travelWrap").dataset.done)return;$("travelWrap").dataset.done=1;$("travelWrap").innerHTML=TRAVEL.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
 function buildNews(){if(CAR.n)return;const nSel=$("nSelect");nSel.innerHTML=NEWS.map((nw,i)=>`<option value="${i}">${String(i+1).padStart(2,"0")}. ${esc(nw.title)}</option>`).join("");nSel.onchange=()=>CAR.n.goReal(+nSel.value);
   CAR.n=lazyCarousel($("nTrack"),NEWS.length,i=>{const nw=NEWS[i];
    return `<div class="newscard" data-reveal><div class="ntag">Berita #${String(i+1).padStart(2,"0")}</div><div class="ntitle">${esc(nw.title)}</div>
