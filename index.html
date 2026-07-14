@@ -376,7 +376,7 @@
   .splash .flag{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;box-shadow:0 -14px 36px rgba(0,0,0,.14);animation:flagUp .8s 1s cubic-bezier(.16,1,.3,1) forwards}
   .splash .flag::before{content:"";position:absolute;left:0;right:0;top:-1.5px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.9) 30%,rgba(255,224,140,.9) 70%,transparent)}
   @keyframes flagUp{from{height:0}to{height:50%}}
-  .splash .tag2{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:10.5px;letter-spacing:6px;text-transform:uppercase;color:#8f151d;opacity:0;animation:tag2In .6s 1.5s cubic-bezier(.16,1,.3,1) forwards}
+  .splash .tag2{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:15px;font-weight:600;letter-spacing:4.5px;text-transform:uppercase;color:#a3161e;opacity:0;animation:tag2In .6s 1.5s cubic-bezier(.16,1,.3,1) forwards}
   @keyframes tag2In{from{opacity:0;transform:translateY(calc(-50% + 8px))}to{opacity:.9;transform:translateY(-50%)}}
   @media(max-height:520px){.splash .splogo{width:64px;height:64px}.splash .wm{font-size:34px}}
   @media(prefers-reduced-motion:reduce){.splash .splogo,.splash .wm,.splash .wm::after,.splash .tagline,.splash .wmrule,.splash .flag,.splash .brand,.splash .tag2{animation-duration:.01s;animation-delay:0s}}
@@ -519,5 +519,3 @@
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
 <script src="app.js?v=19"></script>
-</body>
-</html>
