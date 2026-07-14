@@ -1,8 +1,8 @@
 /* Distinksi service worker v2 — 更新反映＋オフライン両立 */
-const CACHE = "distinksi-v3";
+const CACHE = "distinksi-v4";
 const SHELL = [
   "./", "./index.html", "./data.js", "./gloss.js", "./cards.js", "./extra.js",
-  "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./favicon.png"
+  "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./favicon.png", "./archipelago.png"
 ];
 
 self.addEventListener("install", e => {
