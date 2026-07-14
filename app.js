@@ -1,8 +1,8 @@
 "use strict";
 const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVER=window.DRIVER||[],JAPAN=window.JAPAN||[],
   NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[],TRAVEL=window.TRAVEL||[];
-let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
-function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
+let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],SUFFIX=window.SUFFIX||[],CONFIX=window.CONFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
+function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];SUFFIX=window.SUFFIX||[];CONFIX=window.CONFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w2";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
 let CARDS=window.CARDS||[],_cardsP=null;
 function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
@@ -128,6 +128,8 @@ const PANEI={};
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
   if(id==="l-prefix")ensureExtra(buildPrefix);
+  if(id==="l-suffix")ensureExtra(buildSuffix);
+  if(id==="l-confix")ensureExtra(buildConfix);
   if(id==="l-reg")ensureExtra(buildRegister);
   if(id==="t-driver")buildDriver();
   if(id==="t-travel")buildTravel();
@@ -154,8 +156,11 @@ function buildWords(){if(CAR.w)return;CAR.w=lazyCarousel($("wTrack"),WORDS.lengt
 },$("wCount"),'[data-nav="w:-1"]','[data-nav="w:1"]');const wsb=$("wShuffle");if(wsb)wsb.onclick=()=>CAR.w.shuffle();}
 
 /* 接頭辞 */
-function buildPrefix(){$("l-prefix").innerHTML=PREFIX.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
+function buildAffix(arr,id){$(id).innerHTML=arr.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
   ${p.ex.map(e=>`<div class="lex">${spkBtn(e[2],e[0])}<span class="w">${esc(e[0])}</span><span class="m">${esc(e[1])}</span></div>`).join("")}</div>`).join("");}
+function buildPrefix(){buildAffix(PREFIX,"l-prefix");}
+function buildSuffix(){buildAffix(SUFFIX,"l-suffix");}
+function buildConfix(){buildAffix(CONFIX,"l-confix");}
 
 /* 敬語⇔口語 */
 function buildRegister(){$("l-reg").innerHTML=`<div class="listcard panelcard"><div style="display:flex;font-size:10px;color:var(--sub);letter-spacing:1px;padding:8px 0 4px"><div style="flex:1">丁寧</div><div style="width:24px"></div><div style="flex:1">くだけた</div><div style="min-width:70px"></div></div>`+
@@ -320,6 +325,7 @@ const ARCH_CLUSTERS=[
  {id:"maluku",name:"Maluku",cx:432,cy:112},
  {id:"papua",name:"Papua",cx:500,cy:108}
 ];
+const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
 let _archDots=null,_archLit=null,_archLabelY={};
 function _archBuild(){if(_archDots)return _archDots;var dots=ARCHPTS.map(function(p){return {x:p[0],y:p[1],ci:p[2]};});var order=dots.map(function(d,i){return i;}).sort(function(a,b){return dots[a].x-dots[b].x;});order.forEach(function(idx,rank){dots[idx].rank=rank;});var my={};dots.forEach(function(d){if(my[d.ci]==null||d.y>my[d.ci])my[d.ci]=d.y;});_archLabelY=my;_archDots=dots;return dots;}
 function renderArch(el){const dots=_archBuild(),total=dots.length;
@@ -329,12 +335,14 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   const maxRank={};dots.forEach(d=>{if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
   const complete=ci=>maxRank[ci]<lit;
   const circ=dots.map(d=>{const on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="2.1" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
+  var thX=-1;dots.forEach(function(d){if(d.rank===lit-1)thX=d.x;});
+  const cities=CITIES.map(function(c){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="4" class="citymk'+(lit>0&&c[0]<=thX?" on":"")+'"/>';}).join("");
   const labels=ARCH_CLUSTERS.map((c,ci)=>'<text x="'+c.cx+'" y="'+((_archLabelY[ci]||c.cy)+12).toFixed(0)+'" text-anchor="middle" class="alabel'+(complete(ci)?" done":"")+'">'+c.name+'</text>').join("");
   let footer;const inc=ARCH_CLUSTERS.map((c,ci)=>ci).filter(ci=>!complete(ci));
   if(inc.length===0){footer='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)*2-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
-  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+labels+'</svg><div class="archfoot">'+footer+'</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
   if(changed)SV("dks_arch",arch);
