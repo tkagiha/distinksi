@@ -257,12 +257,22 @@ function buildNumbers(){if($("numGrid").dataset.done)return;$("numGrid").dataset
   $("numGo").onclick=()=>calc(true);ni.addEventListener("keydown",e=>{if(e.key==="Enter")calc(true);});
   const pad=$("numPad");if(pad){pad.addEventListener("click",e=>{const b=e.target.closest("button[data-k]");if(!b)return;const k=b.dataset.k;let d=ni.value.replace(/[^0-9]/g,"");if(k==="c")d="";else if(k==="b")d=d.slice(0,-1);else d=d+k;if(d.length>7)d=d.slice(0,7);ni.value=d?parseInt(d,10).toLocaleString("en-US"):"";calc(false);});}
 }
-function buildTime(){const per=h=>h<11?"pagi":h<15?"siang":h<19?"sore":"malam";
-  function run(){let h=parseInt($("tH").value,10),m=parseInt($("tM").value,10);if(isNaN(h))h=0;if(isNaN(m))m=0;h=(h%24+24)%24;m=(m%60+60)%60;const h12=h%12===0?12:h%12;let words=["jam"].concat(toIndo(h12).split(" "));if(m>0){words=words.concat(["lewat"]).concat(toIndo(m).split(" ")).concat(["menit"]);}words.push(per(h));$("tOut").textContent=words.join(" ");playSeq(words,$("tGo"));}
-  $("tGo").onclick=run;}
-function buildDate(){const dM=$("dM");dM.innerHTML=MONTHS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("");
-  function run(){let d=parseInt($("dD").value,10);if(isNaN(d)||d<1)d=1;if(d>31)d=31;const mi=+dM.value;const mo=MONTHS[mi-1];const words=["tanggal"].concat(toIndo(d).split(" "));$("dOut").textContent=(words.join(" ")+" "+mo[1]);playList(wordsToSrcs(words).concat([mo[2]]),$("dGo"));}
-  $("dGo").onclick=run;}
+function buildTime(){const per=h=>h<11?"pagi":h<15?"siang":h<19?"sore":"malam";const ITEM=40;
+  const wH=$("wH"),wM=$("wM");if(wH.dataset.done)return;wH.dataset.done=1;
+  function fill(col,max){col.innerHTML='<div class="wpad"></div>'+Array.from({length:max},(_,i)=>'<div class="witem">'+String(i).padStart(2,"0")+'</div>').join("")+'<div class="wpad"></div>';}
+  fill(wH,24);fill(wM,60);
+  function sel(col){return Math.round(col.scrollTop/ITEM);}
+  function hi(col){const idx=sel(col);const its=col.querySelectorAll(".witem");for(let i=0;i<its.length;i++)its[i].classList.toggle("on",i===idx);return idx;}
+  function reading(){const h=(sel(wH)%24+24)%24,m=(sel(wM)%60+60)%60;const h12=h%12===0?12:h%12;let words=["jam"].concat(toIndo(h12).split(" "));if(m>0){words=words.concat(["lewat"]).concat(toIndo(m).split(" ")).concat(["menit"]);}words.push(per(h));return words;}
+  function upd(play){hi(wH);hi(wM);const words=reading();$("tOut").textContent=words.join(" ");if(play)playSeq(words,$("tGo"));}
+  let t1,t2;wH.addEventListener("scroll",()=>{hi(wH);clearTimeout(t1);t1=setTimeout(()=>upd(false),130);});
+  wM.addEventListener("scroll",()=>{hi(wM);clearTimeout(t2);t2=setTimeout(()=>upd(false),130);});
+  $("tGo").onclick=()=>upd(true);
+  const now=new Date();wH.scrollTop=now.getHours()*ITEM;wM.scrollTop=now.getMinutes()*ITEM;setTimeout(()=>upd(false),60);}
+function buildDate(){const dp=$("dPick");if(dp.dataset.done)return;dp.dataset.done=1;
+  function run(play){const v=dp.value;let dt;if(v){const p=v.split("-");dt=new Date(+p[0],+p[1]-1,+p[2]);}else dt=new Date();const d=dt.getDate(),mo=MONTHS[dt.getMonth()];const words=["tanggal"].concat(toIndo(d).split(" "));$("dOut").textContent=(words.join(" ")+" "+mo[1]);if(play)playList(wordsToSrcs(words).concat([mo[2]]),$("dGo"));}
+  dp.addEventListener("change",()=>run(false));$("dGo").onclick=()=>run(true);
+  const t=new Date();dp.value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");run(false);}
 
 /* ===== フラッシュカード + SRS ===== */
 let status=LS("dks_status",{}),srs=LS("dks_srs",{}),fLevel="all",fSrc="all",fSt="all",deck=[],fi=0,fFlip=false;
@@ -581,7 +591,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
   document.addEventListener("touchstart",e=>{if(e.touches.length!==1){x0=null;ok=false;return;}const t=e.target;
-    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".fcard")){x0=null;ok=false;return;}
+    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".wheelcol")||t.closest(".fcard")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
     if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const av=document.querySelector('.view.active');if(!av)return;const sec=sectionOf(av.dataset.view);if(!sec)return;const cur=SECTIONS.indexOf(sec);const ni=cur+(dx<0?1:-1);if(ni<0||ni>=SECTIONS.length)return;showView(SECTIONS[ni].tabs[0][0],dx<0?"l":"r");}
