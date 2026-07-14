@@ -44,7 +44,20 @@
   .shead h2::after{content:"";position:absolute;left:0;bottom:0;width:42px;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
   .shead p{color:var(--sub);font-size:13.5px;margin-top:4px}
   .subtabs{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 6px}
-  .subtabs button,.chip{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
+  .subtabs button,.chip{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:9px 16px;border-radius:999px;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.25}
+  .subtabs button:active,.chip:active{transform:scale(.95)}
+  .dash{display:flex;flex-direction:column;gap:13px;margin-top:6px}
+  .dashcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 4px 18px rgba(70,50,20,.05)}
+  .dashcard h4{font-size:13px;color:var(--sub);font-weight:700;margin-bottom:10px}
+  .dashrow{display:flex;align-items:center;gap:10px;margin:9px 0}
+  .dashrow .dlab{font-size:13px;min-width:52px}
+  .dbar{flex:1;height:9px;border-radius:999px;background:var(--line2);overflow:hidden}
+  .dbar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--hl));transition:width .5s}
+  .dashrow .dval{font-size:12px;color:var(--sub);min-width:60px;text-align:right}
+  .dashbig{display:flex;gap:10px}
+  .dstat{flex:1;text-align:center;background:var(--line2);border-radius:12px;padding:12px 6px}
+  .dstat b{display:block;font-size:24px;color:var(--hl);font-weight:800}
+  .dstat span{font-size:11.5px;color:var(--sub)}
   .subtabs button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .pane{display:none}.pane.active{display:block}
@@ -380,7 +393,7 @@
   </div>
 
   <div class="view" data-view="practice"><div class="shead"><div class="kick">Latihan</div><h2>練習</h2><p>フラッシュカード（記録つき）・クイズ・今日の5語・穴埋め。</p></div>
-    <div class="subtabs" data-sub="practice"><button data-pane="p-flash" class="active">カード</button><button data-pane="p-quiz">クイズ</button><button data-pane="p-daily">今日の5語</button><button data-pane="p-fill">穴埋め</button></div>
+    <div class="subtabs" data-sub="practice"><button data-pane="p-flash" class="active">カード</button><button data-pane="p-quiz">クイズ</button><button data-pane="p-daily">今日の5語</button><button data-pane="p-fill">穴埋め</button><button data-pane="p-stats">記録</button></div>
     <div class="pane active" id="p-flash">
       <div class="cfilters"><div class="frow"><span class="flabel">難易度</span><div class="subtabs" id="lvChips" style="margin:0"></div></div>
         <div class="frow"><span class="flabel">分類</span><div class="subtabs" id="srcChips" style="margin:0"></div></div>
@@ -393,6 +406,7 @@
     <div class="pane" id="p-quiz"></div>
     <div class="pane" id="p-daily"></div>
     <div class="pane" id="p-fill"></div>
+    <div class="pane" id="p-stats"><div id="statsWrap" class="dash"></div></div>
   </div>
 
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
@@ -461,6 +475,6 @@
 
 <script src="data.js?v=w1"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
