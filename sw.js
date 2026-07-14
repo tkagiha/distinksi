@@ -1,7 +1,7 @@
-/* Artikula service worker v6 — 更新反映＋オフライン両立 */
-const CACHE = "artikula-v6";
+/* Distinksi service worker v2 — 更新反映＋オフライン両立 */
+const CACHE = "distinksi-v3";
 const SHELL = [
-  "./", "./index.html", "./data.js", "./gloss.js", "./app.js",
+  "./", "./index.html", "./data.js", "./gloss.js", "./cards.js", "./extra.js",
   "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./favicon.png"
 ];
 
