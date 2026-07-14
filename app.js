@@ -3,7 +3,7 @@ const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVE
   NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[],TRAVEL=window.TRAVEL||[];
 let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
 function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
-function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w1";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
+function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w2";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
 let CARDS=window.CARDS||[],_cardsP=null;
 function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
 const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a9 9 0 0 1 0 14"></path></svg>`;
@@ -194,10 +194,11 @@ function buildJapan(){if($("jCard").dataset.done)return;$("jCard").dataset.done=
 function buildHistory(){if($("histWrap").dataset.done)return;$("histWrap").dataset.done=1;$("histWrap").innerHTML=HISTORY.map((h,i)=>`<div class="cult panelcard" data-reveal><h3>${i+1}. ${esc(h.title)}</h3><p>${esc(h.body)}</p><div class="lex" style="margin-top:10px;border-top:1px solid var(--line2);padding-top:11px">${spkBtn(h.audio,h.id)}<span class="t">${wrapWords(h.id)}</span></div><div style="font-size:12.5px;color:var(--sub);margin:5px 0 0 42px">${esc(h.ja)}</div></div>`).join("");}
 
 /* 地理 */
-let GEOORD=GEO.map((_,i)=>i);
+let GEOORD=[];
 function renderGeo(){const el=$("geoTrack");el.innerHTML=GEOORD.map(i=>{const g=GEO[i];return `<div class="slide"><div class="card geocard" data-reveal><div class="geobanner" style="--g1:#b58a4c;--g2:#8a6224"><span class="geoemoji">${g.emoji}</span></div><div class="georegion">${esc(g.region)}</div><div class="headline"><span class="word">${esc(g.name)}</span></div><div class="gloss">${esc(g.body)}</div><div class="lex" style="margin-top:12px;border-top:1px solid var(--line2);padding-top:12px">${spkBtn(g.audio,g.id)}<span class="t">${wrapWords(g.id)}</span></div><div style="font-size:12.5px;color:var(--sub);margin:5px 0 0 42px">${esc(g.ja)}</div></div></div>`;}).join("");}
 function geoNav(i){$("geoCount").textContent=(i+1)+" / "+GEO.length;}
-function buildGeo(){if(!CAR.geo){renderGeo();CAR.geo={step:d=>{const t=$("geoTrack");t.scrollBy({left:t.clientWidth*d,behavior:"smooth"});}};
+function buildGeo(){GEOORD=GEO.map((_,i)=>i);if(!CAR.geo){renderGeo();}else{renderGeo();}
+  if(!CAR.geo){CAR.geo={step:d=>{const t=$("geoTrack");t.scrollBy({left:t.clientWidth*d,behavior:"smooth"});}};
   const t=$("geoTrack");let tmr;t.addEventListener("scroll",()=>{clearTimeout(tmr);tmr=setTimeout(()=>geoNav(Math.round(t.scrollLeft/t.clientWidth)),90);});geoNav(0);
   $("geoShuffle").addEventListener("click",()=>{for(let i=GEOORD.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[GEOORD[i],GEOORD[j]]=[GEOORD[j],GEOORD[i]];}renderGeo();$("geoTrack").scrollTo({left:0});geoNav(0);});}}
 
