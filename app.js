@@ -1,6 +1,6 @@
 "use strict";
 const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVER=window.DRIVER||[],JAPAN=window.JAPAN||[],
-  NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{};
+  NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[];
 let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
 function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w1";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
@@ -346,6 +346,8 @@ $("homeCards").innerHTML=`<div class="homegrid">${HOME.map(tile).join("")}</div>
  <div class="homegroup"><div class="ghead" data-goto="reads:r-info"><div class="gic">🗺️</div><div class="gtxt">読み物</div><div class="gsub">TAP →</div></div><div class="homegrid">${READS.map(tile).join("")}</div></div>`;
 function balanceHomeGrid(){document.querySelectorAll("#homeCards .homegrid").forEach(function(g){var n=g.children.length;if(!n)return;var group=g.closest(".homegroup"),minW=group?82:100,gap=group?11:14;var cw=g.clientWidth||g.offsetWidth||360;var cnat=Math.max(1,Math.floor((cw+gap)/(minW+gap)));if(cnat>=n){g.style.gridTemplateColumns="repeat("+n+",1fr)";return;}var rows=Math.ceil(n/cnat),cols=Math.ceil(n/rows);g.style.gridTemplateColumns="repeat("+cols+",1fr)";});}
 balanceHomeGrid();requestAnimationFrame(balanceHomeGrid);var _bhT;window.addEventListener("resize",function(){clearTimeout(_bhT);_bhT=setTimeout(balanceHomeGrid,150);});
+function renderProverb(){var el=$("homeProverb");if(!el||!PERIBAHASA.length)return;var d=new Date();var idx=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%PERIBAHASA.length;var p=PERIBAHASA[idx];el.innerHTML='<div class="proverb"><div class="pvlabel">\u4eca\u65e5\u306e\u3053\u3068\u308f\u3056 \u30fb Peribahasa</div><div class="pvid">'+spkBtn(p.audio,p.id)+'<span class="t">'+wrapWords(p.id)+'</span></div><div class="pvja">'+esc(p.ja)+'</div></div>';}
+renderProverb();
 function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box=document.querySelector('.view[data-view="'+v+'"]');if(box){const st=box.querySelector('.subtabs[data-sub]');if(st)st.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.pane===pane));box.querySelectorAll(".pane").forEach(p=>p.classList.toggle("active",p.id===pane));initPane(pane);}}}
 
 /* ===== 検索 ===== */
