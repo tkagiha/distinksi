@@ -1,5 +1,5 @@
 /* Distinksi service worker v2 — 更新反映＋オフライン両立 */
-const CACHE = "distinksi-v7";
+const CACHE = "distinksi-v8";
 const SHELL = [
   "./", "./index.html", "./data.js", "./gloss.js", "./cards.js", "./extra.js",
   "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./favicon.png", "./archipelago.png"
