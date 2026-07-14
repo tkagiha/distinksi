@@ -388,9 +388,10 @@ $("searchIn").addEventListener("input",()=>{if(!SIDX)buildIndex();const q=$("sea
 
 /* ===== 設定 ===== */
 function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");document.body.classList.add(fs);[...$("setFont").children].forEach(b=>b.classList.toggle("active",b.dataset.fs===fs));SV("dks_font",fs);}
-function applyDark(on){document.documentElement.setAttribute("data-theme",on?"dark":"light");$("setDark").classList.toggle("on",on);SV("dks_dark",on);}
+function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
+try{if(window.matchMedia)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){if(LS("dks_theme","auto")==="auto")applyTheme("auto");});}catch(e){}
 $("btnSettings").onclick=()=>$("setOv").classList.add("on");
-$("setDark").onclick=()=>applyDark(document.documentElement.getAttribute("data-theme")!=="dark");
+var _stEl=$("setTheme");if(_stEl)_stEl.addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b)applyTheme(b.dataset.th);});
 $("setFont").addEventListener("click",e=>{const b=e.target.closest("[data-fs]");if(b)applyFont(b.dataset.fs);});
 $("setSpeed").addEventListener("click",e=>{const b=e.target.closest("[data-sp]");if(!b)return;SPEED=+b.dataset.sp;SV("dks_speed",SPEED);[...$("setSpeed").children].forEach(x=>x.classList.toggle("active",x===b));});
 $("setRepeat").onclick=()=>{REPEAT=!REPEAT;SV("dks_repeat",REPEAT);$("setRepeat").classList.toggle("on",REPEAT);};
@@ -398,7 +399,7 @@ document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".o
 document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("on");}));
 
 /* 起動時：設定復元 */
-(function(){const d=LS("dks_dark",false);applyDark(d);const f=LS("dks_font","fs-m");applyFont(f);[...$("setSpeed").children].forEach(x=>x.classList.toggle("active",+x.dataset.sp===SPEED));$("setRepeat").classList.toggle("on",REPEAT);})();
+(function(){applyTheme(LS("dks_theme","auto"));const f=LS("dks_font","fs-m");applyFont(f);[...$("setSpeed").children].forEach(x=>x.classList.toggle("active",+x.dataset.sp===SPEED));$("setRepeat").classList.toggle("on",REPEAT);})();
 
 /* 暗記モード（会話・単語で共有） */
 function toggleHide(){const on=!document.body.classList.contains("hidden");document.body.classList.toggle("hidden",on);document.querySelectorAll("#switch,#switch2").forEach(s=>s.classList.toggle("on",on));document.querySelectorAll(".show").forEach(e=>e.classList.remove("show"));}
@@ -454,7 +455,16 @@ async function toggleRec(){const btn=$("fRec");if(recState){try{mediaRec.stop();
   catch(e){alert("マイクを使用できません。権限をご確認ください。");}
 }
 function playRec(){if(recURL){new Audio(recURL).play();}}
-function shareCard(){if(!deck.length)return;const c=deck[fi];const text=c.w+"（"+c.ja+"）— インドネシア語学習 Artikula";if(navigator.share){navigator.share({text:text}).catch(()=>{});}else if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>alert("コピーしました")).catch(()=>{});}else alert(text);}
+function _wrapText(ctx,text,cx,y,maxW,lh){var words=(text||"").split(" "),line="",lines=[];for(var i=0;i<words.length;i++){var t=line?line+" "+words[i]:words[i];if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=words[i];}else line=t;}if(line)lines.push(line);var yy=y-(lines.length-1)*lh/2;for(var j=0;j<lines.length;j++)ctx.fillText(lines[j],cx,yy+j*lh);}
+function shareCard(){if(!deck.length)return;const c=deck[fi];const W=800,H=800;const cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#d5384a");g.addColorStop(0.55,"#c1272d");g.addColorStop(1,"#9c1622");x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.textAlign="center";x.fillStyle="#ffe6a3";x.font="600 36px Georgia,serif";x.fillText("Artikula",W/2,108);
+  x.fillStyle="rgba(255,224,140,.85)";x.fillRect(W/2-55,138,110,4);
+  x.fillStyle="#ffffff";x.font="800 90px Georgia,serif";_wrapText(x,c.w,W/2,320,W-110,96);
+  x.fillStyle="#ffd76a";x.font="700 48px sans-serif";_wrapText(x,c.ja,W/2,470,W-150,60);
+  if(c.ex){x.fillStyle="rgba(255,255,255,.92)";x.font="italic 30px Georgia,serif";_wrapText(x,c.ex[0],W/2,600,W-150,42);x.fillStyle="rgba(255,255,255,.72)";x.font="26px sans-serif";_wrapText(x,c.ex[1],W/2,682,W-150,36);}
+  x.fillStyle="rgba(255,255,255,.6)";x.font="22px sans-serif";x.fillText("tkagiha.github.io/distinksi",W/2,762);
+  cv.toBlob(function(blob){if(!blob)return;var file=new File([blob],"artikula-"+c.w+".png",{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],text:c.w+"（"+c.ja+"）Artikula"}).catch(function(){});}else{var a2=document.createElement("a");a2.href=URL.createObjectURL(blob);a2.download=file.name;document.body.appendChild(a2);a2.click();a2.remove();setTimeout(function(){URL.revokeObjectURL(a2.href);},1500);}},"image/png");}
 
 function allAudio(){const s=new Set();const add=p=>{if(p)s.add(p);};
   WORDS.forEach(w=>{add(w.audio);w.ex.forEach(e=>add(e[2]));});
