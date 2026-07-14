@@ -16,7 +16,7 @@ const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const SUF=["nya","lah","kah","ku","mu","kan"];
 const norm=t=>t.toLowerCase().replace(/[.,!?;:"“”'()）（]/g,"").trim();
 function look(n){if(GLOSS[n])return GLOSS[n];for(const s of SUF){if(n.endsWith(s)&&GLOSS[n.slice(0,-s.length)])return GLOSS[n.slice(0,-s.length)];}return null;}
-function wrapWords(t){return t.split(/(\s+)/).map(p=>{if(/^\s*$/.test(p))return p;const nn=norm(p),m=look(nn);return m?`<span class="tok known" data-m="${esc(m)}" data-w="${esc(nn)}">${esc(p)}</span>`:`<span class="tok">${esc(p)}</span>`;}).join("");}
+function wrapWords(t){return t.split(/(\s+)/).map(p=>{if(/^\s*$/.test(p))return p;const nn=norm(p),m=look(nn);return nn?(m?`<span class="tok known" data-m="${esc(m)}" data-w="${esc(nn)}">${esc(p)}</span>`:`<span class="tok tapable" data-w="${esc(nn)}">${esc(p)}</span>`):`<span class="tok">${esc(p)}</span>`;}).join("");}
 const spkBtn=(a,t)=>`<button class="spk" data-audio="${esc(a)}" data-text="${esc(t)}">${SPK}</button>`;
 
 /* 音声（速度・リピート対応） */
@@ -36,14 +36,21 @@ function playSeq(words,btn){playList(wordsToSrcs(words),btn);}
 
 /* 委譲 */
 const pop=$("pop");let popTmr=null;
-function showPop(el){const w=el.getAttribute("data-w"),m=el.getAttribute("data-m");pop.innerHTML=`<span class="pw">${esc(w)}</span>${esc(m)}`;const r=el.getBoundingClientRect();pop.style.left=(r.left+r.width/2)+"px";pop.style.top=(r.top-8)+"px";pop.classList.add("on");clearTimeout(popTmr);popTmr=setTimeout(()=>pop.classList.remove("on"),2600);play(WORDAUDIO[w]||("audio/w/"+w.replace(/\//g,"_")+".mp3"),w,null);}
+var _trCache={};
+function translateWord(w){if(_trCache[w]!=null)return Promise.resolve(_trCache[w]);return fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=id&tl=ja&dt=t&q="+encodeURIComponent(w)).then(function(r){return r.json();}).then(function(d){var t=(d&&d[0])?d[0].map(function(s){return s[0];}).join(""):"";_trCache[w]=t;return t;}).catch(function(){return"";});}
+function showPop(el){const w=el.getAttribute("data-w");const m=el.getAttribute("data-m")||GLOSS[w];const r=el.getBoundingClientRect();pop.dataset.w=w;
+  function place(txt){pop.innerHTML='<span class="pw">'+esc(w)+'</span>'+txt;pop.style.left=(r.left+r.width/2)+"px";pop.style.top=(r.top-8)+"px";pop.classList.add("on");clearTimeout(popTmr);popTmr=setTimeout(function(){pop.classList.remove("on");},2800);}
+  play(WORDAUDIO[w]||("audio/w/"+w.replace(/\//g,"_")+".mp3"),w,null);
+  if(m){place(esc(m));return;}
+  place("…");
+  translateWord(w).then(function(tr){if(tr)GLOSS[w]=tr;if(pop.dataset.w===w&&pop.classList.contains("on"))place(esc(tr||"（訳なし）"));});}
 /* 単一の委譲クリックハンドラ（音声・辞書・カルーセル・ホーム遷移・ブックマーク・意味表示） */
 document.addEventListener("click",e=>{
   const pb=e.target.closest("[data-audio]");if(pb){e.stopPropagation();play(pb.dataset.audio,pb.dataset.text||"",pb);return;}
   const bk=e.target.closest("[data-book]");if(bk){e.stopPropagation();try{toggleBook(JSON.parse(bk.getAttribute("data-book")));if($("bookOv").classList.contains("on"))renderBookmarks();}catch(_){}return;}
   const nav=e.target.closest("[data-nav]");if(nav){const[k,d]=nav.dataset.nav.split(":");if(CAR[k])CAR[k].step(+d);return;}
   const gt=e.target.closest("[data-goto]");if(gt){openTarget(gt.dataset.goto);return;}
-  const tok=e.target.closest(".tok.known");if(tok){e.stopPropagation();showPop(tok);return;}
+  const tok=e.target.closest(".tok[data-w]");if(tok){e.stopPropagation();showPop(tok);return;}
   const rev=e.target.closest("[data-reveal]");if(rev&&(document.body.classList.contains("hidden")||document.body.classList.contains("roleplay"))){rev.classList.toggle("show");return;}
   pop.classList.remove("on");
 });
