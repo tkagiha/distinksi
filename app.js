@@ -359,7 +359,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
-  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');renderArch(el);}
+  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
