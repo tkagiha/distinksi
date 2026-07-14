@@ -80,8 +80,8 @@ const SECTIONS=[
   {id:"learn",label:"学ぶ",icon:"i-book",tabs:[["learn","ことば"],["num","数字"]]},
   {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"]]},
   {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
-  {id:"read",label:"読む",icon:"i-read",tabs:[["reads","読み物"],["news","ニュース"],["talk","会話"],["scan","看板"]]},
-  {id:"more",label:"その他",icon:"i-more",tabs:[["dict","辞書"]]}
+  {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"],["scan","看板"]]},
+  {id:"more",label:"辞書",icon:"i-search",tabs:[["dict","辞書"]]}
 ];
 const TABS=SECTIONS.flatMap(s=>s.tabs);
 function sectionOf(v){return SECTIONS.find(s=>s.tabs.some(t=>t[0]===v));}
@@ -462,6 +462,7 @@ function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");docu
 function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
 try{if(window.matchMedia)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){if(LS("dks_theme","auto")==="auto")applyTheme("auto");});}catch(e){}
 $("btnSettings").onclick=()=>$("setOv").classList.add("on");
+(function(){var _nm=$("setName");if(_nm){_nm.value=LS("dks_name","");_nm.addEventListener("input",function(){SV("dks_name",_nm.value.trim());renderGreet();});}})();
 var _stEl=$("setTheme");if(_stEl)_stEl.addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b)applyTheme(b.dataset.th);});
 $("setFont").addEventListener("click",e=>{const b=e.target.closest("[data-fs]");if(b)applyFont(b.dataset.fs);});
 $("setSpeed").addEventListener("click",e=>{const b=e.target.closest("[data-sp]");if(!b)return;SPEED=+b.dataset.sp;SV("dks_speed",SPEED);[...$("setSpeed").children].forEach(x=>x.classList.toggle("active",x===b));});
@@ -498,9 +499,11 @@ renderBookCount();
 let ACT=LS("dks_act",{date:"",streak:0,today:0,goal:10});
 const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
 function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();}
+function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
+function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
-  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();}
+  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();}
 function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();celebrate(first?("🔥 "+ACT.streak+" 日連続！ チェックイン完了"):"🎉 今日ももう一度！ その調子！");}
 function celebrate(msg){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
