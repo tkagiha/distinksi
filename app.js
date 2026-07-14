@@ -279,6 +279,41 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
   if(auto&&!fFlip){play(c.audio,c.w,$("fSpk"));if(typeof bumpActivity==="function")bumpActivity();}
 }
 function mark(s){if(!deck.length)return;const w=deck[fi].w;status[w]=s;SV("dks_status",status);const tn=todayNum();if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}else{srs[w]={lvl:1,due:tn+1};}SV("dks_srs",srs);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
+/* 群島プログレス（記録タブ） */
+const ARCH_CLUSTERS=[
+ {id:"sumatra",name:"Sumatra",cx:92,cy:118,rx:46,ry:80,n:30},
+ {id:"jawa",name:"Jawa",cx:180,cy:206,rx:66,ry:18,n:28},
+ {id:"kalimantan",name:"Kalimantan",cx:262,cy:92,rx:60,ry:60,n:30},
+ {id:"bali",name:"Bali\u30fbNusa Tenggara",cx:338,cy:214,rx:74,ry:15,n:24},
+ {id:"sulawesi",name:"Sulawesi",cx:400,cy:120,rx:38,ry:60,n:26},
+ {id:"maluku",name:"Maluku",cx:478,cy:128,rx:28,ry:54,n:18},
+ {id:"papua",name:"Papua",cx:566,cy:118,rx:58,ry:70,n:30}
+];
+function _mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let _archDots=null,_archLit=null;
+function _archBuild(){if(_archDots)return _archDots;const rnd=_mulberry32(20240714);const dots=[];
+  ARCH_CLUSTERS.forEach((c,ci)=>{let placed=0,guard=0;while(placed<c.n&&guard<c.n*60){guard++;
+    const x=c.cx+(rnd()*2-1)*c.rx,y=c.cy+(rnd()*2-1)*c.ry,nx=(x-c.cx)/c.rx,ny=(y-c.cy)/c.ry;
+    if(nx*nx+ny*ny<=1){dots.push({x:x,y:y,ci:ci});placed++;}}});
+  const order=dots.map((d,i)=>i).sort((p,q)=>dots[p].x-dots[q].x);order.forEach((idx,rank)=>dots[idx].rank=rank);
+  _archDots=dots;return dots;}
+function renderArch(el){const dots=_archBuild(),total=dots.length;
+  const known=Object.values(LS("dks_status",{})).filter(v=>v==="known").length;
+  const lit=Math.min(total,Math.floor(known/5)),pct=Math.round(lit/total*100);
+  const firstRender=(_archLit==null),prev=firstRender?lit:_archLit;
+  const maxRank={};dots.forEach(d=>{if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
+  const complete=ci=>maxRank[ci]<lit;
+  const circ=dots.map(d=>{const on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="3" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
+  const labels=ARCH_CLUSTERS.map((c,ci)=>'<text x="'+c.cx+'" y="'+(c.cy+c.ry+13).toFixed(0)+'" text-anchor="middle" class="alabel'+(complete(ci)?" done":"")+'">'+c.name+'</text>').join("");
+  let footer;const inc=ARCH_CLUSTERS.map((c,ci)=>ci).filter(ci=>!complete(ci));
+  if(inc.length===0){footer='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
+  else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)*5-known;if(r<rem){rem=r;best=ci;}});
+    footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+labels+'</svg><div class="archfoot">'+footer+'</div></div>');
+  const arch=LS("dks_arch",[]);let changed=false;
+  ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
+  if(changed)SV("dks_arch",arch);
+  _archLit=lit;}
 function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,weak=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
   CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="weak")weak++;if(srs[c.w]&&srs[c.w].due<=tn)due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
   const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
@@ -291,7 +326,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
-  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');}
+  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');renderArch(el);}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
@@ -436,16 +471,17 @@ function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);c
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;}
 function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();celebrate(first?("🔥 "+ACT.streak+" 日連続！ チェックイン完了"):"🎉 今日ももう一度！ その調子！");}
 function celebrate(msg){
-  const colors=["#c0392b","#e0a92b","#2e86c1","#3f9d63","#8e44ad","#e2566a","#ffd36b","#16a085"];
-  const emo=["🎉","✨","⭐","🔥","💥","🎊","🌟"];
-  for(let i=0;i<64;i++){const p=document.createElement("div");
-    if(i%5===0){p.className="confetti emoji";p.textContent=emo[i%emo.length];}
-    else{p.className="confetti";p.style.background=colors[i%colors.length];}
-    p.style.left=(6+Math.random()*88)+"vw";p.style.setProperty("--x",(Math.random()*340-170)+"px");p.style.setProperty("--r",(Math.random()*1200-600)+"deg");
-    p.style.animationDelay=(Math.random()*.28)+"s";p.style.animationDuration=(1.2+Math.random()*1)+"s";
-    document.body.appendChild(p);setTimeout(()=>p.remove(),2400);}
-  const fl=document.createElement("div");fl.className="celflash";document.body.appendChild(fl);setTimeout(()=>fl.remove(),560);
-  const pop=document.createElement("div");pop.className="celpop";pop.textContent="🎉";document.body.appendChild(pop);setTimeout(()=>pop.remove(),950);
+  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(!rm){const cx=window.innerWidth/2,cy=window.innerHeight*0.28,n=16;
+    for(let i=0;i<n;i++){const s=document.createElement("div");s.className="spark";
+      s.style.background=(i%10<7)?"var(--gold)":"var(--hl)";
+      const sz=4+Math.random()*2;s.style.width=s.style.height=sz+"px";
+      const ang=(i/n)*Math.PI*2+Math.random()*0.35,dist=68+Math.random()*72;
+      s.style.left=cx+"px";s.style.top=cy+"px";
+      s.style.setProperty("--dx",(Math.cos(ang)*dist).toFixed(1)+"px");
+      s.style.setProperty("--dy",(Math.sin(ang)*dist).toFixed(1)+"px");
+      s.style.animationDelay=(Math.random()*.08).toFixed(3)+"s";
+      document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}}
   const tst=document.createElement("div");tst.className="celtoast";tst.textContent=msg;document.body.appendChild(tst);
   requestAnimationFrame(()=>tst.classList.add("show"));setTimeout(()=>{tst.classList.remove("show");setTimeout(()=>tst.remove(),350);},1900);
   if(navigator.vibrate)try{navigator.vibrate([15,30,15,30,25]);}catch(e){}
@@ -455,7 +491,7 @@ renderHomeStats();
 let mediaRec=null,recURL=null,recState=0;
 async function toggleRec(){const btn=$("fRec");if(recState){try{mediaRec.stop();}catch(e){}return;}
   if(!navigator.mediaDevices||!window.MediaRecorder){alert("この端末では録音に対応していません。");return;}
-  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mr=new MediaRecorder(st);const ch=[];mr.ondataavailable=e=>ch.push(e.data);mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());if(recURL)URL.revokeObjectURL(recURL);recURL=URL.createObjectURL(new Blob(ch));$("fPlayRec").disabled=false;recState=0;btn.classList.remove("rec");btn.textContent="🎙️ 録音";};mediaRec=mr;mr.start();recState=1;btn.classList.add("rec");btn.textContent="■ 停止";}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mr=new MediaRecorder(st);const ch=[];mr.ondataavailable=e=>ch.push(e.data);mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());if(recURL)URL.revokeObjectURL(recURL);recURL=URL.createObjectURL(new Blob(ch));$("fPlayRec").disabled=false;recState=0;btn.classList.remove("rec");btn.innerHTML='<svg class="icn"><use href="#i-mic"/></svg> 録音';};mediaRec=mr;mr.start();recState=1;btn.classList.add("rec");btn.textContent="■ 停止";}
   catch(e){alert("マイクを使用できません。権限をご確認ください。");}
 }
 function playRec(){if(recURL){new Audio(recURL).play();}}
