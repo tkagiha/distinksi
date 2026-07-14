@@ -58,6 +58,11 @@
   .dstat{flex:1;text-align:center;background:var(--line2);border-radius:12px;padding:12px 6px}
   .dstat b{display:block;font-size:24px;color:var(--hl);font-weight:800}
   .dstat span{font-size:11.5px;color:var(--sub)}
+  .proverb{background:linear-gradient(135deg,rgba(201,155,52,.11),rgba(192,57,43,.06));border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:14px;padding:14px 16px;margin:4px 0 14px}
+  .proverb .pvlabel{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:8px}
+  .proverb .pvid{display:flex;align-items:flex-start;gap:9px;font-size:16px;font-style:italic}
+  .proverb .pvid .t{flex:1}
+  .proverb .pvja{font-size:13.5px;color:var(--sub);margin:6px 0 0 43px}
   .heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);grid-auto-columns:11px;gap:3px;justify-content:start;overflow-x:auto;padding-bottom:2px}
   .hmcell{width:11px;height:11px;border-radius:3px}
   .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px}
@@ -387,6 +392,7 @@
       <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。さあ、最初の一歩をここから。</p>
       <button id="installBtn" class="install-btn" hidden>📲 アプリを追加</button>
     </div>
+    <div id="homeProverb"></div>
     <div id="homeStats"></div>
     <div id="homeCards"></div>
   </div>
@@ -480,8 +486,8 @@
 
 <footer class="wrap">Made with <b>♥</b> for Japanese learners of Indonesian ・ Selamat belajar!</footer>
 
-<script src="data.js?v=w1"></script>
+<script src="data.js?v=w2"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
