@@ -30,6 +30,8 @@
   .hicons{display:flex;gap:6px}
   .hicons button{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .hicons button:active{transform:scale(.92)}
+  .hicons button[hidden]{display:none}
+  .hicons #btnInstall svg{width:17px;height:17px}
   /* main tabs */
   .maintabs{position:sticky;top:56px;z-index:39;background:var(--bg);border-bottom:1px solid var(--line);display:flex;overflow-x:auto;scrollbar-width:none}
   .maintabs::-webkit-scrollbar{display:none}
@@ -381,7 +383,7 @@
       </svg>
       <span class="lt">Artik<b>ula</b></span>
     </div>
-    <div class="hicons"><button id="btnBook" title="ブックマーク" aria-label="ブックマーク">★</button><button id="btnSearch" title="検索" aria-label="検索">🔍</button><button id="btnSettings" title="設定" aria-label="設定">⚙️</button></div>
+    <div class="hicons"><button id="btnBook" title="ブックマーク" aria-label="ブックマーク">★</button><button id="btnSearch" title="検索" aria-label="検索">🔍</button><button id="btnSettings" title="設定" aria-label="設定">⚙️</button><button id="btnInstall" title="アプリを追加" aria-label="アプリを追加" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M7 9l5 5 5-5"/><path d="M5 21h14"/></svg></button></div>
   </div>
 </header>
 <nav class="maintabs"><div class="wrapf" id="mainTabs"></div></nav>
@@ -391,7 +393,6 @@
     <div class="hero"><div class="eyebrow">Bahasa Indonesia</div>
       <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
       <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。さあ、最初の一歩をここから。</p>
-      <button id="installBtn" class="install-btn" hidden>📲 アプリを追加</button>
     </div>
     <div id="homeProverb"></div>
     <div id="homeStats"></div>
@@ -490,6 +491,6 @@
 
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
