@@ -507,7 +507,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 
 /* 起動スプラッシュ演出 */
 (function(){const sp=$("splash");if(!sp)return;let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();},600);}
-  sp.addEventListener("click",done);setTimeout(done,3050);})();
+  sp.addEventListener("click",done);setTimeout(done,2600);})();
 
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
@@ -523,9 +523,22 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 let _tessP=null;
 function ensureTesseract(cb){if(window.Tesseract)return cb();if(_tessP){_tessP.then(cb);return;}_tessP=new Promise(function(res,rej){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});_tessP.then(cb).catch(function(){var st=$("scanStatus");if(st)st.textContent="読み取りエンジンの読み込みに失敗しました。通信環境をご確認ください。";});}
 var _scanInit=false;
-function buildScan(){if(_scanInit)return;_scanInit=true;$("scanPick").onclick=function(){$("scanFile").click();};
-  $("scanFile").onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value="";var url=URL.createObjectURL(f);var prev=$("scanPrev");prev.src=url;prev.hidden=false;$("scanResult").innerHTML="";$("scanStatus").textContent="読み取りエンジンを準備中…（初回は少し時間がかかります）";
-    ensureTesseract(function(){$("scanStatus").textContent="読み取り中… 0%";Tesseract.recognize(f,"ind",{logger:function(m){var st=$("scanStatus");if(m.status==="recognizing text"&&st)st.textContent="読み取り中… "+Math.round((m.progress||0)*100)+"%";}}).then(function(r){renderScan(((r.data&&r.data.text)||"").trim());}).catch(function(){$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";});});};}
+function buildScan(){if(_scanInit)return;_scanInit=true;
+  $("scanPick").onclick=function(){$("scanFile").click();};
+  var g=$("scanPickGal");if(g)g.onclick=function(){$("scanFileGal").click();};
+  $("scanFile").onchange=function(e){scanHandle(e.target.files&&e.target.files[0]);e.target.value="";};
+  if($("scanFileGal"))$("scanFileGal").onchange=function(e){scanHandle(e.target.files&&e.target.files[0]);e.target.value="";};}
+function scanPrep(bm){var w=bm.width,h=bm.height,L=Math.max(w,h);var s=L<1100?1100/L:(L>2200?2200/L:1);var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));var c=document.createElement("canvas");c.width=cw;c.height=ch;var x=c.getContext("2d");x.drawImage(bm,0,0,cw,ch);try{var d=x.getImageData(0,0,cw,ch),p=d.data;for(var i=0;i<p.length;i+=4){var v=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];v=(v-128)*1.45+128;v=v<0?0:v>255?255:v;p[i]=p[i+1]=p[i+2]=v;}x.putImageData(d,0,0);}catch(_){}return c;}
+function scanHandle(f){if(!f)return;var url=URL.createObjectURL(f);var prev=$("scanPrev");prev.src=url;prev.hidden=false;$("scanResult").innerHTML="";$("scanStatus").textContent="読み取りエンジンを準備中…（初回は少し時間がかかります）";
+  ensureTesseract(function(){
+    var run=function(input){$("scanStatus").textContent="読み取り中… 0%";(async function(){var wk;try{
+        wk=await Tesseract.createWorker("ind+eng",1,{logger:function(m){var st=$("scanStatus");if(m.status==="recognizing text"&&st)st.textContent="読み取り中… "+Math.round((m.progress||0)*100)+"%";}});
+        await wk.setParameters({preserve_interword_spaces:"1",tessedit_pageseg_mode:"3"});
+        var r=await wk.recognize(input);await wk.terminate();
+        renderScan(((r.data&&r.data.text)||"").trim());
+      }catch(err){try{if(wk)await wk.terminate();}catch(_){}$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";}})();};
+    if(window.createImageBitmap){createImageBitmap(f).then(function(bm){run(scanPrep(bm));}).catch(function(){run(f);});}else run(f);
+  });}
 function renderScan(text){var st=$("scanStatus"),res=$("scanResult");if(!text){st.textContent="文字が見つかりませんでした。明るく・正面から・大きめに写すと読み取りやすいです。";res.innerHTML="";return;}st.textContent="読み取り完了 ✓ 単語をタップで意味・発音";var lines=text.split(/\n+/).map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
   res.innerHTML=lines.map(function(l){return '<div class="scanline panelcard"><div class="scanid">'+spkBtn("",l)+'<span class="t">'+wrapWords(l)+'</span></div><div class="scanja">翻訳中…</div></div>';}).join("");
   var jaEls=res.querySelectorAll(".scanja");lines.forEach(function(l,i){translateWord(l).then(function(tr){if(jaEls[i])jaEls[i].textContent=tr||"（訳なし）";});});}
