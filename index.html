@@ -65,7 +65,8 @@
   .proverb .pvid{display:flex;align-items:flex-start;gap:9px;font-size:16px;font-style:italic}
   .proverb .pvid .t{flex:1}
   .proverb .pvja{font-size:13.5px;color:var(--sub);margin:6px 0 0 43px}
-  .scanbtn{display:inline-flex;padding:12px 20px;font-size:15px;margin-top:8px}
+  .scanbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .scanbtn{display:inline-flex;padding:12px 20px;font-size:15px}
   .scanprev{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:14px;border:1px solid var(--line);margin:14px 0 6px;background:var(--line2)}
   .scanstatus{font-size:13px;color:var(--sub);margin:6px 0 12px;min-height:18px}
   .scanline{padding:14px 16px;margin-bottom:10px}
@@ -357,23 +358,33 @@
   footer b{color:var(--hl)}
   @media(max-width:520px){.hero h1{font-size:27px}.headline .word{font-size:24px}}
   /* 起動スプラッシュ（インドネシア国旗風） */
-  .splash{position:fixed;inset:0;z-index:9999;background:#c1272d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;transition:opacity .55s ease}
+  .splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(130% 105% at 50% 28%,#d02a31 0%,#b81f27 55%,#8f151d 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;transition:opacity .5s ease}
   .splash.hide{opacity:0;pointer-events:none}
-  .splash .brand{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px;transform:translateY(-7%);animation:splashIn .85s cubic-bezier(.22,.61,.36,1) both}
-  .splash .splogo{width:84px;height:84px;border-radius:22px;box-shadow:0 14px 34px rgba(0,0,0,.38),0 0 0 1.5px rgba(255,226,150,.55);background:#fff;margin-bottom:4px}
-  .splash .wm{font-family:Georgia,"Hiragino Mincho ProN","Times New Roman",serif;font-size:42px;font-weight:600;letter-spacing:5px;padding-left:5px;line-height:1;background:linear-gradient(180deg,#fff7e2 0%,#f7de99 46%,#d8ac4e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 7px rgba(0,0,0,.38))}
-  .splash .tagline{font-size:10.5px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,239,208,.82);margin-top:1px;padding-left:7px}
-  .splash .wmrule{width:44px;height:1.5px;margin-top:9px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.85),transparent)}
-  @keyframes splashIn{from{opacity:0;transform:translateY(calc(-7% + 16px)) scale(.9)}to{opacity:1;transform:translateY(-7%) scale(1)}}
-  .splash .wave{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;animation:waveUp 2.3s .5s cubic-bezier(.4,.08,.35,1) forwards}
-  .splash .wave::before{content:"";position:absolute;left:-5%;right:-5%;top:-26px;height:52px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0}
-  @keyframes waveUp{0%{height:0}64%{height:18%}100%{height:118%}}
-  @media(prefers-reduced-motion:reduce){.splash .brand,.splash .wave{animation-duration:.01s}}
+  .splash .brand{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transform:translateY(-7%);animation:brandLift .8s 1s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes brandLift{from{bottom:0;transform:translateY(-7%)}to{bottom:38%;transform:none}}
+  .splash .splogo{width:84px;height:84px;border-radius:22px;background:#fff;margin-bottom:4px;box-shadow:0 14px 34px rgba(0,0,0,.38),0 0 0 1.5px rgba(255,226,150,.55);animation:splLogo .8s cubic-bezier(.16,1,.3,1) both}
+  @keyframes splLogo{from{opacity:0;transform:translateY(10px) scale(.92)}to{opacity:1;transform:none}}
+  .splash .wm{position:relative;font-family:Georgia,"Hiragino Mincho ProN","Times New Roman",serif;font-size:42px;font-weight:600;line-height:1;padding-left:5px;background:linear-gradient(180deg,#fff7e2 0%,#f7de99 46%,#d8ac4e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 7px rgba(0,0,0,.38));animation:splWm .9s .18s cubic-bezier(.16,1,.3,1) both}
+  @keyframes splWm{from{opacity:0;transform:translateY(12px);letter-spacing:13px}to{opacity:1;transform:none;letter-spacing:5px}}
+  .splash .wm::after{content:attr(data-t);position:absolute;inset:0;padding-left:5px;letter-spacing:inherit;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);background-size:280% 100%;background-position:130% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:wmShine 1.15s .9s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes wmShine{to{background-position:-130% 0}}
+  .splash .tagline{font-size:10.5px;text-transform:uppercase;color:rgba(255,239,208,.82);margin-top:1px;padding-left:7px;animation:splTag .8s .55s cubic-bezier(.16,1,.3,1) both,tagOut .4s 1s ease forwards}
+  @keyframes tagOut{to{opacity:0;transform:translateY(6px)}}
+  @keyframes splTag{from{opacity:0;letter-spacing:10px}to{opacity:1;letter-spacing:6px}}
+  .splash .wmrule{width:44px;height:1.5px;margin-top:9px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.85),transparent);transform-origin:center;animation:splRule .7s .42s cubic-bezier(.16,1,.3,1) both}
+  @keyframes splRule{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
+  .splash .flag{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;box-shadow:0 -14px 36px rgba(0,0,0,.14);animation:flagUp .8s 1s cubic-bezier(.16,1,.3,1) forwards}
+  .splash .flag::before{content:"";position:absolute;left:0;right:0;top:-1.5px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.9) 30%,rgba(255,224,140,.9) 70%,transparent)}
+  @keyframes flagUp{from{height:0}to{height:50%}}
+  .splash .tag2{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:10.5px;letter-spacing:6px;text-transform:uppercase;color:#8f151d;opacity:0;animation:tag2In .6s 1.5s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes tag2In{from{opacity:0;transform:translateY(calc(-50% + 8px))}to{opacity:.9;transform:translateY(-50%)}}
+  @media(max-height:520px){.splash .splogo{width:64px;height:64px}.splash .wm{font-size:34px}}
+  @media(prefers-reduced-motion:reduce){.splash .splogo,.splash .wm,.splash .wm::after,.splash .tagline,.splash .wmrule,.splash .flag,.splash .brand,.splash .tag2{animation-duration:.01s;animation-delay:0s}}
 </style>
 </head>
 <body class="fs-m">
 
-<div id="splash" class="splash" aria-hidden="true"><div class="brand"><img class="splogo" src="icon-192.png" alt="Artikula"><div class="wm">Artikula</div><div class="tagline">Bahasa Indonesia</div><div class="wmrule"></div></div><div class="wave"></div></div>
+<div id="splash" class="splash" aria-hidden="true"><div class="brand"><img class="splogo" src="icon-192.png" alt="Artikula"><div class="wm" data-t="Artikula">Artikula</div><div class="tagline">Bahasa Indonesia</div><div class="wmrule"></div></div><div class="flag"><div class="tag2">Bahasa Indonesia</div></div></div>
 
 <header>
   <div class="wrap nav">
@@ -468,7 +479,8 @@
 
   <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>看板を読む</h2><p>写真の中のインドネシア語を読み取り、意味を表示。単語タップで発音・意味。</p></div>
     <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
-    <button class="chip scanbtn" id="scanPick">📷 写真を撮る / 選ぶ</button>
+    <input type="file" id="scanFileGal" accept="image/*" hidden>
+    <div class="scanbtns"><button class="chip scanbtn" id="scanPick">📷 撮影</button><button class="chip scanbtn" id="scanPickGal">🖼️ 画像を選ぶ</button></div>
     <img id="scanPrev" class="scanprev" hidden alt="preview">
     <div id="scanStatus" class="scanstatus"></div>
     <div id="scanResult"></div>
@@ -506,6 +518,6 @@
 
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>
