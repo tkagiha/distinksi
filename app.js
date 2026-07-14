@@ -307,11 +307,11 @@ function mcQ(){const pool=CARDS.filter(c=>c.ja&&c.audio);const c=rnd(pool);const
   const listen=qMode==="listen";
   $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう":"この単語の意味は？"}</div>
    <div class="qword">${listen?spkBtn(c.audio,c.w).replace('class="spk"','class="spk" style="width:52px;height:52px"'):esc(c.w)+" "+spkBtn(c.audio,c.w)}</div>
-   <div class="qopts">${opts.map(o=>`<button data-ok="${o.ja===c.ja?1:0}">${esc(o.ja)}</button>`).join("")}</div>
+   <div class="qopts">${opts.map(o=>`<button data-ok="${o.ja===c.ja?1:0}" data-w="${esc(o.w)}" data-au="${esc(o.audio||"")}">${esc(o.ja)}</button>`).join("")}</div>
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   if(listen)setTimeout(()=>play(c.audio,c.w,null),200);
   const opt=$("qBody").querySelectorAll(".qopts button");
-  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent="Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;qStat(listen?"listen":"mean",ok);if(typeof bumpActivity==="function")bumpActivity();}));
+  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent="Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":"mean",ok);if(typeof bumpActivity==="function")bumpActivity();}));
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").length;return n>=3&&n<=6;});const c=rnd(pool);const words=c.ex[0].replace(/[.?!,]/g,"").split(" ");const jum=shuf(words.slice());
