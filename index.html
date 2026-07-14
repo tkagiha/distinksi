@@ -351,6 +351,14 @@
   .celtoast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);z-index:95;background:#211c14;color:#f4e8c8;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;letter-spacing:.02em;box-shadow:0 12px 34px rgba(0,0,0,.42);opacity:0;transition:opacity .32s,transform .32s;pointer-events:none;display:flex;align-items:center;gap:12px;border:1px solid rgba(201,155,52,.42)}
   .celtoast::before,.celtoast::after{content:"";width:20px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);flex:none}
   .celtoast.show{opacity:1;transform:translate(-50%,0)}
+  .fcheckout{font-size:13px;color:var(--sub);text-align:center;margin:8px 0 2px;min-height:18px;line-height:1.5}
+  .pscore{font-weight:800;font-size:15px}
+  .pscore.good{color:#2e7d4f}
+  [data-theme="dark"] .pscore.good{color:#63c48c}
+  .pscore.mid{color:var(--gold)}
+  .pscore.low{color:var(--hl)}
+  .pheard{font-size:11.5px;color:var(--sub);margin-top:3px}
+  #fCheck.rec{background:var(--hl);color:#fff;border-color:var(--hl);animation:pulse 1s infinite}
   .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:14px auto 2px}
   .numpad button{padding:14px 0;font-size:19px;font-family:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;cursor:pointer;transition:transform .1s,background .15s;font-weight:600}
   .numpad button:active{transform:scale(.95);background:var(--line2)}
@@ -562,7 +570,8 @@
       <div class="fcard panelcard" id="fcard"><div class="ftags" id="ftags"></div><div style="width:100%"><div class="fword" id="fword"></div><div class="fkata" id="fkata"></div><div class="fmean" id="fmean"></div><div class="fex" id="fex"></div></div><div class="fhint">タップで裏返す</div></div>
       <div class="fctrl"><button class="arrow" id="fPrev">←</button><button class="spk" id="fSpk"></button><span class="counter" id="fCount"></span><button class="arrow" id="fShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg></button><button class="arrow" id="fNext">→</button></div>
       <div class="srsrow"><button class="weak" id="srsWeak">✗ 苦手</button><button class="known" id="srsKnown">✓ 覚えた</button></div>
-      <div class="fextra"><button id="fBook" aria-label="ブックマーク">★ 保存</button><button id="fRec" aria-label="録音"><svg class="icn"><use href="#i-mic"/></svg> 録音</button><button id="fPlayRec" aria-label="自分の声を再生" disabled><svg class="icn"><use href="#i-play"/></svg> 自分</button><button id="fShare" aria-label="共有"><svg class="icn"><use href="#i-share"/></svg> 共有</button></div>
+      <div class="fextra"><button id="fBook" aria-label="ブックマーク">★ 保存</button><button id="fRec" aria-label="録音"><svg class="icn"><use href="#i-mic"/></svg> 録音</button><button id="fPlayRec" aria-label="自分の声を再生" disabled><svg class="icn"><use href="#i-play"/></svg> 自分</button><button id="fShare" aria-label="共有"><svg class="icn"><use href="#i-share"/></svg> 共有</button><button id="fCheck" aria-label="発音チェック"><svg class="icn"><use href="#i-mic"/></svg> 発音</button></div>
+      <div id="fCheckOut" class="fcheckout"></div>
     </div>
     <div class="pane" id="p-quiz"></div>
     <div class="pane" id="p-daily"></div>
@@ -646,6 +655,6 @@
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>
