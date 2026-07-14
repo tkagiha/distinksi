@@ -76,18 +76,35 @@ function lazyCarousel(track,count,renderFn,countEl,prevSel,nextSel,onIndex){
 const CAR={};
 
 /* ===== メインタブ ルーター ===== */
-const TABS=[["home","ホーム"],["learn","学ぶ"],["practice","練習"],["talk","会話"],["num","数字"],["scan","カメラ"],["news","ニュース"],["reads","読み物"],["dict","辞書"]];
-$("mainTabs").innerHTML=TABS.map(([v,l])=>`<button data-tab="${v}" class="${v==='home'?'active':''}">${l}</button>`).join("");
+const SECTIONS=[
+  {id:"learn",label:"学ぶ",icon:"i-book",tabs:[["learn","ことば"],["num","数字"]]},
+  {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"]]},
+  {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
+  {id:"read",label:"読む",icon:"i-read",tabs:[["reads","読み物"],["news","ニュース"],["talk","会話"],["scan","看板"]]},
+  {id:"more",label:"その他",icon:"i-more",tabs:[["dict","辞書"]]}
+];
+const TABS=SECTIONS.flatMap(s=>s.tabs);
+function sectionOf(v){return SECTIONS.find(s=>s.tabs.some(t=>t[0]===v));}
+$("botNav").innerHTML=SECTIONS.map(s=>s.id==="home"
+  ?`<button class="bnav bfab" data-sec="home" aria-label="ホーム"><span class="fabb"><svg class="bic"><use href="#i-home"/></svg></span><span>ホーム</span></button>`
+  :`<button class="bnav" data-sec="${s.id}" aria-label="${s.label}"><svg class="bic"><use href="#${s.icon}"/></svg><span>${s.label}</span></button>`).join("");
 const INIT={};
 function showView(v,dir){
   document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.dataset.view===v));
-  [...$("mainTabs").children].forEach(b=>b.classList.toggle("active",b.dataset.tab===v));
+  const sec=sectionOf(v);
+  [...$("botNav").children].forEach(b=>b.classList.toggle("on",!!sec&&b.dataset.sec===sec.id));
+  const mt=$("mainTabs"),bar=mt.closest(".maintabs");
+  if(sec&&sec.tabs.length>1){mt.innerHTML=sec.tabs.map(([tv,tl])=>`<button data-tab="${tv}" class="${tv===v?'active':''}">${tl}</button>`).join("");if(bar)bar.style.display="";}
+  else{mt.innerHTML="";if(bar)bar.style.display="none";}
   if(!INIT[v]){INIT[v]=1;initView(v);}
   window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
   const av=document.querySelector('.view[data-view="'+v+'"]');
   if(av){av.classList.remove("enter","enter-l","enter-r");void av.offsetWidth;av.classList.add(dir==="l"?"enter-l":dir==="r"?"enter-r":"enter");}
 }
 $("mainTabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)showView(b.dataset.tab);});
+$("botNav").addEventListener("click",e=>{const b=e.target.closest("[data-sec]");if(!b)return;const s=SECTIONS.find(x=>x.id===b.dataset.sec);if(s)showView(s.tabs[0][0]);});
+(function(){var ms=$("moreSet");if(ms)ms.onclick=function(){var b=$("btnSettings");if(b)b.click();};var mb=$("moreBook");if(mb)mb.onclick=function(){var b=$("btnBook");if(b)b.click();};})();
+showView("home");
 document.querySelectorAll(".subtabs[data-sub]").forEach(st=>{
   st.addEventListener("click",e=>{const b=e.target.closest("[data-pane]");if(!b)return;const box=b.closest(".view");
     st.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));
@@ -561,7 +578,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
     if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".fcard")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const cur=TABS.findIndex(([v])=>{const el=document.querySelector('.view[data-view="'+v+'"]');return el&&el.classList.contains("active");});if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0],dx<0?"l":"r");}
+    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const av=document.querySelector('.view.active');if(!av)return;const sec=sectionOf(av.dataset.view);if(!sec)return;const cur=SECTIONS.indexOf(sec);const ni=cur+(dx<0?1:-1);if(ni<0||ni>=SECTIONS.length)return;showView(SECTIONS[ni].tabs[0][0],dx<0?"l":"r");}
   },{passive:true});})();
 
 /* PWA */
