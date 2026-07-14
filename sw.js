@@ -1,5 +1,5 @@
-/* Artikula service worker v3 — 更新反映＋オフライン両立 */
-const CACHE = "artikula-v3";
+/* Artikula service worker v4 — 更新反映＋オフライン両立 */
+const CACHE = "artikula-v4";
 const SHELL = [
   "./", "./index.html", "./data.js", "./gloss.js", "./cards.js", "./extra.js",
   "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./favicon.png"
