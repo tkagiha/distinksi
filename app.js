@@ -300,36 +300,31 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
 }
 function mark(s){if(!deck.length)return;const w=deck[fi].w;status[w]=s;SV("dks_status",status);const tn=todayNum();if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}else{srs[w]={lvl:1,due:tn+1};}SV("dks_srs",srs);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
 /* 群島プログレス（記録タブ） */
+const ARCHPTS=[[13.3,15.7,0],[28.2,15.5,0],[12.0,22.7,0],[22.7,24.5,0],[37.3,27.3,0],[257.4,23.6,2],[275.8,28.1,2],[10.2,39.4,0],[40.9,39.1,0],[52.4,40.8,0],[131.4,41.6,0],[262.7,42.3,2],[271.0,42.2,2],[25.7,50.9,0],[50.4,49.4,0],[65.2,50.2,0],[75.3,49.6,0],[179.8,51.8,2],[248.3,55.4,2],[258.9,54.3,2],[274.4,53.0,2],[401.3,55.2,4],[29.4,62.5,0],[67.7,65.9,0],[79.6,67.2,0],[88.5,65.2,0],[104.0,67.3,0],[119.1,67.3,0],[179.2,67.4,2],[195.4,65.9,2],[208.9,66.3,2],[220.9,61.5,2],[236.1,66.7,2],[247.0,65.2,2],[261.1,62.0,2],[274.7,63.3,2],[283.0,63.4,2],[313.7,68.3,4],[325.0,64.2,4],[337.9,66.3,4],[352.9,65.8,4],[365.0,62.0,4],[403.5,61.6,4],[412.9,63.4,5],[41.7,79.4,0],[64.9,74.7,0],[74.5,77.9,0],[90.7,76.6,0],[101.5,76.9,0],[115.7,80.4,0],[181.1,77.3,2],[198.5,78.6,2],[207.0,77.5,2],[219.4,74.8,2],[231.2,80.3,2],[245.5,81.0,2],[258.2,76.4,2],[273.1,75.8,2],[402.8,76.9,5],[432.3,76.3,5],[443.1,76.6,5],[48.9,89.4,0],[68.3,88.4,0],[78.0,91.9,0],[93.5,89.0,0],[102.4,89.2,0],[116.3,90.6,0],[182.6,87.5,2],[194.2,94.0,2],[210.3,93.5,2],[224.3,89.2,2],[231.3,88.6,2],[247.2,92.3,2],[263.1,92.6,2],[310.1,93.9,4],[326.0,89.6,4],[335.4,89.3,4],[352.0,92.4,4],[403.7,87.6,5],[432.2,92.0,5],[444.7,90.8,5],[453.1,89.2,5],[471.2,92.4,6],[479.7,87.7,6],[506.4,89.3,6],[63.6,107.2,0],[78.0,101.8,0],[89.1,103.4,0],[105.2,107.1,0],[114.5,103.3,0],[128.0,107.3,0],[198.0,102.8,2],[205.8,107.1,2],[222.7,100.7,2],[235.2,103.2,2],[246.1,102.8,2],[257.7,100.5,2],[302.2,102.0,4],[311.0,106.3,4],[327.3,103.5,4],[379.8,100.7,4],[471.2,104.8,6],[479.3,105.5,6],[522.9,104.9,6],[536.1,100.7,6],[544.1,103.8,6],[562.2,107.2,6],[65.8,115.8,0],[93.0,114.1,0],[101.9,118.8,0],[115.2,114.0,0],[126.7,117.4,0],[206.1,116.4,2],[248.2,114.3,2],[262.4,115.6,2],[297.2,115.2,4],[309.6,119.7,4],[325.5,115.8,4],[337.3,120.4,4],[389.8,119.2,4],[405.4,119.9,5],[412.8,115.6,5],[426.3,114.8,5],[470.6,116.6,6],[479.3,118.9,6],[507.7,117.8,6],[518.0,116.1,6],[530.5,114.9,6],[544.3,117.7,6],[560.1,114.9,6],[103.4,128.5,0],[115.7,133.2,0],[128.7,130.5,0],[312.1,133.0,4],[340.1,133.3,4],[348.9,127.4,4],[491.4,128.2,6],[508.6,132.8,6],[516.8,130.4,6],[534.8,126.8,6],[548.4,127.3,6],[559.7,130.4,6],[90.7,140.8,0],[114.4,142.5,0],[127.1,142.6,0],[313.8,140.6,3],[340.2,140.5,4],[456.0,142.0,5],[470.6,143.4,6],[536.4,143.5,6],[545.0,144.9,6],[558.6,140.7,6],[140.2,155.0,1],[154.1,156.6,1],[192.4,159.1,1],[310.2,158.8,3],[321.8,156.2,3],[482.7,155.8,6],[547.4,158.4,6],[560.5,154.4,6],[170.4,171.5,1],[181.6,170.6,1],[195.5,167.7,1],[206.0,169.9,1],[218.0,171.9,1],[231.5,165.7,1],[535.5,169.8,6],[542.7,168.4,6],[558.6,170.9,6],[236.7,179.1,1],[249.7,178.7,1],[275.8,182.0,3],[285.2,184.7,3],[297.1,181.7,3],[312.2,183.8,3],[326.8,183.0,3],[336.9,180.8,3],[560.6,181.5,6],[300.9,194.2,3],[311.9,198.3,3],[354.1,195.1,3],[361.2,195.5,3],[349.9,205.6,3]];
 const ARCH_CLUSTERS=[
- {id:"sumatra",name:"Sumatra",cx:92,cy:118,rx:46,ry:80,n:30},
- {id:"jawa",name:"Jawa",cx:180,cy:206,rx:66,ry:18,n:28},
- {id:"kalimantan",name:"Kalimantan",cx:262,cy:92,rx:60,ry:60,n:30},
- {id:"bali",name:"Bali\u30fbNusa Tenggara",cx:338,cy:214,rx:74,ry:15,n:24},
- {id:"sulawesi",name:"Sulawesi",cx:400,cy:120,rx:38,ry:60,n:26},
- {id:"maluku",name:"Maluku",cx:478,cy:128,rx:28,ry:54,n:18},
- {id:"papua",name:"Papua",cx:566,cy:118,rx:58,ry:70,n:30}
+ {id:"sumatra",name:"Sumatra",cx:78,cy:95},
+ {id:"jawa",name:"Jawa",cx:190,cy:182},
+ {id:"kalimantan",name:"Kalimantan",cx:240,cy:80},
+ {id:"bali",name:"Bali\u30fbNusa Tenggara",cx:335,cy:188},
+ {id:"sulawesi",name:"Sulawesi",cx:360,cy:98},
+ {id:"maluku",name:"Maluku",cx:432,cy:112},
+ {id:"papua",name:"Papua",cx:500,cy:108}
 ];
-function _mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-let _archDots=null,_archLit=null;
-function _archBuild(){if(_archDots)return _archDots;const rnd=_mulberry32(20240714);const dots=[];
-  ARCH_CLUSTERS.forEach((c,ci)=>{let placed=0,guard=0;while(placed<c.n&&guard<c.n*60){guard++;
-    const x=c.cx+(rnd()*2-1)*c.rx,y=c.cy+(rnd()*2-1)*c.ry,nx=(x-c.cx)/c.rx,ny=(y-c.cy)/c.ry;
-    if(nx*nx+ny*ny<=1){dots.push({x:x,y:y,ci:ci});placed++;}}});
-  const order=dots.map((d,i)=>i).sort((p,q)=>dots[p].x-dots[q].x);order.forEach((idx,rank)=>dots[idx].rank=rank);
-  _archDots=dots;return dots;}
+let _archDots=null,_archLit=null,_archLabelY={};
+function _archBuild(){if(_archDots)return _archDots;var dots=ARCHPTS.map(function(p){return {x:p[0],y:p[1],ci:p[2]};});var order=dots.map(function(d,i){return i;}).sort(function(a,b){return dots[a].x-dots[b].x;});order.forEach(function(idx,rank){dots[idx].rank=rank;});var my={};dots.forEach(function(d){if(my[d.ci]==null||d.y>my[d.ci])my[d.ci]=d.y;});_archLabelY=my;_archDots=dots;return dots;}
 function renderArch(el){const dots=_archBuild(),total=dots.length;
   const known=Object.values(LS("dks_status",{})).filter(v=>v==="known").length;
   const lit=Math.min(total,Math.floor(known/5)),pct=Math.round(lit/total*100);
   const firstRender=(_archLit==null),prev=firstRender?lit:_archLit;
   const maxRank={};dots.forEach(d=>{if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
   const complete=ci=>maxRank[ci]<lit;
-  const circ=dots.map(d=>{const on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="3" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
-  const labels=ARCH_CLUSTERS.map((c,ci)=>'<text x="'+c.cx+'" y="'+(c.cy+c.ry+13).toFixed(0)+'" text-anchor="middle" class="alabel'+(complete(ci)?" done":"")+'">'+c.name+'</text>').join("");
+  const circ=dots.map(d=>{const on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="2.7" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
+  const labels=ARCH_CLUSTERS.map((c,ci)=>'<text x="'+c.cx+'" y="'+((_archLabelY[ci]||c.cy)+12).toFixed(0)+'" text-anchor="middle" class="alabel'+(complete(ci)?" done":"")+'">'+c.name+'</text>').join("");
   let footer;const inc=ARCH_CLUSTERS.map((c,ci)=>ci).filter(ci=>!complete(ci));
   if(inc.length===0){footer='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)*5-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
-  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+labels+'</svg><div class="archfoot">'+footer+'</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+labels+'</svg><div class="archfoot">'+footer+'</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
   if(changed)SV("dks_arch",arch);
@@ -341,13 +336,13 @@ function renderArchHome(){var el=$("homeArch");if(!el)return;var dots=_archBuild
   var prev=(_archHomeLit==null)?lit:_archHomeLit;
   var maxRank={};dots.forEach(function(d){if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
   var complete=function(ci){return maxRank[ci]<lit;};
-  var circ=dots.map(function(d){var on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="3" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
+  var circ=dots.map(function(d){var on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="2.7" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
   var inc=ARCH_CLUSTERS.map(function(c,ci){return ci;}).filter(function(ci){return !complete(ci);});
   var foot;
   if(inc.length===0){foot='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
   else{var best=inc[0],rem=1e9;inc.forEach(function(ci){var r=(maxRank[ci]+1)*5-known;if(r<rem){rem=r;best=ci;}});
     foot='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
-  el.innerHTML='<div class="archhome" data-goto="practice:p-stats"><div class="ahhd"><span class="aht">Nusantara \u2014 \u3042\u306a\u305f\u306e\u7fa4\u5cf6</span><span class="ahc"><b>'+known+'</b>\u8a9e</span></div><svg class="archmap" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+'</svg><div class="ahft">'+foot+'</div></div>';
+  el.innerHTML='<div class="archhome" data-goto="practice:p-stats"><div class="ahhd"><span class="aht">Nusantara \u2014 \u3042\u306a\u305f\u306e\u7fa4\u5cf6</span><span class="ahc"><b>'+known+'</b>\u8a9e</span></div><svg class="archmap" viewBox="0 0 568 213" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+'</svg><div class="ahft">'+foot+'</div></div>';
   _archHomeLit=lit;}
 function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,weak=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
   CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="weak")weak++;if(srs[c.w]&&srs[c.w].due<=tn)due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
