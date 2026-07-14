@@ -327,6 +327,8 @@ const READS=[["reads:r-info","情報","📋","#6d8f3a","#4d6b22"],["reads:r-dail
 const tile=h=>{const flag=h[0]==="reads:r-cult";return `<div class="htile" data-goto="${h[0]}"><div class="ic ${flag?"flagic":""}" style="--g1:${h[3]};--g2:${h[4]}">${flag?"":h[2]}</div><div class="lb">${h[1]}</div></div>`;};
 $("homeCards").innerHTML=`<div class="homegrid">${HOME.map(tile).join("")}</div>
  <div class="homegroup"><div class="ghead" data-goto="reads:r-info"><div class="gic">🗺️</div><div class="gtxt">読み物</div><div class="gsub">TAP →</div></div><div class="homegrid">${READS.map(tile).join("")}</div></div>`;
+function balanceHomeGrid(){document.querySelectorAll("#homeCards .homegrid").forEach(function(g){var n=g.children.length;if(!n)return;var group=g.closest(".homegroup"),minW=group?82:100,gap=group?11:14;var cw=g.clientWidth||g.offsetWidth||360;var cnat=Math.max(1,Math.floor((cw+gap)/(minW+gap)));if(cnat>=n){g.style.gridTemplateColumns="repeat("+n+",1fr)";return;}var rows=Math.ceil(n/cnat),cols=Math.ceil(n/rows);g.style.gridTemplateColumns="repeat("+cols+",1fr)";});}
+balanceHomeGrid();requestAnimationFrame(balanceHomeGrid);var _bhT;window.addEventListener("resize",function(){clearTimeout(_bhT);_bhT=setTimeout(balanceHomeGrid,150);});
 function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box=document.querySelector('.view[data-view="'+v+'"]');if(box){const st=box.querySelector('.subtabs[data-sub]');if(st)st.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.pane===pane));box.querySelectorAll(".pane").forEach(p=>p.classList.toggle("active",p.id===pane));initPane(pane);}}}
 
 /* ===== 検索 ===== */
