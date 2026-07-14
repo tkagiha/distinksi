@@ -452,7 +452,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 
 /* 起動スプラッシュ演出 */
 (function(){const sp=$("splash");if(!sp)return;let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();},600);}
-  sp.addEventListener("click",done);setTimeout(done,2700);})();
+  sp.addEventListener("click",done);setTimeout(done,3050);})();
 
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
