@@ -518,7 +518,8 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 
 /* PWA */
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
-let deferredPrompt=null;const installBtn=$("installBtn");
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;if(installBtn)installBtn.hidden=false;});
-if(installBtn)installBtn.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.hidden=true;});
+let deferredPrompt=null;const btnInstall=$("btnInstall");
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;if(btnInstall)btnInstall.hidden=false;});
+if(btnInstall)btnInstall.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;btnInstall.hidden=true;});
+window.addEventListener("appinstalled",()=>{if(btnInstall)btnInstall.hidden=true;});
 /* build: tabs+practice+tools v2 */
