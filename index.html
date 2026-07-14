@@ -459,14 +459,15 @@
 
 <script src="data.js?v=w1"></script>
 <script src="gloss.js?v=w1"></script>
-<script src="cards.js?v=w1"></script>
 <script src="extra.js?v=w1"></script>
 <script>
 "use strict";
 const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVER=window.DRIVER||[],JAPAN=window.JAPAN||[],
-  NUMBERS=window.NUMBERS||[],CARDS=window.CARDS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},
+  NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},
   REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],CULTURE=window.CULTURE||[],
   REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[];
+let CARDS=window.CARDS||[],_cardsP=null;
+function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
 const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a9 9 0 0 1 0 14"></path></svg>`;
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
@@ -552,7 +553,7 @@ document.querySelectorAll(".subtabs[data-sub]").forEach(st=>{
 /* ===== 各ビュー初期化 ===== */
 function initView(v){
   if(v==="learn"){buildWords();initPane("l-words");}
-  if(v==="practice"){buildFlash();initPane("p-flash");}
+  if(v==="practice"){ensureCards(function(){buildFlash();initPane("p-flash");});}
   if(v==="talk"){buildScenes();initPane("t-scene");}
   if(v==="news"){buildRealNews();}
   if(v==="num"){buildNumbers();initPane("a-list");}
