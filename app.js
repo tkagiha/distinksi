@@ -307,13 +307,14 @@ function buildFill(){$("p-fill").innerHTML=`<div id="fillBody"></div>`;nextFill(
 let fScore=0,fTotal=0;
 function nextFill(){const pool=[];SCENES.forEach(s=>s.lines.forEach(l=>{const w=l[2].replace(/[.?!,]/g,"").split(" ");if(w.length>=3&&w.length<=7)pool.push([l[2],l[3],l[4],w]);}));
   const it=rnd(pool);const words=it[3];let bi=1+((Math.random()*(words.length-1))|0);const answer=words[bi].replace(/[.?!,]/g,"");
-  const disp=words.map((w,i)=>i===bi?`<span class="blankslot">?</span>`:esc(w)).join(" ");
+  const disp=words.map((w,i)=>i===bi?`<span class="blankslot">?</span>`:wrapWords(w)).join(" ");
   const opts=shuf([answer].concat(shuf(SCENES.flatMap(s=>s.lines).flatMap(l=>l[2].replace(/[.?!,]/g,"").split(" ")).filter(w=>w.toLowerCase()!==answer.toLowerCase()&&w.length>1)).slice(0,3)));
   $("fillBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">空欄に入る単語は？</div><div class="fillsent">${disp}</div><div class="qprompt">${esc(it[1])}</div>
-   <div class="qopts" style="margin-top:14px">${opts.map(o=>`<button data-ok="${o.toLowerCase()===answer.toLowerCase()?1:0}">${esc(o)}</button>`).join("")}</div>
+   <div class="qopts" style="margin-top:14px">${opts.map(o=>`<button data-ok="${o.toLowerCase()===answer.toLowerCase()?1:0}" data-w="${esc(o)}">${esc(o)}</button>`).join("")}</div>
    <div class="qfb" id="ffb"></div><div class="qfoot"><span class="qscore">スコア ${fScore} / ${fTotal}</span><button class="qnext" id="fnext">次へ →</button></div></div>`;
   const opt=$("fillBody").querySelectorAll(".qopts button");let done=false;
   opt.forEach(b=>b.addEventListener("click",()=>{if(done)return;done=true;fTotal++;const ok=b.dataset.ok==="1";if(ok){fScore++;b.classList.add("correct");$("ffb").textContent="Benar! 🎉";$("ffb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("ffb").textContent="正解: "+answer;$("ffb").style.color="var(--hl)";}
+    opt.forEach(x=>{x.classList.add("answered");const m=look(norm(x.dataset.w||""));x.insertAdjacentHTML("beforeend",`<span class="optmean">${m?esc(m):"—"}</span>`);});
     $("fillBody").querySelector(".qscore").textContent="スコア "+fScore+" / "+fTotal;play(it[2],it[0],null);}));
   $("fnext").onclick=nextFill;
 }
