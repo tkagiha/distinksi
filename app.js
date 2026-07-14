@@ -97,6 +97,7 @@ function showView(v,dir){
   if(sec&&sec.tabs.length>1){mt.innerHTML=sec.tabs.map(([tv,tl])=>`<button data-tab="${tv}" class="${tv===v?'active':''}">${tl}</button>`).join("");if(bar)bar.style.display="";}
   else{mt.innerHTML="";if(bar)bar.style.display="none";}
   if(!INIT[v]){INIT[v]=1;initView(v);}
+  if(v==="home")ensureCards(buildStats);
   window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
   const av=document.querySelector('.view[data-view="'+v+'"]');
   if(av){av.classList.remove("enter","enter-l","enter-r");void av.offsetWidth;av.classList.add(dir==="l"?"enter-l":dir==="r"?"enter-r":"enter");}
