@@ -93,6 +93,8 @@
   .spk{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.16s;color:var(--ink)}
   .spk:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .spk svg{width:15px;height:15px;pointer-events:none}
+  .icn{width:1.15em;height:1.15em;vertical-align:-0.18em;flex:none}
+  button:hover > .icn{color:var(--gold)}
   .spk.playing{background:var(--hl);border-color:var(--hl);color:#fff;animation:pulse 1s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
@@ -325,15 +327,25 @@
   .cichk{width:24px;height:24px;display:block;margin:0 auto}
   .cichk path{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;animation:chkdraw .5s .08s cubic-bezier(.65,0,.35,1) forwards}
   @keyframes chkdraw{to{stroke-dashoffset:0}}
-  .confetti{position:fixed;top:60px;width:10px;height:16px;border-radius:2px;z-index:90;pointer-events:none;opacity:.96;animation:confall 1.4s ease-in forwards}
-  .confetti.emoji{width:auto;height:auto;background:none!important;font-size:24px}
-  @keyframes confall{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--x),94vh) rotate(var(--r));opacity:0}}
-  .celflash{position:fixed;inset:0;z-index:88;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(255,214,107,.4),transparent 62%);animation:celflash .55s ease-out forwards}
-  @keyframes celflash{0%{opacity:.9}100%{opacity:0}}
-  .celpop{position:fixed;left:50%;top:42%;z-index:96;pointer-events:none;font-size:26px;animation:celpop .9s cubic-bezier(.2,.8,.2,1) forwards}
-  @keyframes celpop{0%{transform:translate(-50%,-50%) scale(.2) rotate(-15deg);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) scale(3.4) rotate(10deg);opacity:0}}
-  .celtoast{position:fixed;left:50%;top:78px;transform:translate(-50%,-14px);z-index:95;background:linear-gradient(135deg,#c0392b,#e0a92b);color:#fff;padding:13px 26px;border-radius:999px;font-weight:800;font-size:15px;box-shadow:0 12px 34px rgba(0,0,0,.3);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
-  .celtoast.show{opacity:1;transform:translate(-50%,0) scale(1.04)}
+  .spark{position:fixed;border-radius:50%;z-index:96;pointer-events:none;opacity:0;transform:translate(-50%,-50%);animation:sparkfly 1s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes sparkfly{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}18%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.7)}}
+  .celtoast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);z-index:95;background:#211c14;color:#f4e8c8;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;letter-spacing:.02em;box-shadow:0 12px 34px rgba(0,0,0,.42);opacity:0;transition:opacity .32s,transform .32s;pointer-events:none;display:flex;align-items:center;gap:12px;border:1px solid rgba(201,155,52,.42)}
+  .celtoast::before,.celtoast::after{content:"";width:20px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);flex:none}
+  .celtoast.show{opacity:1;transform:translate(-50%,0)}
+  /* 群島プログレス */
+  .archcard .archhead{font-size:13px;color:var(--sub);margin-bottom:4px}
+  .archcard .archhead b{color:var(--hl);font-size:16px;font-weight:800;font-family:"Hiragino Mincho ProN","Yu Mincho",YuMincho,Georgia,serif}
+  .archmap{width:100%;height:auto;display:block;margin:6px 0 2px}
+  .archmap .ad{fill:#ddd3bd}
+  [data-theme="dark"] .archmap .ad{fill:#3a3630}
+  .archmap .ad.on{fill:var(--gold)}
+  .archmap .ad.new{transform-box:fill-box;transform-origin:center;animation:adlight .6s cubic-bezier(.16,1,.3,1) both}
+  @keyframes adlight{from{opacity:.2;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
+  .archmap .alabel{fill:var(--sub);font-size:11px;font-family:Georgia,"Hiragino Mincho ProN",serif;opacity:.85}
+  .archmap .alabel.done{fill:var(--gold);opacity:1;font-weight:600}
+  .archfoot{font-size:12.5px;color:var(--sub);margin-top:6px;text-align:center}
+  .archfoot b{color:var(--gold);font-weight:800}
+  @media(prefers-reduced-motion:reduce){.spark{display:none}.archmap .ad.new{animation:none}}
   /* 辞書 */
   .dictrow{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line2)}
   .dictrow .dw{flex:1}.dictrow .dw b{font-size:16px}.dictrow .dw span{color:var(--sub);margin-left:10px;font-size:14px}
@@ -383,6 +395,18 @@
 </style>
 </head>
 <body class="fs-m">
+<svg style="display:none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+ <symbol id="i-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></symbol>
+ <symbol id="i-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6C13.6 6.6 14.8 6 16.1 6H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></symbol>
+ <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+ <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+ <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+ <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.5-4.5L5 21"/></symbol>
+ <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v5"/><path d="M8 22h8"/></symbol>
+ <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></symbol>
+ <symbol id="i-mask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11c-1.5 0-2.5.5-3 2"/><path d="M4 11c1.5 0 2.5.5 3 2"/><path d="M2 9v1c0 1.1.9 2 2 2h1a2 2 0 0 1 2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 1 2-2h1a2 2 0 0 0 2-2V9a6 6 0 0 0-6-6H8a6 6 0 0 0-6 6Z"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></symbol>
+</svg>
 
 <div id="splash" class="splash" aria-hidden="true"><div class="brand"><img class="splogo" src="icon-192.png" alt="Artikula"><div class="wm" data-t="Artikula">Artikula</div><div class="tagline">Bahasa Indonesia</div><div class="wmrule"></div></div><div class="flag"><div class="tag2">Bahasa Indonesia</div></div></div>
 
@@ -402,7 +426,7 @@
       </svg>
       <span class="lt">Artik<b>ula</b></span>
     </div>
-    <div class="hicons"><button id="btnBook" title="ブックマーク" aria-label="ブックマーク">★</button><button id="btnSearch" title="検索" aria-label="検索">🔍</button><button id="btnSettings" title="設定" aria-label="設定">⚙️</button><button id="btnInstall" title="アプリを追加" aria-label="アプリを追加" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M7 9l5 5 5-5"/><path d="M5 21h14"/></svg></button></div>
+    <div class="hicons"><button id="btnBook" title="ブックマーク" aria-label="ブックマーク">★</button><button id="btnSearch" title="検索" aria-label="検索"><svg class="icn"><use href="#i-search"/></svg></button><button id="btnSettings" title="設定" aria-label="設定"><svg class="icn"><use href="#i-settings"/></svg></button><button id="btnInstall" title="アプリを追加" aria-label="アプリを追加" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M7 9l5 5 5-5"/><path d="M5 21h14"/></svg></button></div>
   </div>
 </header>
 <nav class="maintabs"><div class="wrapf" id="mainTabs"></div></nav>
@@ -420,7 +444,7 @@
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
     <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
-    <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle">🔀 シャッフル</button><span style="font-size:12px;color:var(--sub)">🔊で発音／単語タップで意味</span></div>
+    <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-prefix"></div>
     <div class="pane" id="l-reg"></div>
@@ -433,9 +457,9 @@
         <div class="frow"><span class="flabel">分類</span><div class="subtabs" id="srcChips" style="margin:0"></div></div>
         <div class="frow"><span class="flabel">状態</span><div class="subtabs" id="stChips" style="margin:0"></div></div></div>
       <div class="fcard panelcard" id="fcard"><div class="ftags" id="ftags"></div><div style="width:100%"><div class="fword" id="fword"></div><div class="fkata" id="fkata"></div><div class="fmean" id="fmean"></div><div class="fex" id="fex"></div></div><div class="fhint">タップで裏返す</div></div>
-      <div class="fctrl"><button class="arrow" id="fPrev">←</button><button class="spk" id="fSpk"></button><span class="counter" id="fCount"></span><button class="arrow" id="fShuffle">🔀</button><button class="arrow" id="fNext">→</button></div>
+      <div class="fctrl"><button class="arrow" id="fPrev">←</button><button class="spk" id="fSpk"></button><span class="counter" id="fCount"></span><button class="arrow" id="fShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg></button><button class="arrow" id="fNext">→</button></div>
       <div class="srsrow"><button class="weak" id="srsWeak">✗ 苦手</button><button class="known" id="srsKnown">✓ 覚えた</button></div>
-      <div class="fextra"><button id="fBook" aria-label="ブックマーク">★ 保存</button><button id="fRec" aria-label="録音">🎙️ 録音</button><button id="fPlayRec" aria-label="自分の声を再生" disabled>▶ 自分</button><button id="fShare" aria-label="共有">📤 共有</button></div>
+      <div class="fextra"><button id="fBook" aria-label="ブックマーク">★ 保存</button><button id="fRec" aria-label="録音"><svg class="icn"><use href="#i-mic"/></svg> 録音</button><button id="fPlayRec" aria-label="自分の声を再生" disabled><svg class="icn"><use href="#i-play"/></svg> 自分</button><button id="fShare" aria-label="共有"><svg class="icn"><use href="#i-share"/></svg> 共有</button></div>
     </div>
     <div class="pane" id="p-quiz"></div>
     <div class="pane" id="p-daily"></div>
@@ -446,17 +470,17 @@
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
     <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button></div>
     <div class="pane active" id="t-scene">
-      <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay">🎭 ロールプレイ</button><button class="chip" id="scenePlayAll">▶ 通し再生</button><button class="chip" id="sShuffle">🔀 シャッフル</button></div>
+      <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="pick"><select id="sSelect"></select></div>
       <div class="carousel"><div class="track" id="sTrack"></div><div class="cnav"><button class="arrow" data-nav="s:-1">←</button><span class="counter" id="sCount"></span><button class="arrow" data-nav="s:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="t-driver">
       <div class="subtabs" id="dTabs"></div>
-      <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle">🔀 シャッフル</button></div>
+      <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="dTrack"></div><div class="cnav"><button class="arrow" data-nav="d:-1">←</button><span class="counter" id="dCount"></span><button class="arrow" data-nav="d:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
-    <div class="pane" id="t-travel"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">旅行で使えるフレーズ集。単語タップで意味・🔊で発音。</div><div id="travelWrap"></div></div>
+    <div class="pane" id="t-travel"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">旅行で使えるフレーズ集。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="travelWrap"></div></div>
   </div>
 
-  <div class="view" data-view="news"><div class="shead"><div class="kick">Berita</div><h2>ニュース</h2><p>過去1週間のニュース。上の日付を左右にスライドして選択。🔊で発音・タップで意味。</p></div>
+  <div class="view" data-view="news"><div class="shead"><div class="kick">Berita</div><h2>ニュース</h2><p>過去1週間のニュース。上の日付を左右にスライドして選択。<svg class="icn"><use href="#i-sound"/></svg>で発音・タップで意味。</p></div>
     <div class="datebar" id="rnDates"></div>
     <div class="rndate" id="rnDate"></div><div id="rnWrap"></div>
   </div>
@@ -464,12 +488,12 @@
   <div class="view" data-view="reads"><div class="shead"><div class="kick">Baca ・ Jelajah</div><h2>読み物</h2><p>情報・日常・地理・歴史・文化・日本。サブタブで切り替え。</p></div>
     <div class="subtabs" data-sub="reads"><button data-pane="r-info" class="active">情報</button><button data-pane="r-daily">日常</button><button data-pane="r-geo">地理</button><button data-pane="r-hist">歴史</button><button data-pane="r-cult">文化</button><button data-pane="r-japan">日本</button></div>
     <div class="pane active" id="r-info">
-      <div class="toolbar"><div class="pick"><select id="nSelect"></select></div><button class="chip" id="nShuffle">🔀 シャッフル</button></div>
+      <div class="toolbar"><div class="pick"><select id="nSelect"></select></div><button class="chip" id="nShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="nTrack"></div><div class="cnav"><button class="arrow" data-nav="n:-1">←</button><span class="counter" id="nCount"></span><button class="arrow" data-nav="n:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div>
     </div>
-    <div class="pane" id="r-daily"><div style="font-size:12px;color:var(--sub);margin:10px 0 4px">ジャカルタの日常でよく見るもの。タップで意味・🔊で発音。</div><div id="dailyWrap"></div></div>
+    <div class="pane" id="r-daily"><div style="font-size:12px;color:var(--sub);margin:10px 0 4px">ジャカルタの日常でよく見るもの。タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="dailyWrap"></div></div>
     <div class="pane" id="r-geo">
-      <div class="toolbar"><span style="font-size:12px;color:var(--sub)">各地の情報をスワイプで</span><button class="chip" id="geoShuffle">🔀 シャッフル</button></div>
+      <div class="toolbar"><span style="font-size:12px;color:var(--sub)">各地の情報をスワイプで</span><button class="chip" id="geoShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="geoTrack"></div><div class="cnav"><button class="arrow" data-nav="geo:-1">←</button><span class="counter" id="geoCount"></span><button class="arrow" data-nav="geo:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div>
     </div>
     <div class="pane" id="r-hist"><div id="histWrap"></div></div>
@@ -480,22 +504,22 @@
   <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>看板を読む</h2><p>写真の中のインドネシア語を読み取り、意味を表示。単語タップで発音・意味。</p></div>
     <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
     <input type="file" id="scanFileGal" accept="image/*" hidden>
-    <div class="scanbtns"><button class="chip scanbtn" id="scanPick">📷 撮影</button><button class="chip scanbtn" id="scanPickGal">🖼️ 画像を選ぶ</button></div>
+    <div class="scanbtns"><button class="chip scanbtn" id="scanPick" aria-label="撮影"><svg class="icn"><use href="#i-camera"/></svg> 撮影</button><button class="chip scanbtn" id="scanPickGal" aria-label="画像を選ぶ"><svg class="icn"><use href="#i-image"/></svg> 画像を選ぶ</button></div>
     <img id="scanPrev" class="scanprev" hidden alt="preview">
     <div id="scanStatus" class="scanstatus"></div>
     <div id="scanResult"></div>
   </div>
-  <div class="view" data-view="num"><div class="shead"><div class="kick">Angka</div><h2>数字</h2><p>数の読み・変換・時間・日付。マスや🔊で発音。</p></div>
+  <div class="view" data-view="num"><div class="shead"><div class="kick">Angka</div><h2>数字</h2><p>数の読み・変換・時間・日付。マスや<svg class="icn"><use href="#i-sound"/></svg>で発音。</p></div>
     <div class="subtabs" data-sub="num"><button data-pane="a-list" class="active">数と変換</button><button data-pane="a-time">時間</button><button data-pane="a-date">日付</button><button data-pane="a-listen">聞き取り</button></div>
     <div class="pane active" id="a-list"><div class="numgrid" id="numGrid"></div>
-      <div class="conv"><h3>数字コンバーター（0〜9,999,999）</h3><div class="convrow"><input id="numInput" type="text" inputmode="numeric" autocomplete="off" placeholder="例: 1,250"><button class="go" id="numGo">読む 🔊</button></div><div class="out" id="numOut"></div><div class="blocks" id="numBlocks"></div><div style="font-size:12px;color:var(--sub);margin-top:8px">お金は末尾に「rupiah」を付ければOK（例: 50,000 → lima puluh ribu rupiah）。</div></div></div>
-    <div class="pane" id="a-time"><div class="conv"><h3>時間の言い方</h3><div class="convrow"><input id="tH" type="number" min="0" max="23" placeholder="時(0-23)" style="width:110px"><span>:</span><input id="tM" type="number" min="0" max="59" placeholder="分(0-59)" style="width:110px"><button class="go" id="tGo">読む 🔊</button></div><div class="out" id="tOut"></div></div></div>
-    <div class="pane" id="a-date"><div class="conv"><h3>日付の言い方</h3><div class="convrow"><input id="dD" type="number" min="1" max="31" placeholder="日(1-31)" style="width:110px"><select id="dM" class="go" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)"></select><button class="go" id="dGo">読む 🔊</button></div><div class="out" id="dOut"></div></div></div>
+      <div class="conv"><h3>数字コンバーター（0〜9,999,999）</h3><div class="convrow"><input id="numInput" type="text" inputmode="numeric" autocomplete="off" placeholder="例: 1,250"><button class="go" id="numGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="numOut"></div><div class="blocks" id="numBlocks"></div><div style="font-size:12px;color:var(--sub);margin-top:8px">お金は末尾に「rupiah」を付ければOK（例: 50,000 → lima puluh ribu rupiah）。</div></div></div>
+    <div class="pane" id="a-time"><div class="conv"><h3>時間の言い方</h3><div class="convrow"><input id="tH" type="number" min="0" max="23" placeholder="時(0-23)" style="width:110px"><span>:</span><input id="tM" type="number" min="0" max="59" placeholder="分(0-59)" style="width:110px"><button class="go" id="tGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="tOut"></div></div></div>
+    <div class="pane" id="a-date"><div class="conv"><h3>日付の言い方</h3><div class="convrow"><input id="dD" type="number" min="1" max="31" placeholder="日(1-31)" style="width:110px"><select id="dM" class="go" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)"></select><button class="go" id="dGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="dOut"></div></div></div>
     <div class="pane" id="a-listen"></div>
   </div>
 
 
-  <div class="view" data-view="dict"><div class="shead"><div class="kick">Kamus</div><h2>辞書</h2><p>アプリ内の全単語を検索。日本語・インドネシア語どちらでも。🔊で発音。</p></div>
+  <div class="view" data-view="dict"><div class="shead"><div class="kick">Kamus</div><h2>辞書</h2><p>アプリ内の全単語を検索。日本語・インドネシア語どちらでも。<svg class="icn"><use href="#i-sound"/></svg>で発音。</p></div>
     <input class="searchin" id="dictIn" placeholder="単語を検索（例: makan / 食べる）" style="margin:10px 0 6px">
     <div id="dictCount" style="font-size:12px;color:var(--sub);margin-bottom:8px"></div>
     <div id="dictWrap"></div>
@@ -518,4 +542,4 @@
 
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
