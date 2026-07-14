@@ -238,14 +238,16 @@ let status=LS("dks_status",{}),srs=LS("dks_srs",{}),fLevel="all",fSrc="all",fSt=
 const SRSIV={1:1,2:2,3:4,4:8,5:16,6:35};
 function todayNum(){var d=new Date();d.setHours(0,0,0,0);return Math.floor(d.getTime()/86400000);}
 function srsDue(w){return !!(srs[w]&&srs[w].due<=todayNum());}
-function buildFlash(){
+function buildFlash(){let _cardSwiped=false,_cx0=null,_cy0=null;
   const lv=$("lvChips"),sc=$("srcChips"),st=$("stChips");
   const mk=(box,arr,cb)=>{box.innerHTML="";arr.forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;if(v==="all")b.classList.add("active");b.dataset.v=v;b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");cb(v);};box.appendChild(b);});};
   mk(lv,[["all","すべて"],["1","初級"],["2","中級"],["3","上級"]],v=>{fLevel=v;rebuild();});
   mk(sc,[["all","すべて"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"]],v=>{fSrc=v;rebuild();});
   mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
   $("fSpk").innerHTML=SPK;
-  $("fcard").addEventListener("click",e=>{if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
+  $("fcard").addEventListener("click",e=>{if(_cardSwiped){_cardSwiped=false;return;}if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
+  $("fcard").addEventListener("touchstart",e=>{if(e.touches.length!==1){_cx0=null;return;}_cx0=e.touches[0].clientX;_cy0=e.touches[0].clientY;},{passive:true});
+  $("fcard").addEventListener("touchend",e=>{if(_cx0==null||!deck.length)return;const t=e.changedTouches[0],dx=t.clientX-_cx0,dy=t.clientY-_cy0;_cx0=null;const ax=Math.abs(dx),ay=Math.abs(dy);if(ax<45&&ay<45)return;_cardSwiped=true;setTimeout(function(){_cardSwiped=false;},450);if(ax>ay){fi=((dx<0?fi+1:fi-1)+deck.length)%deck.length;fFlip=false;draw(true);}else{mark(dy<0?"known":"weak");}},{passive:true});
   $("fPrev").onclick=()=>{if(deck.length){fi=(fi-1+deck.length)%deck.length;fFlip=false;draw(true);}};
   $("fNext").onclick=()=>{if(deck.length){fi=(fi+1)%deck.length;fFlip=false;draw(true);}};
   $("fShuffle").onclick=()=>{for(let i=deck.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[deck[i],deck[j]]=[deck[j],deck[i]];}fi=0;fFlip=false;draw(true);};
@@ -273,7 +275,10 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   const lvrow=(nm,i)=>`<div class="dashrow"><span class="dlab">${nm}</span>${bar(lv[i][0],lv[i][1])}<span class="dval">${lv[i][0]} / ${lv[i][1]}</span></div>`;
   el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${due}</b><span>復習待ち</span></div><div class="dstat"><b>🔥${streak}</b><span>連続</span></div></div></div>
   <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>
-  <div class="dashcard"><h4>今日の学習</h4><div class="dashrow"><span class="dlab">目標</span>${bar(today,g)}<span class="dval">${today} / ${g}</span></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手マーク ${weak}枚 ・ ${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>`;}
+  <div class="dashcard"><h4>今日の学習</h4><div class="dashrow"><span class="dlab">目標</span>${bar(today,g)}<span class="dval">${today} / ${g}</span></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手マーク ${weak}枚 ・ ${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>`;
+  var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
+  var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
@@ -398,7 +403,7 @@ renderBookCount();
 
 let ACT=LS("dks_act",{date:"",streak:0,today:0,goal:10});
 const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
-function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;SV("dks_act",ACT);renderHomeStats();}
+function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;}
@@ -471,7 +476,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
   document.addEventListener("touchstart",e=>{if(e.touches.length!==1){x0=null;ok=false;return;}const t=e.target;
-    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")){x0=null;ok=false;return;}
+    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".fcard")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
     if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const cur=TABS.findIndex(([v])=>{const el=document.querySelector('.view[data-view="'+v+'"]');return el&&el.classList.contains("active");});if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0],dx<0?"l":"r");}
