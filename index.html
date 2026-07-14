@@ -359,6 +359,15 @@
   .pscore.low{color:var(--hl)}
   .pheard{font-size:11.5px;color:var(--sub);margin-top:3px}
   #fCheck.rec{background:var(--hl);color:#fff;border-color:var(--hl);animation:pulse 1s infinite}
+  .wheelpick{display:flex;align-items:center;justify-content:center;gap:12px;margin:16px 0 4px}
+  .wheelcol{height:200px;width:80px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px;background:var(--card);scrollbar-width:none}
+  .wheelcol::-webkit-scrollbar{display:none}
+  .wheelcol .wpad{height:80px}
+  .wheelcol .witem{height:40px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:22px;font-family:Georgia,"Hiragino Mincho ProN",serif;color:var(--sub);transition:color .15s,transform .15s}
+  .wheelcol .witem.on{color:var(--hl);font-weight:700;transform:scale(1.14)}
+  .wsep{font-size:26px;font-weight:700;color:var(--sub)}
+  #dPick{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;font-size:16px;max-width:210px}
+  [data-theme="dark"] #dPick{color-scheme:dark}
   .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:14px auto 2px}
   .numpad button{padding:14px 0;font-size:19px;font-family:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;cursor:pointer;transition:transform .1s,background .15s;font-weight:600}
   .numpad button:active{transform:scale(.95);background:var(--line2)}
@@ -624,8 +633,8 @@
     <div class="subtabs" data-sub="num"><button data-pane="a-list" class="active">数と変換</button><button data-pane="a-time">時間</button><button data-pane="a-date">日付</button><button data-pane="a-listen">聞き取り</button></div>
     <div class="pane active" id="a-list"><div class="numgrid" id="numGrid"></div>
       <div class="conv"><h3>数字コンバーター（0〜9,999,999）</h3><div class="convrow"><input id="numInput" type="text" inputmode="none" readonly autocomplete="off" placeholder="テンキーで入力"><button class="go" id="numGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="numOut"></div><div class="blocks" id="numBlocks"></div><div class="numpad" id="numPad"><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="c" class="np-fn">C</button><button data-k="0">0</button><button data-k="b" class="np-fn">⌫</button></div><div style="font-size:12px;color:var(--sub);margin-top:8px">お金は末尾に「rupiah」を付ければOK（例: 50,000 → lima puluh ribu rupiah）。</div></div></div>
-    <div class="pane" id="a-time"><div class="conv"><h3>時間の言い方</h3><div class="convrow"><input id="tH" type="number" min="0" max="23" placeholder="時(0-23)" style="width:110px"><span>:</span><input id="tM" type="number" min="0" max="59" placeholder="分(0-59)" style="width:110px"><button class="go" id="tGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="tOut"></div></div></div>
-    <div class="pane" id="a-date"><div class="conv"><h3>日付の言い方</h3><div class="convrow"><input id="dD" type="number" min="1" max="31" placeholder="日(1-31)" style="width:110px"><select id="dM" class="go" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)"></select><button class="go" id="dGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="dOut"></div></div></div>
+    <div class="pane" id="a-time"><div class="conv"><h3>時間の言い方</h3><div class="wheelpick"><div class="wheelcol" id="wH"></div><div class="wsep">:</div><div class="wheelcol" id="wM"></div></div><div style="text-align:center;margin-top:8px"><button class="go" id="tGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="tOut"></div></div></div>
+    <div class="pane" id="a-date"><div class="conv"><h3>日付の言い方</h3><div class="convrow" style="justify-content:center"><input type="date" id="dPick"><button class="go" id="dGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="dOut"></div></div></div>
     <div class="pane" id="a-listen"></div>
   </div>
 
@@ -655,6 +664,6 @@
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=31"></script>
+<script src="app.js?v=32"></script>
 </body>
 </html>
