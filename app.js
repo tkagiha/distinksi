@@ -314,6 +314,21 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
   if(changed)SV("dks_arch",arch);
   _archLit=lit;}
+let _archHomeLit=null;
+function renderArchHome(){var el=$("homeArch");if(!el)return;var dots=_archBuild(),total=dots.length;
+  var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;
+  var lit=Math.min(total,Math.floor(known/5));
+  var prev=(_archHomeLit==null)?lit:_archHomeLit;
+  var maxRank={};dots.forEach(function(d){if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
+  var complete=function(ci){return maxRank[ci]<lit;};
+  var circ=dots.map(function(d){var on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="3" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
+  var inc=ARCH_CLUSTERS.map(function(c,ci){return ci;}).filter(function(ci){return !complete(ci);});
+  var foot;
+  if(inc.length===0){foot='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
+  else{var best=inc[0],rem=1e9;inc.forEach(function(ci){var r=(maxRank[ci]+1)*5-known;if(r<rem){rem=r;best=ci;}});
+    foot='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
+  el.innerHTML='<div class="archhome" data-goto="practice:p-stats"><div class="ahhd"><span class="aht">Nusantara \u2014 \u3042\u306a\u305f\u306e\u7fa4\u5cf6</span><span class="ahc"><b>'+known+'</b>\u8a9e</span></div><svg class="archmap" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+'</svg><div class="ahft">'+foot+'</div></div>';
+  _archHomeLit=lit;}
 function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,weak=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
   CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="weak")weak++;if(srs[c.w]&&srs[c.w].due<=tn)due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
   const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
@@ -468,20 +483,15 @@ const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+
 function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
-  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;}
+  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();}
 function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();celebrate(first?("🔥 "+ACT.streak+" 日連続！ チェックイン完了"):"🎉 今日ももう一度！ その調子！");}
 function celebrate(msg){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
-  if(!rm){const cx=window.innerWidth/2,cy=window.innerHeight*0.28,n=16;
-    for(let i=0;i<n;i++){const s=document.createElement("div");s.className="spark";
-      s.style.background=(i%10<7)?"var(--gold)":"var(--hl)";
-      const sz=4+Math.random()*2;s.style.width=s.style.height=sz+"px";
-      const ang=(i/n)*Math.PI*2+Math.random()*0.35,dist=68+Math.random()*72;
-      s.style.left=cx+"px";s.style.top=cy+"px";
-      s.style.setProperty("--dx",(Math.cos(ang)*dist).toFixed(1)+"px");
-      s.style.setProperty("--dy",(Math.sin(ang)*dist).toFixed(1)+"px");
-      s.style.animationDelay=(Math.random()*.08).toFixed(3)+"s";
-      document.body.appendChild(s);setTimeout(()=>s.remove(),1100);}}
+  if(!rm){const cx=window.innerWidth/2,cy=Math.min(window.innerHeight*0.32,260);
+    const glow=document.createElement("div");glow.className="cel-glow";glow.style.left=cx+"px";glow.style.top=cy+"px";document.body.appendChild(glow);setTimeout(()=>glow.remove(),750);
+    const ring=document.createElement("div");ring.className="cel-ring";ring.style.left=cx+"px";ring.style.top=cy+"px";document.body.appendChild(ring);setTimeout(()=>ring.remove(),850);
+    for(let i=0;i<32;i++){const s=document.createElement("div");s.className="spark";const gold=Math.random()<0.7;s.style.background=gold?"var(--gold)":"var(--hl)";if(gold)s.style.boxShadow="0 0 6px rgba(233,201,106,.9)";const sz=3+Math.random()*4;s.style.width=s.style.height=sz+"px";const ang=Math.random()*Math.PI*2,dist=55+Math.random()*95;s.style.left=cx+"px";s.style.top=cy+"px";s.style.setProperty("--dx",(Math.cos(ang)*dist).toFixed(1)+"px");s.style.setProperty("--dy",(Math.sin(ang)*dist).toFixed(1)+"px");s.style.animationDelay=(Math.random()*.08).toFixed(3)+"s";document.body.appendChild(s);setTimeout(()=>s.remove(),1000);}
+    for(let i=0;i<26;i++){const f=document.createElement("div");f.className="foil"+(Math.random()<0.19?" red":"");f.style.left=(6+Math.random()*88)+"vw";f.style.setProperty("--fx",(Math.random()*70-35).toFixed(0)+"px");f.style.setProperty("--fr",(Math.random()*260-130).toFixed(0)+"deg");f.style.animationDelay=(Math.random()*.55).toFixed(2)+"s";f.style.animationDuration=(1.4+Math.random()*1.1).toFixed(2)+"s";document.body.appendChild(f);setTimeout(()=>f.remove(),3300);}}
   const tst=document.createElement("div");tst.className="celtoast";tst.textContent=msg;document.body.appendChild(tst);
   requestAnimationFrame(()=>tst.classList.add("show"));setTimeout(()=>{tst.classList.remove("show");setTimeout(()=>tst.remove(),350);},1900);
   if(navigator.vibrate)try{navigator.vibrate([15,30,15,30,25]);}catch(e){}
