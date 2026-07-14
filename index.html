@@ -416,6 +416,9 @@
   .archmap .ad{fill:#ddd3bd}
   [data-theme="dark"] .archmap .ad{fill:#3a3630}
   .archmap .ad.on{fill:var(--gold)}
+  .archmap .citymk{fill:#dcc78e;stroke:#8a6a1e;stroke-width:.8;opacity:.6}
+  .archmap .citymk.on{fill:var(--gold);stroke:#8a6a1e;stroke-width:1;opacity:1}
+  [data-theme="dark"] .archmap .citymk{fill:#6b5a30}
   .archmap .ad.new{transform-box:fill-box;transform-origin:center;animation:adlight .6s cubic-bezier(.16,1,.3,1) both}
   @keyframes adlight{from{opacity:.2;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
   .archmap .alabel{fill:var(--sub);font-size:11px;font-family:Georgia,"Hiragino Mincho ProN",serif;opacity:.85}
@@ -563,10 +566,12 @@
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-prefix"></div>
+    <div class="pane" id="l-suffix"></div>
+    <div class="pane" id="l-confix"></div>
     <div class="pane" id="l-reg"></div>
   </div>
 
@@ -664,6 +669,6 @@
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=34"></script>
+<script src="app.js?v=35"></script>
 </body>
 </html>
