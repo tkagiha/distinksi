@@ -177,6 +177,7 @@
   .qprompt{font-size:14px;color:var(--sub)}.qword{font-size:28px;font-weight:800;margin:6px 0 18px}
   .qopts{display:grid;gap:10px}
   .qopts button{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:14px 16px;border-radius:12px;font-size:16px;cursor:pointer;font-family:inherit}
+  .qopts button.answered{display:flex;align-items:center;gap:10px}.optmean{margin-left:auto;font-size:12.5px;color:var(--sub);font-weight:400;text-align:right;font-style:normal}
   .qopts button.correct{background:#e8f6ec;border-color:#7bc490;color:#1e7d3c}
   .qopts button.wrong{background:#fdecea;border-color:#e6a29a;color:var(--hl)}
   [data-theme="dark"] .qopts button.correct{background:#1c3a26}[data-theme="dark"] .qopts button.wrong{background:#3a1f1c}
@@ -328,9 +329,9 @@
   .splash .tagline{font-size:10.5px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,239,208,.82);margin-top:1px;padding-left:7px}
   .splash .wmrule{width:44px;height:1.5px;margin-top:9px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.85),transparent)}
   @keyframes splashIn{from{opacity:0;transform:translateY(calc(-7% + 16px)) scale(.9)}to{opacity:1;transform:translateY(-7%) scale(1)}}
-  .splash .wave{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;animation:waveUp 1.95s .55s cubic-bezier(.5,.05,.3,1) forwards}
+  .splash .wave{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;animation:waveUp 2.05s .55s cubic-bezier(.42,.04,.18,1) forwards}
   .splash .wave::before{content:"";position:absolute;left:-5%;right:-5%;top:-26px;height:52px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0}
-  @keyframes waveUp{0%{height:0}18%{height:21%}30%{height:11%}40%{height:16.5%}48%{height:13%}62%{height:14%}100%{height:115%}}
+  @keyframes waveUp{0%{height:0}36%{height:13.5%}56%{height:12.2%}100%{height:116%}}
   @media(prefers-reduced-motion:reduce){.splash .brand,.splash .wave{animation-duration:.01s}}
 </style>
 </head>
@@ -460,6 +461,6 @@
 
 <script src="data.js?v=w1"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
