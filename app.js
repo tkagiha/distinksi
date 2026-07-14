@@ -457,7 +457,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
   document.addEventListener("touchstart",e=>{if(e.touches.length!==1){x0=null;ok=false;return;}const t=e.target;
-    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")){x0=null;ok=false;return;}
+    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
     if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const cur=TABS.findIndex(([v])=>{const el=document.querySelector('.view[data-view="'+v+'"]');return el&&el.classList.contains("active");});if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0],dx<0?"l":"r");}
