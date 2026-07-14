@@ -285,18 +285,22 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   <div class="dashcard"><h4>今日の学習</h4><div class="dashrow"><span class="dlab">目標</span>${bar(today,g)}<span class="dval">${today} / ${g}</span></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手マーク ${weak}枚 ・ ${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>`;
   var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
-  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');}
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
+  var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
+  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
-function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="arrange">並べ替え</button></div><div id="qBody"></div>`;
+let quizStats=LS("dks_quizstats",{});
+function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);}
+function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   nextQ();
 }
 const rnd=a=>a[Math.random()*a.length|0];
 const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const withEx=()=>CARDS.filter(c=>c.ex);
-function nextQ(){if(qMode==="arrange")return arrangeQ();mcQ();}
+function nextQ(){if(qMode==="arrange")return arrangeQ();if(qMode==="type")return typeQ();mcQ();}
 function mcQ(){const pool=CARDS.filter(c=>c.ja&&c.audio);const c=rnd(pool);const opts=shuf([c].concat(shuf(pool.filter(x=>x.ja!==c.ja)).slice(0,3)));
   const listen=qMode==="listen";
   $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう":"この単語の意味は？"}</div>
@@ -305,7 +309,7 @@ function mcQ(){const pool=CARDS.filter(c=>c.ja&&c.audio);const c=rnd(pool);const
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   if(listen)setTimeout(()=>play(c.audio,c.w,null),200);
   const opt=$("qBody").querySelectorAll(".qopts button");
-  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent="Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;if(typeof bumpActivity==="function")bumpActivity();}));
+  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent="Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;qStat(listen?"listen":"mean",ok);if(typeof bumpActivity==="function")bumpActivity();}));
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").length;return n>=3&&n<=6;});const c=rnd(pool);const words=c.ex[0].replace(/[.?!,]/g,"").split(" ");const jum=shuf(words.slice());
@@ -314,7 +318,16 @@ function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").le
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   const slot=$("qslot"),poolEl=$("qpool");let picked=[];
   poolEl.querySelectorAll(".wchip").forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;picked.push(b.dataset.w);b.style.visibility="hidden";const s=document.createElement("button");s.className="wchip";s.textContent=b.dataset.w;s.onclick=()=>{s.remove();b.style.visibility="visible";picked=picked.filter((_,idx)=>slot.children[idx]!==s);};slot.appendChild(s);
-    if(picked.length===words.length){$("qBody").dataset.done=1;qTotal++;const ok=picked.join(" ")===words.join(" ");if(ok){qScore++;$("qfb").textContent="Benar! 正解 🎉 → "+c.ex[0];$("qfb").style.color="#2e7d3c";}else{$("qfb").textContent="正解: "+c.ex[0];$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;play(c.ex[2],c.ex[0],null);}}));
+    if(picked.length===words.length){$("qBody").dataset.done=1;qTotal++;const ok=picked.join(" ")===words.join(" ");if(ok){qScore++;$("qfb").textContent="Benar! 正解 🎉 → "+c.ex[0];$("qfb").style.color="#2e7d3c";}else{$("qfb").textContent="正解: "+c.ex[0];$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;qStat("arrange",ok);play(c.ex[2],c.ex[0],null);}}));
+  $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
+}
+function typeQ(){const pool=CARDS.filter(c=>c.w&&c.ja);const c=rnd(pool);
+  $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">日本語をインドネシア語で入力しよう</div><div class="qword" style="font-size:22px">${esc(c.ja)}</div>
+   <input class="searchin" id="qtype" placeholder="インドネシア語を入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:6px 0 12px"><button class="qnext nqcheck" id="qtchk">確認する</button>
+   <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
+  const inp=$("qtype");try{inp.focus();}catch(e){}let done=false;
+  function chk(){if(done||!inp.value.trim())return;done=true;qTotal++;const ok=norm(inp.value)===norm(c.w);if(ok){qScore++;$("qfb").innerHTML="Benar! 🎉 <b>"+esc(c.w)+"</b>";$("qfb").style.color="#2e7d3c";}else{$("qfb").innerHTML="正解: <b>"+esc(c.w)+"</b>（"+esc(c.ja)+"）";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;play(c.audio,c.w,null);qStat("type",ok);if(typeof bumpActivity==="function")bumpActivity();}
+  $("qtchk").onclick=chk;inp.addEventListener("keydown",e=>{if(e.key==="Enter")chk();});
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 
@@ -339,7 +352,7 @@ function nextFill(){const pool=[];SCENES.forEach(s=>s.lines.forEach(l=>{const w=
   const opt=$("fillBody").querySelectorAll(".qopts button");let done=false;
   opt.forEach(b=>b.addEventListener("click",()=>{if(done)return;done=true;fTotal++;const ok=b.dataset.ok==="1";if(ok){fScore++;b.classList.add("correct");$("ffb").textContent="Benar! 🎉";$("ffb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("ffb").textContent="正解: "+answer;$("ffb").style.color="var(--hl)";}
     opt.forEach(x=>{x.classList.add("answered");const m=look(norm(x.dataset.w||""));x.insertAdjacentHTML("beforeend",`<span class="optmean">${m?esc(m):"—"}</span>`);});
-    $("fillBody").querySelector(".qscore").textContent="スコア "+fScore+" / "+fTotal;play(it[2],it[0],null);}));
+    $("fillBody").querySelector(".qscore").textContent="スコア "+fScore+" / "+fTotal;qStat("fill",ok);play(it[2],it[0],null);}));
   $("fnext").onclick=nextFill;
 }
 
@@ -472,7 +485,7 @@ function buildNumQuiz(){$("a-listen").innerHTML=`<div class="quizbox panelcard">
 function nqFmt(v){return v?parseInt(v,10).toLocaleString():"0";}
 function nqInput(k){if(nqDone)return;if(k==="back")nqVal=nqVal.slice(0,-1);else if(k==="clear")nqVal="";else if(nqVal.length<12){nqVal=(nqVal===""&&k==="0")?"":nqVal+k;}$("nqDisp").textContent=nqFmt(nqVal);}
 function nqQuestion(){nqCur=NUMBERS[Math.random()*NUMBERS.length|0];nqVal="";nqDone=false;$("nqfb").textContent="";const d=$("nqDisp");d.className="nqdisp";d.textContent="0";const p=()=>play(nqCur[2],nqCur[1],$("nqPlay"));$("nqPlay").onclick=p;setTimeout(p,250);}
-function nqSubmit(){if(nqDone)return;if(nqVal===""){$("nqfb").textContent="数字を入力してください";$("nqfb").style.color="var(--sub)";return;}nqDone=true;nqTotal++;const ok=parseInt(nqVal,10)===nqCur[0],d=$("nqDisp");if(ok){nqScore++;d.classList.add("ok");$("nqfb").textContent="Benar! 🎉 "+nqCur[1];$("nqfb").style.color="#2e7d3c";}else{d.classList.add("ng");$("nqfb").innerHTML="正解: <b>"+nqCur[0].toLocaleString()+"</b>（"+esc(nqCur[1])+"）";$("nqfb").style.color="var(--hl)";}$("nqScoreL").textContent="スコア "+nqScore+" / "+nqTotal;bumpActivity();}
+function nqSubmit(){if(nqDone)return;if(nqVal===""){$("nqfb").textContent="数字を入力してください";$("nqfb").style.color="var(--sub)";return;}nqDone=true;nqTotal++;const ok=parseInt(nqVal,10)===nqCur[0],d=$("nqDisp");if(ok){nqScore++;d.classList.add("ok");$("nqfb").textContent="Benar! 🎉 "+nqCur[1];$("nqfb").style.color="#2e7d3c";}else{d.classList.add("ng");$("nqfb").innerHTML="正解: <b>"+nqCur[0].toLocaleString()+"</b>（"+esc(nqCur[1])+"）";$("nqfb").style.color="var(--hl)";}$("nqScoreL").textContent="スコア "+nqScore+" / "+nqTotal;qStat("number",ok);bumpActivity();}
 
 $("rolePlay").onclick=()=>{const on=document.body.classList.toggle("roleplay");$("rolePlay").classList.toggle("on",on);document.querySelectorAll(".line.show").forEach(e=>e.classList.remove("show"));};
 $("fBook").onclick=()=>{if(deck.length){const c=deck[fi];toggleBook({id:c.w,ja:c.ja,audio:c.audio});$("fBook").classList.toggle("on",isBooked(c.w));}};
