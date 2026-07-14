@@ -329,9 +329,9 @@
   .splash .tagline{font-size:10.5px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,239,208,.82);margin-top:1px;padding-left:7px}
   .splash .wmrule{width:44px;height:1.5px;margin-top:9px;background:linear-gradient(90deg,transparent,rgba(255,224,140,.85),transparent)}
   @keyframes splashIn{from{opacity:0;transform:translateY(calc(-7% + 16px)) scale(.9)}to{opacity:1;transform:translateY(-7%) scale(1)}}
-  .splash .wave{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;animation:waveUp 2.05s .55s cubic-bezier(.42,.04,.18,1) forwards}
+  .splash .wave{position:absolute;left:0;right:0;bottom:0;height:0;background:#fff;z-index:1;animation:waveUp 2.3s .5s cubic-bezier(.4,.08,.35,1) forwards}
   .splash .wave::before{content:"";position:absolute;left:-5%;right:-5%;top:-26px;height:52px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0}
-  @keyframes waveUp{0%{height:0}36%{height:13.5%}56%{height:12.2%}100%{height:116%}}
+  @keyframes waveUp{0%{height:0}64%{height:18%}100%{height:118%}}
   @media(prefers-reduced-motion:reduce){.splash .brand,.splash .wave{animation-duration:.01s}}
 </style>
 </head>
@@ -341,7 +341,7 @@
 
 <header>
   <div class="wrap nav">
-    <div class="logo" id="homeLogo" style="cursor:pointer" title="ホームへ">
+    <div class="logo" id="homeLogo" style="cursor:pointer" title="ホームへ" data-goto="home">
       <svg class="garuda" viewBox="0 0 80 80" aria-label="Garuda">
         <defs><linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7dc86"/><stop offset="1" stop-color="#cf9f34"/></linearGradient>
         <path id="ft" d="M0 0 C -2.6 -6 -2.6 -13 0 -19 C 2.6 -13 2.6 -6 0 0 Z"/></defs>
@@ -461,6 +461,6 @@
 
 <script src="data.js?v=w1"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
