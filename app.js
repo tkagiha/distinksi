@@ -76,7 +76,7 @@ function lazyCarousel(track,count,renderFn,countEl,prevSel,nextSel,onIndex){
 const CAR={};
 
 /* ===== メインタブ ルーター ===== */
-const TABS=[["home","ホーム"],["learn","学ぶ"],["practice","練習"],["talk","会話"],["num","数字"],["news","ニュース"],["reads","読み物"],["dict","辞書"]];
+const TABS=[["home","ホーム"],["learn","学ぶ"],["practice","練習"],["talk","会話"],["num","数字"],["scan","カメラ"],["news","ニュース"],["reads","読み物"],["dict","辞書"]];
 $("mainTabs").innerHTML=TABS.map(([v,l])=>`<button data-tab="${v}" class="${v==='home'?'active':''}">${l}</button>`).join("");
 const INIT={};
 function showView(v,dir){
@@ -103,6 +103,7 @@ function initView(v){
   if(v==="news"){ensureExtra(buildRealNews);}
   if(v==="num"){buildNumbers();initPane("a-list");}
   if(v==="reads"){ensureExtra(function(){buildNews();initPane("r-info");});}
+  if(v==="scan"){buildScan();}
   if(v==="dict"){buildDict();}
 }
 const PANEI={};
@@ -360,7 +361,7 @@ function nextFill(){const pool=[];SCENES.forEach(s=>s.lines.forEach(l=>{const w=
 
 /* ===== ホーム：アイコンタイル ===== */
 const HOME=[["learn","学ぶ","📚","#e2566a","#c0392b"],["practice","練習","🎯","#3aa0d6","#1b6e9e"],["talk","会話","💬","#4bbf7b","#2e7d4f"],
- ["num","数字","🔢","#eb8a4e","#c25a1b"],["news","ニュース","📰","#d1495b","#9c2b3b"],["dict","辞書","📖","#5aa0b5","#2e7d8f"]];
+ ["num","数字","🔢","#eb8a4e","#c25a1b"],["scan","カメラ","📷","#7a5cc0","#5a3f96"],["news","ニュース","📰","#d1495b","#9c2b3b"],["dict","辞書","📖","#5aa0b5","#2e7d8f"]];
 const READS=[["reads:r-info","情報","📋","#6d8f3a","#4d6b22"],["reads:r-daily","日常","🏙️","#4a7c9e","#2e5875"],["reads:r-geo","地理","🗺️","#b58a4c","#8a6224"],["reads:r-hist","歴史","🏛️","#a5794a","#6e4a24"],
  ["reads:r-cult","文化","🇮🇩","#c0392b","#8a1f1f"],["reads:r-japan","日本","🗾","#c96b86","#9e3a57"]];
 const tile=h=>{const flag=h[0]==="reads:r-cult";return `<div class="htile" data-goto="${h[0]}"><div class="ic ${flag?"flagic":""}" style="--g1:${h[3]};--g2:${h[4]}">${flag?"":h[2]}</div><div class="lb">${h[1]}</div></div>`;};
@@ -518,6 +519,15 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
 
 /* PWA */
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+let _tessP=null;
+function ensureTesseract(cb){if(window.Tesseract)return cb();if(_tessP){_tessP.then(cb);return;}_tessP=new Promise(function(res,rej){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});_tessP.then(cb).catch(function(){var st=$("scanStatus");if(st)st.textContent="読み取りエンジンの読み込みに失敗しました。通信環境をご確認ください。";});}
+var _scanInit=false;
+function buildScan(){if(_scanInit)return;_scanInit=true;$("scanPick").onclick=function(){$("scanFile").click();};
+  $("scanFile").onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value="";var url=URL.createObjectURL(f);var prev=$("scanPrev");prev.src=url;prev.hidden=false;$("scanResult").innerHTML="";$("scanStatus").textContent="読み取りエンジンを準備中…（初回は少し時間がかかります）";
+    ensureTesseract(function(){$("scanStatus").textContent="読み取り中… 0%";Tesseract.recognize(f,"ind",{logger:function(m){var st=$("scanStatus");if(m.status==="recognizing text"&&st)st.textContent="読み取り中… "+Math.round((m.progress||0)*100)+"%";}}).then(function(r){renderScan(((r.data&&r.data.text)||"").trim());}).catch(function(){$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";});});};}
+function renderScan(text){var st=$("scanStatus"),res=$("scanResult");if(!text){st.textContent="文字が見つかりませんでした。明るく・正面から・大きめに写すと読み取りやすいです。";res.innerHTML="";return;}st.textContent="読み取り完了 ✓ 単語をタップで意味・発音";var lines=text.split(/\n+/).map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+  res.innerHTML=lines.map(function(l){return '<div class="scanline panelcard"><div class="scanid">'+spkBtn("",l)+'<span class="t">'+wrapWords(l)+'</span></div><div class="scanja">翻訳中…</div></div>';}).join("");
+  var jaEls=res.querySelectorAll(".scanja");lines.forEach(function(l,i){translateWord(l).then(function(tr){if(jaEls[i])jaEls[i].textContent=tr||"（訳なし）";});});}
 let deferredPrompt=null;const btnInstall=$("btnInstall");
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;if(btnInstall)btnInstall.hidden=false;});
 if(btnInstall)btnInstall.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;btnInstall.hidden=true;});
