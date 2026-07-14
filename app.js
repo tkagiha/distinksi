@@ -594,7 +594,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
     if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".wheelcol")||t.closest(".fcard")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const av=document.querySelector('.view.active');if(!av)return;const sec=sectionOf(av.dataset.view);if(!sec)return;const cur=SECTIONS.indexOf(sec);const ni=cur+(dx<0?1:-1);if(ni<0||ni>=SECTIONS.length)return;showView(SECTIONS[ni].tabs[0][0],dx<0?"l":"r");}
+    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const av=document.querySelector('.view.active');if(!av)return;const cur=TABS.findIndex(t=>t[0]===av.dataset.view);if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0],dx<0?"l":"r");}
   },{passive:true});})();
 
 /* PWA */
