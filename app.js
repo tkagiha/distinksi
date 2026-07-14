@@ -107,6 +107,7 @@ function initPane(id){
   if(id==="p-quiz")buildQuiz();
   if(id==="p-daily")buildDaily();
   if(id==="p-fill")buildFill();
+  if(id==="p-stats")ensureCards(buildStats);
   if(id==="a-time")buildTime();
   if(id==="a-date")ensureExtra(buildDate);
   if(id==="a-listen")buildNumQuiz();
@@ -233,13 +234,16 @@ function buildDate(){const dM=$("dM");dM.innerHTML=MONTHS.map(m=>`<option value=
   $("dGo").onclick=run;}
 
 /* ===== フラッシュカード + SRS ===== */
-let status=LS("dks_status",{}),fLevel="all",fSrc="all",fSt="all",deck=[],fi=0,fFlip=false;
+let status=LS("dks_status",{}),srs=LS("dks_srs",{}),fLevel="all",fSrc="all",fSt="all",deck=[],fi=0,fFlip=false;
+const SRSIV={1:1,2:2,3:4,4:8,5:16,6:35};
+function todayNum(){var d=new Date();d.setHours(0,0,0,0);return Math.floor(d.getTime()/86400000);}
+function srsDue(w){return !!(srs[w]&&srs[w].due<=todayNum());}
 function buildFlash(){
   const lv=$("lvChips"),sc=$("srcChips"),st=$("stChips");
   const mk=(box,arr,cb)=>{box.innerHTML="";arr.forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;if(v==="all")b.classList.add("active");b.dataset.v=v;b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");cb(v);};box.appendChild(b);});};
   mk(lv,[["all","すべて"],["1","初級"],["2","中級"],["3","上級"]],v=>{fLevel=v;rebuild();});
   mk(sc,[["all","すべて"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"]],v=>{fSrc=v;rebuild();});
-  mk(st,[["all","すべて"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
+  mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
   $("fSpk").innerHTML=SPK;
   $("fcard").addEventListener("click",e=>{if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
   $("fPrev").onclick=()=>{if(deck.length){fi=(fi-1+deck.length)%deck.length;fFlip=false;draw(true);}};
@@ -249,7 +253,7 @@ function buildFlash(){
   $("srsWeak").onclick=()=>mark("weak");$("srsKnown").onclick=()=>mark("known");
   rebuild();
 }
-function rebuild(){deck=CARDS.filter(c=>(fLevel==="all"||c.lv===+fLevel)&&(fSrc==="all"||c.src.includes(fSrc))&&(fSt==="all"||(fSt==="new"?!status[c.w]:status[c.w]===fSt)));fi=0;fFlip=false;draw(false);}
+function rebuild(){deck=CARDS.filter(c=>(fLevel==="all"||c.lv===+fLevel)&&(fSrc==="all"||c.src.includes(fSrc))&&(fSt==="all"||(fSt==="due"?srsDue(c.w):fSt==="new"?!status[c.w]:status[c.w]===fSt)));fi=0;fFlip=false;draw(false);}
 function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),fc=$("fCount");
   if(!deck.length){ft.innerHTML="";fw.textContent="該当なし";fm.textContent="";fx.innerHTML="";fc.textContent="0 / 0";return;}
   const c=deck[fi];const stt=status[c.w];const stb=stt?`<span class="badge bst">${stt==='weak'?'苦手':'覚えた'}</span>`:"";
@@ -261,7 +265,15 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
   if($("fBook"))$("fBook").classList.toggle("on",isBooked(c.w));
   if(auto&&!fFlip){play(c.audio,c.w,$("fSpk"));if(typeof bumpActivity==="function")bumpActivity();}
 }
-function mark(s){if(!deck.length)return;status[deck[fi].w]=s;SV("dks_status",status);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
+function mark(s){if(!deck.length)return;const w=deck[fi].w;status[w]=s;SV("dks_status",status);const tn=todayNum();if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}else{srs[w]={lvl:1,due:tn+1};}SV("dks_srs",srs);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
+function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,weak=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
+  CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="weak")weak++;if(srs[c.w]&&srs[c.w].due<=tn)due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
+  const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
+  const bar=(x,y)=>`<div class="dbar"><span style="width:${y?Math.round(x/y*100):0}%"></span></div>`;
+  const lvrow=(nm,i)=>`<div class="dashrow"><span class="dlab">${nm}</span>${bar(lv[i][0],lv[i][1])}<span class="dval">${lv[i][0]} / ${lv[i][1]}</span></div>`;
+  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${due}</b><span>復習待ち</span></div><div class="dstat"><b>🔥${streak}</b><span>連続</span></div></div></div>
+  <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>
+  <div class="dashcard"><h4>今日の学習</h4><div class="dashrow"><span class="dlab">目標</span>${bar(today,g)}<span class="dval">${today} / ${g}</span></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手マーク ${weak}枚 ・ ${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>`;}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
