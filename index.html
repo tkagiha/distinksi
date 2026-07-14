@@ -351,6 +351,10 @@
   .celtoast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);z-index:95;background:#211c14;color:#f4e8c8;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;letter-spacing:.02em;box-shadow:0 12px 34px rgba(0,0,0,.42);opacity:0;transition:opacity .32s,transform .32s;pointer-events:none;display:flex;align-items:center;gap:12px;border:1px solid rgba(201,155,52,.42)}
   .celtoast::before,.celtoast::after{content:"";width:20px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);flex:none}
   .celtoast.show{opacity:1;transform:translate(-50%,0)}
+  .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:14px auto 2px}
+  .numpad button{padding:14px 0;font-size:19px;font-family:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;cursor:pointer;transition:transform .1s,background .15s;font-weight:600}
+  .numpad button:active{transform:scale(.95);background:var(--line2)}
+  .numpad button.np-fn{color:var(--hl);font-size:16px}
   /* ボトムナビ（タスク5） */
   .appmain{padding-bottom:10px}
   footer.wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,6px))}
@@ -360,14 +364,14 @@
   .botnav .bnav .bic{width:22px;height:22px}
   .botnav .bnav.on{color:var(--hl);font-weight:700}
   .botnav .bnav:active{transform:scale(.94)}
-  .botnav .bfab{flex:1.1;position:static}
-  .botnav .bfab .fabb{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);box-shadow:0 4px 14px rgba(0,0,0,.16),0 0 0 1.5px var(--line);transition:transform .15s,background .2s;z-index:2}
+  .botnav .bfab{flex:1.1;margin-top:-22px}
+  .botnav .bfab .fabb{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);box-shadow:0 7px 18px rgba(0,0,0,.18),0 0 0 1.5px var(--line);transition:transform .15s,background .2s}
   .botnav .bfab .fabb .bic{width:24px;height:24px;color:var(--sub)}
   .botnav .bfab span{font-size:10px;color:var(--sub);margin-top:4px;letter-spacing:.5px}
   .botnav .bfab.on span{color:var(--hl);font-weight:700}
   .botnav .bfab.on .fabb{background:linear-gradient(160deg,#d02a31,#a01820);box-shadow:0 8px 22px rgba(193,39,45,.4),0 0 0 1.5px rgba(233,201,106,.55)}
   .botnav .bfab.on .fabb .bic{color:#fff}
-  .botnav .bfab:active .fabb{transform:translate(-50%,-50%) scale(.93)}
+  .botnav .bfab:active .fabb{transform:scale(.93)}
   .nameinput{flex:1;max-width:190px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
   .greet{font-size:12.5px;color:var(--sub);margin:12px 2px 0;letter-spacing:.2px}
   .greet b{color:var(--ink);font-weight:600}
@@ -610,7 +614,7 @@
   <div class="view" data-view="num"><div class="shead"><div class="kick">Angka</div><h2>数字</h2><p>数の読み・変換・時間・日付。マスや<svg class="icn"><use href="#i-sound"/></svg>で発音。</p></div>
     <div class="subtabs" data-sub="num"><button data-pane="a-list" class="active">数と変換</button><button data-pane="a-time">時間</button><button data-pane="a-date">日付</button><button data-pane="a-listen">聞き取り</button></div>
     <div class="pane active" id="a-list"><div class="numgrid" id="numGrid"></div>
-      <div class="conv"><h3>数字コンバーター（0〜9,999,999）</h3><div class="convrow"><input id="numInput" type="text" inputmode="numeric" autocomplete="off" placeholder="例: 1,250"><button class="go" id="numGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="numOut"></div><div class="blocks" id="numBlocks"></div><div style="font-size:12px;color:var(--sub);margin-top:8px">お金は末尾に「rupiah」を付ければOK（例: 50,000 → lima puluh ribu rupiah）。</div></div></div>
+      <div class="conv"><h3>数字コンバーター（0〜9,999,999）</h3><div class="convrow"><input id="numInput" type="text" inputmode="none" readonly autocomplete="off" placeholder="テンキーで入力"><button class="go" id="numGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="numOut"></div><div class="blocks" id="numBlocks"></div><div class="numpad" id="numPad"><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="c" class="np-fn">C</button><button data-k="0">0</button><button data-k="b" class="np-fn">⌫</button></div><div style="font-size:12px;color:var(--sub);margin-top:8px">お金は末尾に「rupiah」を付ければOK（例: 50,000 → lima puluh ribu rupiah）。</div></div></div>
     <div class="pane" id="a-time"><div class="conv"><h3>時間の言い方</h3><div class="convrow"><input id="tH" type="number" min="0" max="23" placeholder="時(0-23)" style="width:110px"><span>:</span><input id="tM" type="number" min="0" max="59" placeholder="分(0-59)" style="width:110px"><button class="go" id="tGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="tOut"></div></div></div>
     <div class="pane" id="a-date"><div class="conv"><h3>日付の言い方</h3><div class="convrow"><input id="dD" type="number" min="1" max="31" placeholder="日(1-31)" style="width:110px"><select id="dM" class="go" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)"></select><button class="go" id="dGo" aria-label="読み上げ">読む <svg class="icn"><use href="#i-sound"/></svg></button></div><div class="out" id="dOut"></div></div></div>
     <div class="pane" id="a-listen"></div>
@@ -642,6 +646,6 @@
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=28"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>
