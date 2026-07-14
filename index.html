@@ -65,6 +65,13 @@
   .proverb .pvid{display:flex;align-items:flex-start;gap:9px;font-size:16px;font-style:italic}
   .proverb .pvid .t{flex:1}
   .proverb .pvja{font-size:13.5px;color:var(--sub);margin:6px 0 0 43px}
+  .scanbtn{display:inline-flex;padding:12px 20px;font-size:15px;margin-top:8px}
+  .scanprev{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:14px;border:1px solid var(--line);margin:14px 0 6px;background:var(--line2)}
+  .scanstatus{font-size:13px;color:var(--sub);margin:6px 0 12px;min-height:18px}
+  .scanline{padding:14px 16px;margin-bottom:10px}
+  .scanline .scanid{display:flex;align-items:flex-start;gap:9px;font-size:16px}
+  .scanline .scanid .t{flex:1}
+  .scanline .scanja{font-size:13px;color:var(--sub);margin:5px 0 0 43px}
   .heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);grid-auto-columns:11px;gap:3px;justify-content:start;overflow-x:auto;padding-bottom:2px}
   .hmcell{width:11px;height:11px;border-radius:3px}
   .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px}
@@ -459,6 +466,13 @@
     <div class="pane" id="r-japan"><div class="jcard listcard" id="jCard"></div></div>
   </div>
 
+  <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>看板を読む</h2><p>写真の中のインドネシア語を読み取り、意味を表示。単語タップで発音・意味。</p></div>
+    <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
+    <button class="chip scanbtn" id="scanPick">📷 写真を撮る / 選ぶ</button>
+    <img id="scanPrev" class="scanprev" hidden alt="preview">
+    <div id="scanStatus" class="scanstatus"></div>
+    <div id="scanResult"></div>
+  </div>
   <div class="view" data-view="num"><div class="shead"><div class="kick">Angka</div><h2>数字</h2><p>数の読み・変換・時間・日付。マスや🔊で発音。</p></div>
     <div class="subtabs" data-sub="num"><button data-pane="a-list" class="active">数と変換</button><button data-pane="a-time">時間</button><button data-pane="a-date">日付</button><button data-pane="a-listen">聞き取り</button></div>
     <div class="pane active" id="a-list"><div class="numgrid" id="numGrid"></div>
@@ -492,6 +506,6 @@
 
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w2"></script>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
