@@ -251,9 +251,11 @@ function numBlocks(n){const o=[];const jt=n/1000000|0;let m=n%1000000;const rb=m
   if(jt)o.push(`<span class="blk b-juta">${jt} juta</span>`);if(rb)o.push(`<span class="blk b-ribu">${rb} ribu</span>`);if(rt)o.push(`<span class="blk b-ratus">${rt} ratus</span>`);if(pl)o.push(`<span class="blk b-puluh">${pl} puluh</span>`);if(st)o.push(`<span class="blk b-satuan">${st} satuan</span>`);return o.join("");}
 function buildNumbers(){if($("numGrid").dataset.done)return;$("numGrid").dataset.done=1;
   $("numGrid").innerHTML=NUMBERS.map(n=>`<button class="numcell" data-audio="${esc(n[2])}" data-text="${esc(n[1])}"><div class="big">${dnum(n[0])}</div><div class="wd">${esc(n[1])}</div></button>`).join("");
-  const ni=$("numInput");ni.addEventListener("input",()=>{let d=ni.value.replace(/[^0-9]/g,"");if(d.length>7)d=d.slice(0,7);ni.value=d?parseInt(d,10).toLocaleString("en-US"):"";});
-  function run(){let v=parseInt(ni.value.replace(/[^0-9]/g,""),10);if(isNaN(v)||v<0){$("numOut").textContent="0〜9,999,999 を入力";$("numBlocks").innerHTML="";return;}if(v>9999999)v=9999999;const r=toIndo(v);$("numOut").textContent=r;$("numBlocks").innerHTML=numBlocks(v);playSeq(r.split(" "),$("numGo"));}
-  $("numGo").onclick=run;ni.addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+  const ni=$("numInput");
+  function calc(play){let v=parseInt(ni.value.replace(/[^0-9]/g,""),10);if(isNaN(v)||v<0){$("numOut").textContent="0〜9,999,999 を入力";$("numBlocks").innerHTML="";return;}if(v>9999999)v=9999999;const r=toIndo(v);$("numOut").textContent=r;$("numBlocks").innerHTML=numBlocks(v);if(play)playSeq(r.split(" "),$("numGo"));}
+  ni.addEventListener("input",()=>{let d=ni.value.replace(/[^0-9]/g,"");if(d.length>7)d=d.slice(0,7);ni.value=d?parseInt(d,10).toLocaleString("en-US"):"";calc(false);});
+  $("numGo").onclick=()=>calc(true);ni.addEventListener("keydown",e=>{if(e.key==="Enter")calc(true);});
+  const pad=$("numPad");if(pad){pad.addEventListener("click",e=>{const b=e.target.closest("button[data-k]");if(!b)return;const k=b.dataset.k;let d=ni.value.replace(/[^0-9]/g,"");if(k==="c")d="";else if(k==="b")d=d.slice(0,-1);else d=d+k;if(d.length>7)d=d.slice(0,7);ni.value=d?parseInt(d,10).toLocaleString("en-US"):"";calc(false);});}
 }
 function buildTime(){const per=h=>h<11?"pagi":h<15?"siang":h<19?"sore":"malam";
   function run(){let h=parseInt($("tH").value,10),m=parseInt($("tM").value,10);if(isNaN(h))h=0;if(isNaN(m))m=0;h=(h%24+24)%24;m=(m%60+60)%60;const h12=h%12===0?12:h%12;let words=["jam"].concat(toIndo(h12).split(" "));if(m>0){words=words.concat(["lewat"]).concat(toIndo(m).split(" ")).concat(["menit"]);}words.push(per(h));$("tOut").textContent=words.join(" ");playSeq(words,$("tGo"));}
