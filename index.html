@@ -242,6 +242,10 @@
   .homegroup .htile .ic{width:46px;height:46px;font-size:24px;border-radius:13px;margin-bottom:7px}
   .homegroup .htile .lb{font-size:12px}
   .view.enter{animation:viewIn .72s cubic-bezier(.22,.61,.36,1)}
+  .view.enter-l{animation:viewSlideL .5s cubic-bezier(.22,.61,.36,1)}
+  .view.enter-r{animation:viewSlideR .5s cubic-bezier(.22,.61,.36,1)}
+  @keyframes viewSlideL{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  @keyframes viewSlideR{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
   @keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
   .view.enter .shead,.view.enter .homegrid{animation:headIn .9s cubic-bezier(.22,.61,.36,1) .12s both}
   @keyframes headIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -529,13 +533,13 @@ const CAR={};
 const TABS=[["home","ホーム"],["learn","学ぶ"],["practice","練習"],["talk","会話"],["num","数字"],["news","ニュース"],["reads","読み物"],["dict","辞書"]];
 $("mainTabs").innerHTML=TABS.map(([v,l])=>`<button data-tab="${v}" class="${v==='home'?'active':''}">${l}</button>`).join("");
 const INIT={};
-function showView(v){
+function showView(v,dir){
   document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.dataset.view===v));
   [...$("mainTabs").children].forEach(b=>b.classList.toggle("active",b.dataset.tab===v));
   if(!INIT[v]){INIT[v]=1;initView(v);}
   window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
   const av=document.querySelector('.view[data-view="'+v+'"]');
-  if(av){av.classList.remove("enter");void av.offsetWidth;av.classList.add("enter");}
+  if(av){av.classList.remove("enter","enter-l","enter-r");void av.offsetWidth;av.classList.add(dir==="l"?"enter-l":dir==="r"?"enter-r":"enter");}
 }
 $("mainTabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)showView(b.dataset.tab);});
 document.querySelectorAll(".subtabs[data-sub]").forEach(st=>{
@@ -916,7 +920,7 @@ $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=sh
     if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")){x0=null;ok=false;return;}
     x0=e.touches[0].clientX;y0=e.touches[0].clientY;ok=true;},{passive:true});
   document.addEventListener("touchend",e=>{if(!ok||x0==null)return;ok=false;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const cur=TABS.findIndex(([v])=>{const el=document.querySelector('.view[data-view="'+v+'"]');return el&&el.classList.contains("active");});if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0]);}
+    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){const cur=TABS.findIndex(([v])=>{const el=document.querySelector('.view[data-view="'+v+'"]');return el&&el.classList.contains("active");});if(cur<0)return;const ni=cur+(dx<0?1:-1);if(ni<0||ni>=TABS.length)return;showView(TABS[ni][0],dx<0?"l":"r");}
   },{passive:true});})();
 
 /* PWA */
