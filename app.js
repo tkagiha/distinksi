@@ -14,8 +14,18 @@ const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 
 /* 辞書 */
 const SUF=["nya","lah","kah","ku","mu","kan"];
+const PRE=["memper","diper","meng","meny","mem","men","peng","peny","pem","pen","ber","ter","di","me","pe","se","ke"];
 const norm=t=>t.toLowerCase().replace(/[.,!?;:"“”'()）（]/g,"").trim();
-function look(n){if(GLOSS[n])return GLOSS[n];for(const s of SUF){const st=n.slice(0,-s.length);if(n.endsWith(s)&&st.length>=3&&GLOSS[st])return GLOSS[st];}return null;}
+function look(n){if(GLOSS[n])return GLOSS[n];
+  for(const s of SUF){const st=n.slice(0,-s.length);if(n.endsWith(s)&&st.length>=3&&GLOSS[st])return GLOSS[st];}
+  /* 接頭辞つきの形（dilarang / ditutup / berhenti など）を語幹から引く */
+  for(const p of PRE){if(n.length-p.length>=4&&n.indexOf(p)===0){
+    const st=n.slice(p.length);
+    if(GLOSS[st])return GLOSS[st];
+    for(const s of ["kan","an","i"]){const st2=st.slice(0,-s.length);
+      if(st.endsWith(s)&&st2.length>=4&&GLOSS[st2])return GLOSS[st2];}
+  }}
+  return null;}
 function wrapWords(t){return t.split(/(\s+)/).map(p=>{if(/^\s*$/.test(p))return p;const nn=norm(p),m=look(nn);return nn?(m?`<span class="tok known" data-m="${esc(m)}" data-w="${esc(nn)}">${esc(p)}</span>`:`<span class="tok tapable" data-w="${esc(nn)}">${esc(p)}</span>`):`<span class="tok">${esc(p)}</span>`;}).join("");}
 const spkBtn=(a,t)=>`<button class="spk" data-audio="${esc(a)}" data-text="${esc(t)}">${SPK}</button>`;
 
@@ -49,12 +59,14 @@ function playSeq(words,btn){playList(wordsToSrcs(words),btn);}
 const pop=$("pop");let popTmr=null;
 var _trCache={};
 function translateWord(w){if(_trCache[w]!=null)return Promise.resolve(_trCache[w]);return fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=id&tl=ja&dt=t&q="+encodeURIComponent(w)).then(function(r){return r.json();}).then(function(d){var t=(d&&d[0])?d[0].map(function(s){return s[0];}).join(""):"";_trCache[w]=t;return t;}).catch(function(){return"";});}
-function showPop(el){const w=el.getAttribute("data-w");const m=el.getAttribute("data-m")||GLOSS[w];const r=el.getBoundingClientRect();pop.dataset.w=w;
+function showPop(el){const w=el.getAttribute("data-w");const m=el.getAttribute("data-m")||look(w);const r=el.getBoundingClientRect();pop.dataset.w=w;
   function place(txt){pop.innerHTML='<span class="pw">'+esc(w)+'</span>'+txt;pop.style.left=(r.left+r.width/2)+"px";pop.style.top=(r.top-8)+"px";pop.classList.add("on");clearTimeout(popTmr);popTmr=setTimeout(function(){pop.classList.remove("on");},2800);}
   play(WORDAUDIO[w]||("audio/w/"+w.replace(/\//g,"_")+".mp3"),w,null);
   if(m){place(esc(m));return;}
   place("…");
-  translateWord(w).then(function(tr){if(tr)GLOSS[w]=tr;if(pop.dataset.w===w&&pop.classList.contains("on"))place(esc(tr||"（訳なし）"));});}
+  translateWord(w).then(function(tr){if(tr)GLOSS[w]=tr;
+    if(pop.dataset.w===w&&pop.classList.contains("on"))
+      place(esc(tr||(navigator.onLine===false?"オフラインのため訳せません":"辞書にない語です")));});}
 /* 単一の委譲クリックハンドラ（音声・辞書・カルーセル・ホーム遷移・ブックマーク・意味表示） */
 document.addEventListener("click",e=>{
   const pb=e.target.closest("[data-audio]");if(pb){e.stopPropagation();play(pb.dataset.audio,pb.dataset.text||"",pb);return;}
@@ -1432,6 +1444,17 @@ function newsPopup(){try{
 /* PWA */
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
 let _tessP=null;
+function scanBusy(on,label,pct){
+  var w=$("cropWrap"),st=$("scanStatus"),go=$("scanGo");
+  if(w)w.classList.toggle("scanning",!!on);
+  if(go)[].forEach.call(go.querySelectorAll("button"),function(b){b.disabled=!!on;});
+  if(!st)return;
+  if(!on){st.classList.remove("busy");return;}
+  st.classList.add("busy");
+  var p=Math.max(0,Math.min(100,Math.round(pct||0)));
+  st.innerHTML='<div class="scanbar"><span style="width:'+p+'%"></span></div>'
+    +'<div class="scanlbl"><svg class="icn scanspin"><use href="#i-camera"/></svg>'
+    +'<span>'+esc(label||"読み取り中…")+'</span><b>'+p+'%</b></div>';}
 function ensureTesseract(cb){if(window.Tesseract)return cb();if(_tessP){_tessP.then(cb);return;}_tessP=new Promise(function(res,rej){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});_tessP.then(cb).catch(function(){var st=$("scanStatus");if(st)st.textContent="読み取りエンジンの読み込みに失敗しました。通信環境をご確認ください。";});}
 var _scanInit=false;
 function buildScan(){if(_scanInit)return;_scanInit=true;
@@ -1443,8 +1466,8 @@ function buildScan(){if(_scanInit)return;_scanInit=true;
     var bm=_cropBM,sx=Math.max(0,_crop.x*bm.width),sy=Math.max(0,_crop.y*bm.height);
     var sw=Math.min(bm.width-sx,_crop.w*bm.width),sh=Math.min(bm.height-sy,_crop.h*bm.height);
     if(sw<12||sh<12){$("scanStatus").textContent="枠が小さすぎます。もう少し広げてください。";return;}
-    $("scanStatus").textContent="読み取り中…";runOCR(_scale(bm,sx,sy,sw,sh));};
-  var fr=$("btnFullRead");if(fr)fr.onclick=function(){if(!_cropBM)return;$("scanStatus").textContent="読み取り中…";runOCR(_scale(_cropBM,0,0,_cropBM.width,_cropBM.height));};}
+    scanBusy(true,"文字を探しています…",2);runOCR(_scale(bm,sx,sy,sw,sh));};
+  var fr=$("btnFullRead");if(fr)fr.onclick=function(){if(!_cropBM)return;scanBusy(true,"文字を探しています…",2);runOCR(_scale(_cropBM,0,0,_cropBM.width,_cropBM.height));};}
 function _enhance(c){var x=c.getContext("2d"),cw=c.width,ch=c.height;
   try{var d=x.getImageData(0,0,cw,ch),p=d.data,i,v;
     var hist=new Array(256),n=p.length/4;for(i=0;i<256;i++)hist[i]=0;
@@ -1491,7 +1514,12 @@ function runOCR(input){$("scanResult").innerHTML="";
   ensureTesseract(function(){(async function(){var wk,pass=0;try{
       var psms=["11","6","3"];
       wk=await Tesseract.createWorker("ind",1,{langPath:"https://tessdata.projectnaptha.com/4.0.0_best",
-        logger:function(m){var s=$("scanStatus");if(m.status==="recognizing text"&&s)s.textContent="読み取り中… "+(pass+1)+"/"+psms.length+"（"+Math.round((m.progress||0)*100)+"%）";}});
+        logger:function(m){
+          var base=pass/psms.length*100, span=100/psms.length;
+          if(m.status==="recognizing text")scanBusy(true,"文字を読んでいます（"+(pass+1)+"/"+psms.length+"）",base+(m.progress||0)*span);
+          else if(m.status&&m.status.indexOf("loading")===0)scanBusy(true,"読み取りエンジンを準備中…",Math.max(2,(m.progress||0)*8));
+          else if(m.status==="initializing api"||m.status==="initialized api")scanBusy(true,"エンジンを起動しています…",8);
+        }});
       var best=null;
       for(pass=0;pass<psms.length;pass++){
         await wk.setParameters({preserve_interword_spaces:"1",tessedit_pageseg_mode:psms[pass]});
@@ -1505,17 +1533,21 @@ function runOCR(input){$("scanResult").innerHTML="";
       if(!best){renderScan("");return;}
       var lines=((best.data.lines)||[]).filter(function(L){return (L.confidence||0)>=55&&((L.text||"").trim().length>1);}).map(function(L){return L.text.trim();});
       renderScan(lines.length?lines.join("\n"):((best.data.text||"").trim()));
-    }catch(err){try{if(wk)await wk.terminate();}catch(_){}$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";}})();});}
+    }catch(err){try{if(wk)await wk.terminate();}catch(_){}scanBusy(false);$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";}})();});}
 function scanHandle(f){if(!f)return;var url=URL.createObjectURL(f);$("scanResult").innerHTML="";
-  if(window.createImageBitmap){createImageBitmap(f).then(function(bm){showCrop(bm,url);}).catch(function(){$("scanStatus").textContent="読み取り中…";runOCR(f);});}
-  else{$("scanStatus").textContent="読み取り中…";runOCR(f);}}
-function renderScan(text){var st=$("scanStatus"),res=$("scanResult");
+  if(window.createImageBitmap){createImageBitmap(f).then(function(bm){showCrop(bm,url);}).catch(function(){scanBusy(true,"文字を探しています…",2);runOCR(f);});}
+  else{scanBusy(true,"文字を探しています…",2);runOCR(f);}}
+function renderScan(text){var st=$("scanStatus"),res=$("scanResult");scanBusy(false);
   if(!text){st.textContent="文字が見つかりませんでした。枠を看板の文字だけに絞る／もっと近づいて撮ると読めることがあります。";res.innerHTML="";return;}
   st.textContent="読み取り完了 ✓ 単語をタップで意味・発音";
   var lines=text.split(/\n+/).map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
   res.innerHTML=lines.map(function(l){return '<div class="scanline panelcard"><div class="scanid">'+spkBtn("",l)+'<span class="t">'+wrapWords(l)+'</span></div><div class="scanja">翻訳中…</div></div>';}).join("")+scanWordsCard(lines);
   var jaEls=res.querySelectorAll(".scanja");
-  lines.forEach(function(l,i){translateWord(l).then(function(tr){if(jaEls[i])jaEls[i].textContent=tr||"（訳なし）";});});
+  lines.forEach(function(l,i){translateWord(l).then(function(tr){
+    if(!jaEls[i])return;
+    if(tr){jaEls[i].textContent=tr;return;}
+    var loc=l.split(/\s+/).map(function(x){var m=look(norm(x));return m?x+"＝"+m:null;}).filter(Boolean);
+    jaEls[i].textContent=loc.length?("辞書から: "+loc.join(" / ")):(navigator.onLine===false?"オフラインのため文の訳は出せません（単語をタップすると辞書で引けます）":"訳を取得できませんでした（単語をタップすると辞書で引けます）");});});
   scanWordsInit(lines);}
 /* 読み取った単語を辞書に登録 */
 function scanWordsOf(lines){var seen={},out=[];
@@ -1529,12 +1561,14 @@ function scanWordsCard(lines){var ws=scanWordsOf(lines);if(!ws.length)return "";
     '</div></div>';}
 function scanWordsInit(lines){var ws=scanWordsOf(lines);
   ws.forEach(function(x,i){if(x[1])return;var el=$("swm"+i);if(!el)return;
-    translateWord(x[0]).then(function(tr){if(el)el.textContent=tr||"（訳なし）";});});}
+    translateWord(x[0]).then(function(tr){if(!el)return;
+      var m=tr||look(norm(x[0]));
+      el.textContent=m||(navigator.onLine===false?"オフラインのため訳せません":"辞書にない語です");});});}
 (function(){document.addEventListener("click",function(e){
   var b=e.target.closest("[data-sw]");if(!b)return;
   var w=b.dataset.sw,i=b.dataset.i,el=$("swm"+i);
   var ja=(el&&el.textContent||"").trim();
-  if(!ja||ja==="…"||ja==="（訳なし）"){b.textContent="訳待ち";return;}
+  if(!ja||ja==="…"||ja.indexOf("辞書にない")===0||ja.indexOf("オフライン")===0){b.textContent="訳待ち";return;}
   if(addMyWord(w,ja)){b.textContent="登録済み";b.classList.add("done");b.disabled=true;
     var st=$("scanStatus");if(st)st.textContent="「"+w+"」を辞書に登録しました（調べる→辞書 で検索できます）";}
 });})();
