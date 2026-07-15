@@ -602,19 +602,57 @@ function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box
 
 /* ===== 検索 ===== */
 let SIDX=null;
-function buildIndex(){SIDX=[];const add=(id,ja,audio,src)=>SIDX.push({id,ja,audio,src});
-  WORDS.forEach(w=>{add(w.word,w.meaning,w.audio,"単語");w.ex.forEach(e=>add(e[0],e[1],e[2],"例文"));});
-  SCENES.forEach(s=>s.lines.forEach(l=>add(l[2],l[3],l[4],"会話")));
-  NEWS.forEach(n=>add(n.id,n.ja,n.audio,"ニュース"));
-  DRIVER.forEach(g=>g.items.forEach(it=>{add(it[0],it[1],it[2],"ドライバー");it[3].forEach(a=>add(a[0],a[1],a[2],"回答"));}));
-  JAPAN.forEach(x=>add(x[0],x[1],x[2],"日本"));
+const SCAT=["辞書","自分の単語","単語","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
+function buildIndex(){SIDX=[];
+  const add=(id,ja,audio,src,go)=>{if(id&&ja)SIDX.push({id:String(id),ja:String(ja),audio:audio||"",src:src,go:go});};
+  const wau=w=>"audio/w/"+String(w).replace(/\//g,"_")+".mp3";
+  try{Object.keys(GLOSS).forEach(k=>{if(k&&GLOSS[k])add(k,GLOSS[k],wau(k),"辞書","more:dict");});}catch(e){}
+  try{Object.keys(MYWORDS).forEach(w=>add(w,MYWORDS[w],wau(w),"自分の単語","more:dict"));}catch(e){}
+  try{WORDS.forEach(w=>{add(w.word,w.meaning,w.audio,"単語","learn:l-words");(w.ex||[]).forEach(e=>add(e[0],e[1],e[2],"例文","learn:l-words"));});}catch(e){}
+  try{GRAMMAR.forEach(g=>(g.ex||[]).forEach(e=>add(e[0],e[1],e[2],"文法","learn:l-gram")));}catch(e){}
+  try{[[PREFIX,"learn:l-prefix"],[SUFFIX,"learn:l-suffix"],[CONFIX,"learn:l-confix"]].forEach(pair=>{
+    (pair[0]||[]).forEach(g=>(g.ex||[]).forEach(e=>add(e[0],e[1],e[2],"接辞",pair[1])));});}catch(e){}
+  try{SCENES.forEach(s=>s.lines.forEach(l=>add(l[2],l[3],l[4],"会話","talk:t-scene")));}catch(e){}
+  try{DRIVER.forEach(g=>g.items.forEach(it=>{add(it[0],it[1],it[2],"ドライバー","talk:t-driver");(it[3]||[]).forEach(x=>add(x[0],x[1],x[2],"ドライバー","talk:t-driver"));}));}catch(e){}
+  try{TRAVEL.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"旅行","talk:t-travel")));}catch(e){}
+  try{PACKS.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"テーマ別","talk:t-pack")));}catch(e){}
+  try{(window.REALNEWS||[]).forEach(n=>add(n.id,n.ja,n.audio,"ニュース","news"));}catch(e){}
+  try{NEWS.forEach(n=>add(n.id,n.ja,n.audio,"読み物","reads:r-info"));}catch(e){}
+  try{CULTURE.forEach(c=>add(c.id,c.ja,c.audio,"文化","reads:r-cult"));}catch(e){}
+  try{HISTORY.forEach(x=>add(x.id,x.ja,x.audio,"歴史","reads:r-hist"));}catch(e){}
+  try{GEO.forEach(g=>add(g.id,g.ja,g.audio,"地理","reads:r-geo"));}catch(e){}
+  try{DAILY.forEach(d=>add(d.id,d.ja,d.audio,"日常","reads:r-daily"));}catch(e){}
+  try{JAPAN.forEach(x=>add(x[0],x[1],x[2],"日本","reads:r-japan"));}catch(e){}
+  try{NUMBERS.forEach(n=>add(n[1],String(n[0]),n[2],"数字","num"));}catch(e){}
 }
-$("btnSearch").onclick=()=>{$("searchOv").classList.add("on");$("searchIn").focus();};
-$("searchIn").addEventListener("input",()=>{if(!SIDX)buildIndex();const q=$("searchIn").value.trim().toLowerCase();if(!q){$("searchRes").innerHTML="";return;}
-  const res=SIDX.filter(r=>r.id.toLowerCase().includes(q)||r.ja.toLowerCase().includes(q)).slice(0,40);
-  $("searchRes").innerHTML=res.length?res.map(r=>`<div class="sres">${spkBtn(r.audio,r.id)}<div class="t"><div class="src">${esc(r.src)}</div><div>${wrapWords(r.id)}</div><div class="ja">${esc(r.ja)}</div></div><button class="bkbtn" data-book='${esc(JSON.stringify({id:r.id,ja:r.ja,audio:r.audio}))}' aria-label="ブックマーク">★</button></div>`).join(""):`<div style="color:var(--sub);font-size:13px;padding:10px 0">一致なし</div>`;
+function searchRender(){
+  const q=($("searchIn").value||"").trim().toLowerCase();
+  const box=$("searchRes");
+  if(!q){box.innerHTML="";return;}
+  if(!SIDX)buildIndex();
+  const seen={},hit=[];
+  for(let i=0;i<SIDX.length;i++){const r=SIDX[i];
+    if(r.id.toLowerCase().indexOf(q)<0&&r.ja.toLowerCase().indexOf(q)<0)continue;
+    const key=r.src+"|"+r.id;if(seen[key])continue;seen[key]=1;hit.push(r);}
+  if(!hit.length){box.innerHTML='<div class="snone">見つかりませんでした</div>';return;}
+  const by={};hit.forEach(r=>{(by[r.src]=by[r.src]||[]).push(r);});
+  let html="",total=0;
+  SCAT.forEach(cat=>{
+    const arr=by[cat];if(!arr||!arr.length||total>=60)return;
+    const show=arr.slice(0,8);total+=show.length;
+    html+='<div class="scat">'+esc(cat)+'<span>'+arr.length+'</span></div>'+show.map(r=>
+      '<div class="sres" data-goto="'+esc(r.go)+'">'+spkBtn(r.audio,r.id)+
+      '<div class="t"><div>'+wrapWords(r.id)+'</div><div class="ja">'+esc(r.ja)+'</div></div>'+
+      '<button class="bkbtn" data-book=\''+esc(JSON.stringify({id:r.id,ja:r.ja,audio:r.audio}))+'\' aria-label="ブックマーク">★</button></div>').join("");
+    if(arr.length>show.length)html+='<div class="smore">ほか '+(arr.length-show.length)+' 件</div>';
+  });
+  box.innerHTML=html;
   if(typeof refreshBookBtns==="function")refreshBookBtns();
-});
+}
+$("btnSearch").onclick=()=>{$("searchOv").classList.add("on");$("searchIn").focus();ensureExtra(function(){SIDX=null;});};
+var _sqT=null;
+$("searchIn").addEventListener("input",()=>{clearTimeout(_sqT);_sqT=setTimeout(searchRender,200);});
+$("searchRes").addEventListener("click",e=>{if(e.target.closest("[data-goto]"))$("searchOv").classList.remove("on");});
 
 /* ===== 設定 ===== */
 function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");document.body.classList.add(fs);[...$("setFont").children].forEach(b=>b.classList.toggle("active",b.dataset.fs===fs));SV("dks_font",fs);}
@@ -658,12 +696,12 @@ renderBookCount();
 
 let ACT=LS("dks_act",{date:"",streak:0,today:0,goal:10});
 const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
-function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();}
+function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();updBadge();}
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
-  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();}
+  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
 function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0,weak=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
   Object.keys(st).forEach(function(w){if(st[w]==="weak")weak++;});
@@ -736,52 +774,85 @@ async function prefetchAll(){const list=allAudio();const lbl=$("prefLbl"),btn=$(
   lbl.textContent="完了！ "+(N-fail)+" / "+N+" 保存"+(fail?("（未取得 "+fail+"）"):"");btn.disabled=false;}
 if($("btnPrefetch"))$("btnPrefetch").onclick=prefetchAll;
 /* ===== 学習データのバックアップ / 復元 ===== */
-function bkInfo(){var el=$("bkLbl");if(!el)return;var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;var a=LS("dks_act",{});var mw=Object.keys(LS("dks_mywords",{})).length;var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
-  var base="覚えた "+known+"語 ・ 連続 "+(a.streak||0)+"日 ・ 登録した単語 "+mw+"語 ・ 保存項目 "+n+"件";
-  el.textContent=base+"（この端末内のみ）";
+function bkInfo(){var el=$("bkLbl");if(!el)return;
+  var known=_knownOf(LS("dks_status",{})),act=LS("dks_act",{}),mw=Object.keys(LS("dks_mywords",{})).length,b=LS("dks_bkup",{});
+  var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
+  var last="まだ書き出していません";
+  if(b.last){var d=new Date(b.last);var days=Math.floor((Date.now()-b.last)/86400000);
+    last="最終バックアップ "+d.getFullYear()+"/"+(d.getMonth()+1)+"/"+d.getDate()+"（"+(days===0?"今日":days+"日前")+"）";}
+  var base="覚えた "+known+"語 ・ 連続 "+(act.streak||0)+"日 ・ 登録した単語 "+mw+"語 ・ 保存項目 "+n+"件\n"+last;
+  el.textContent=base;
+  bkBadge();
   (async function(){try{
     if(navigator.storage&&navigator.storage.persisted){
       var p=await navigator.storage.persisted();
       if(!p&&navigator.storage.persist){try{p=await navigator.storage.persist();}catch(_){}}
-      el.textContent=base+"／自動削除の防止: "+(p?"有効":"未許可")+"（この端末内のみ・手動削除では消えます）";
+      el.textContent=base+"\n自動削除の防止: "+(p?"有効":"未許可")+"（手動削除では消えます）";
     }}catch(e){}})();}
-function bkNudge(){var el=$("bkNudge");if(!el)return;
-  var b=LS("dks_bkup",{}),known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length,mw=Object.keys(LS("dks_mywords",{})).length;
-  if(known+mw<10){el.innerHTML="";return;}
-  if(b.snooze&&Date.now()<b.snooze){el.innerHTML="";return;}
-  var days=b.last?Math.floor((Date.now()-b.last)/86400000):null;
-  if(days!==null&&days<14){el.innerHTML="";return;}
-  var msg=(days===null)?"まだ一度もバックアップしていません。":("最後のバックアップから "+days+" 日たちました。");
-  el.innerHTML='<div class="bknudge"><div class="bkn-t">'+msg+'</div><div class="bkn-s">学習データはこの端末の中だけにあります。ブラウザのデータを消すと、覚えた '+known+'語・登録した '+mw+'語がすべて失われます。書き出してクラウドに置いておけば、機種変更でも戻せます。</div><div class="bkn-b"><button class="bkn-go" id="bknGo">今すぐ書き出す</button><button class="bkn-later" id="bknLater">あとで</button></div></div>';
-  var g=$("bknGo");if(g)g.onclick=function(){backupData();};
-  var l=$("bknLater");if(l)l.onclick=function(){var bb=LS("dks_bkup",{});bb.snooze=Date.now()+7*86400000;SV("dks_bkup",bb);el.innerHTML="";};}
 function ensurePersist(){try{if(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted){navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist().catch(function(){});});}}catch(e){}}
 ensurePersist();
+function _knownOf(obj){try{return Object.values(obj||{}).filter(function(v){return v==="known";}).length;}catch(e){return 0;}}
 function backupData(){try{
     var data={};
     for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)data[k]=localStorage.getItem(k);}
-    var payload={app:"Artikula",v:1,exported:new Date().toISOString(),data:data};
+    var now=new Date();
+    var payload={version:1,app:"Artikula",exportedAt:now.toISOString(),data:data};
     var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob),el=document.createElement("a");
-    el.href=url;el.download="artikula-backup-"+new Date().toISOString().slice(0,10)+".json";
+    var ymd=now.getFullYear()+String(now.getMonth()+1).padStart(2,"0")+String(now.getDate()).padStart(2,"0");
+    el.href=url;el.download="artikula-backup-"+ymd+".json";
     document.body.appendChild(el);el.click();
     setTimeout(function(){URL.revokeObjectURL(url);el.remove();},600);
     SV("dks_bkup",{last:Date.now()});
-    var lbl=$("bkLbl");if(lbl)lbl.textContent="バックアップを書き出しました。クラウド（Googleドライブ等）に保管してください。";
     if(typeof bkNudge==="function")bkNudge();
+    if(typeof bkBadge==="function")bkBadge();
+    bkInfo();
+    var lbl=$("bkLbl");if(lbl)lbl.textContent="バックアップを書き出しました。クラウド（Googleドライブ等）に保管してください。";
   }catch(e){alert("書き出しに失敗しました。");}}
 function restoreData(file){var r=new FileReader();
-  r.onload=function(){try{
-      var p=JSON.parse(r.result);var d=(p&&p.data&&typeof p.data==="object")?p.data:p;
-      if(!d||typeof d!=="object")throw 0;
-      var keys=Object.keys(d).filter(function(k){return k.indexOf("dks_")===0;});
-      if(!keys.length)throw 0;
-      if(!confirm("この端末の学習データを、バックアップの内容で置き換えます（"+keys.length+"項目）。よろしいですか？"))return;
+  r.onload=function(){
+    var p;
+    try{p=JSON.parse(r.result);}
+    catch(e){alert("読み込めませんでした。\nこのファイルはJSONとして壊れています。");return;}
+    var ver=p&&(p.version||p.v);
+    var d=p&&p.data;
+    if(!ver||!d||typeof d!=="object"||Array.isArray(d)){
+      alert("Artikula のバックアップファイルではありません。\n（version と data を含むJSONを選んでください）");return;}
+    var keys=Object.keys(d).filter(function(k){return k.indexOf("dks_")===0;});
+    if(!keys.length){alert("このファイルに学習データが入っていません。");return;}
+    var cur=_knownOf(LS("dks_status",{}));
+    var bk=0;
+    try{var s=d.dks_status;bk=_knownOf(typeof s==="string"?JSON.parse(s):s);}catch(e){}
+    if(!confirm("現在の記録 "+cur+"語 を、バックアップの "+bk+"語 で上書きします。よろしいですか？\n\n現在のデータはすべて置き換えられます（この操作は取り消せません）。"))return;
+    try{
+      var del=[];
+      for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)del.push(k);}
+      del.forEach(function(k){localStorage.removeItem(k);});
       keys.forEach(function(k){localStorage.setItem(k,typeof d[k]==="string"?d[k]:JSON.stringify(d[k]));});
-      alert("復元しました。アプリを再読み込みします。");location.reload();
-    }catch(e){alert("このファイルは読み込めませんでした。Artikula のバックアップ(.json)を選んでください。");}};
+    }catch(e){alert("復元中にエラーが発生しました。データは変更されていない可能性があります。");return;}
+    alert("復元しました（"+bk+"語）。アプリを再読み込みします。");location.reload();
+  };
   r.onerror=function(){alert("ファイルを読めませんでした。");};
   r.readAsText(file);}
+function dueCount(){try{var tn=todayNum(),sr=LS("dks_srs",{}),st=LS("dks_status",{}),n=0;
+  Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")n++;});return n;}catch(e){return 0;}}
+function updBadge(){try{
+    if(!navigator.setAppBadge)return;
+    var n=dueCount();
+    if(n>0)navigator.setAppBadge(n).catch(function(){});
+    else if(navigator.clearAppBadge)navigator.clearAppBadge().catch(function(){});
+  }catch(e){}}
+function streakRisk(){var el=$("skRisk");if(!el)return;
+  var t=_d(0),y=_d(1),st=(ACT.streak||0);
+  var studiedToday=(ACT.date===t&&(ACT.today||0)>0)||ACT.ci===t;
+  var studiedYest=(ACT.hist&&ACT.hist[y]>0)||ACT.ci===y;
+  if(st<2||studiedToday||!studiedYest){el.innerHTML="";return;}
+  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx"><b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span></div><button class="skgo" id="skGo">5語やる</button></div>';
+  var g=$("skGo");if(g)g.onclick=function(){openTarget("practice:p-daily");};}
+function bkBadge(){var el=$("btnSettings");if(!el)return;
+  var b=LS("dks_bkup",{}),known=_knownOf(LS("dks_status",{}));
+  var days=b.last?Math.floor((Date.now()-b.last)/86400000):null;
+  el.classList.toggle("hasdot",known>=10&&(days===null||days>=60));}
 (function(){var b=$("btnBackup");if(b)b.onclick=backupData;
   var rb=$("btnRestore"),rf=$("restoreFile");
   if(rb&&rf){rb.onclick=function(){rf.click();};rf.onchange=function(e){var f=e.target.files&&e.target.files[0];if(f)restoreData(f);e.target.value="";};}
