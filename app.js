@@ -558,6 +558,8 @@ const ARCH_CLUSTERS=[
  {id:"maluku",name:"Maluku",cx:432,cy:112,region:"マルク"},
  {id:"papua",name:"Papua",cx:500,cy:108,region:"パプア"}
 ];
+/* GEO と同順。地図(568x226)は正距円筒: x=2.4+(lon-95.2)*12.36, y=6.5+(5.9-lat)*12.15 */
+const GEOPT=[[23.4, 25.9], [50.6, 46.6], [69.1, 86.7], [81.5, 72.1], [116.7, 67.2], [93.9, 97.6], [113.6, 117.1], [137.1, 106.1], [90.2, 121.9], [124.8, 137.7], [146.4, 153.5], [155.7, 162.0], [137.1, 155.9], [187.8, 165.7], [189.9, 173.0], [217.5, 171.7], [249.0, 180.2], [275.6, 182.7], [327.5, 186.3], [185.3, 78.2], [228.6, 100.1], [249.6, 113.4], [265.7, 74.5], [266.9, 38.1], [365.8, 63.6], [339.8, 69.7], [316.3, 95.2], [299.0, 109.8], [308.9, 130.4], [337.4, 128.0], [423.9, 120.7], [406.6, 63.6], [541.3, 117.1], [472.1, 97.6], [551.2, 168.1], [510.4, 125.6], [542.5, 128.0], [448.6, 90.3], null, null, null, null, null, null, null, null, null, null, null, null];
 const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
 /* ===== Kata Hari Ini（今日の一言） ===== */
 function _hash(n){n=(n^61)^(n>>>16);n=n+(n<<3);n=n^(n>>>4);n=Math.imul(n,0x27d4eb2d);n=n^(n>>>15);return n>>>0;}
@@ -634,6 +636,11 @@ function unlockPack(id){var o=packsOpen();if(o.indexOf(id)>=0)return false;
   return true;}
 let _archDots=null,_archLit=null,_archLabelY={};
 function _archBuild(){if(_archDots)return _archDots;var dots=ARCHPTS.map(function(p){return {x:p[0],y:p[1],ci:p[2]};});var order=dots.map(function(d,i){return i;}).sort(function(a,b){return dots[a].x-dots[b].x;});order.forEach(function(idx,rank){dots[idx].rank=rank;});var my={};dots.forEach(function(d){if(my[d.ci]==null||d.y>my[d.ci])my[d.ci]=d.y;});_archLabelY=my;_archDots=dots;return dots;}
+function gotoGeoIndex(gi){openTarget("reads:r-geo");
+  ensureExtra(function(){buildGeo();
+    setTimeout(function(){var t=$("geoTrack");if(!t)return;var pos=0;
+      for(var i=0;i<GEOORD.length;i++){if(GEOORD[i]===gi){pos=i;break;}}
+      t.scrollTo({left:t.clientWidth*pos});if(typeof geoNav==="function")geoNav(pos);},160);});}
 function gotoGeoRegion(region){openTarget("reads:r-geo");
   ensureExtra(function(){buildGeo();
     setTimeout(function(){var t=$("geoTrack");if(!t)return;var pos=0;
@@ -646,6 +653,11 @@ function gotoGeoRegion(region){openTarget("reads:r-geo");
     var sc=Math.min(r.width/vb.width,r.height/vb.height);
     var ox=(r.width-vb.width*sc)/2,oy=(r.height-vb.height*sc)/2;
     var x=(e.clientX-r.left-ox)/sc,y=(e.clientY-r.top-oy)/sc;
+    var gi=-1,gd=1e9;
+    for(var k=0;k<GEOPT.length;k++){if(!GEOPT[k])continue;   /* 名所は対象外・州のみ */
+      var dx=x-GEOPT[k][0],dy=y-GEOPT[k][1],d=dx*dx+dy*dy;
+      if(d<gd){gd=d;gi=k;}}
+    if(gi>=0&&gd<1600){gotoGeoIndex(gi);return;}   /* 40px以内 ≒ 実距離 約3.2度 */
     var best=null,bd=1e9;
     ARCH_CLUSTERS.forEach(function(c){var d=(x-c.cx)*(x-c.cx)+(y-c.cy)*(y-c.cy);if(d<bd){bd=d;best=c;}});
     if(best&&bd<9500&&best.region)gotoGeoRegion(best.region);
@@ -667,7 +679,7 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
   const _t=titleOf(known);
-  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">島をタップすると、その地方の地理が開きます</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">地図をタップすると、その場所の州・名所が開きます</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;
     if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);
