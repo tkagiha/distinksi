@@ -396,6 +396,25 @@
   .greet b{color:var(--ink);font-weight:600}
   .homecta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:12px 0 2px;padding:14px;border-radius:15px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;color:#fff;background:linear-gradient(160deg,#d02a31,#a01820);box-shadow:0 6px 18px rgba(193,39,45,.3);transition:transform .15s}
   .homecta:active{transform:scale(.98)}
+  .nwcard{padding:16px 18px;margin-top:14px}
+  .nwcard h4{font-size:13px;color:var(--sub);font-weight:700;margin-bottom:4px}
+  .nwhint{font-size:11.5px;color:var(--sub);margin-bottom:10px}
+  .nwempty{font-size:13px;color:var(--sub)}
+  .nwlist{display:flex;flex-direction:column;gap:8px}
+  .nwrow{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line2);padding-bottom:7px}
+  .nww{font-weight:700;font-size:15px;color:var(--ink);cursor:pointer;border-bottom:1px dotted var(--gold);min-width:92px}
+  .nwm{flex:1;font-size:12.5px;color:var(--sub)}
+  .nwadd{flex:none;border:1px solid var(--line);background:var(--card);color:var(--hl);border-radius:999px;padding:5px 11px;font-size:11.5px;font-family:inherit;cursor:pointer;font-weight:700}
+  .nwadd:active{transform:scale(.94)}
+  .nwadd.done{color:var(--sub);border-color:var(--line2);font-weight:400}
+  .nwall{width:100%;margin-top:12px;padding:11px;border-radius:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .nwall:disabled{color:var(--sub);border-color:var(--line2);cursor:default}
+  .wkchart{display:flex;align-items:flex-end;gap:6px;height:96px}
+  .wkbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%}
+  .wkcol{flex:1;width:100%;display:flex;align-items:flex-end;background:var(--line2);border-radius:6px;overflow:hidden}
+  .wkfill{width:100%;background:linear-gradient(180deg,var(--gold),var(--hl));border-radius:6px;transition:height .5s}
+  .wkd{font-size:10px;color:var(--sub)}
+  .wkn{font-size:10px;color:var(--gold);font-weight:700;min-height:12px}
   .homecta .icn{width:1em;height:1em}
   .moretools{display:flex;gap:9px;margin:8px 0 12px}
   .moretools .chip{display:inline-flex;align-items:center;gap:7px}
@@ -563,7 +582,7 @@
     <div id="homeArchFull"></div>
     <div id="homeStats"></div>
     <div id="statsWrap" class="dash"></div>
-    <button class="homecta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
+    <button class="homecta" id="homeCta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
     <div id="homeCards"></div>
   </div>
 
@@ -677,6 +696,6 @@
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=38"></script>
+<script src="app.js?v=39"></script>
 </body>
 </html>
