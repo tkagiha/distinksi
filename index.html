@@ -268,6 +268,21 @@
   .sheet{background:var(--card);color:var(--ink);border-radius:16px;width:100%;max-width:560px;max-height:80vh;overflow:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
   .sheet h3{font-size:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
   .sheet .close{border:none;background:var(--line2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;color:var(--ink)}
+  /* 今日のニュース ポップアップ */
+  #newsOv{align-items:center;padding:20px}
+  #newsOv .newssheet{max-width:340px;text-align:center;padding:24px 22px 20px;border-radius:20px;animation:nspop .42s cubic-bezier(.16,1,.3,1) both}
+  @keyframes nspop{from{opacity:0;transform:scale(.88) translateY(14px)}to{opacity:1;transform:none}}
+  .nsemo{font-size:40px;line-height:1}
+  .nsgreet{font-family:"Hiragino Mincho ProN","Yu Mincho",YuMincho,Georgia,serif;font-size:19px;font-weight:700;margin-top:8px}
+  .nstitle{font-size:13.5px;color:var(--sub);margin-top:4px}
+  .nsdate{font-size:11px;letter-spacing:1.6px;color:var(--gold);font-weight:700;margin-top:10px}
+  .nshead{margin-top:8px}
+  .nsh1{font-size:13px;color:var(--ink);line-height:1.6;background:var(--line2);border-radius:11px;padding:9px 11px}
+  .nsh2{font-size:11.5px;color:var(--sub);margin-top:6px}
+  .nsbtns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+  .nsgo{padding:13px;border-radius:13px;border:none;background:linear-gradient(160deg,#d02a31,#a01820);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(193,39,45,.3)}
+  .nsgo:active{transform:scale(.98)}
+  .nsclose{padding:11px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--sub);font-family:inherit;font-size:13px;cursor:pointer}
   /* 設定：右ドロワー */
   #setOv{display:flex;pointer-events:none;background:transparent;transition:background .3s ease;overflow:hidden;padding:0;justify-content:flex-end;align-items:stretch}
   #setOv.on{pointer-events:auto;background:rgba(0,0,0,.4)}
@@ -757,6 +772,14 @@
   <input type="file" id="restoreFile" accept="application/json,.json" hidden>
   <div id="bkLbl" style="font-size:12px;color:var(--sub);text-align:right;line-height:1.6"></div>
 </div></div></div>
+<div class="overlay" id="newsOv"><div class="sheet newssheet">
+  <div class="nsemo">📰</div>
+  <div class="nsgreet" id="nsGreet"></div>
+  <div class="nstitle">今日のニュースをお届けします</div>
+  <div class="nsdate" id="nsDate"></div>
+  <div class="nshead" id="nsHead"></div>
+  <div class="nsbtns"><button class="nsgo" id="nsGo">ニュースを見る</button><button class="nsclose" id="nsClose">閉じる</button></div>
+</div></div>
 <div class="overlay" id="bookOv"><div class="sheet"><h3>★ ブックマーク <button class="close" data-close>✕</button></h3><div id="bookWrap"></div></div></div>
 
 <footer class="wrap">Made with <b>♥</b> for Japanese learners of Indonesian ・ Selamat belajar!</footer>
@@ -765,6 +788,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=52"></script>
+<script src="app.js?v=53"></script>
 </body>
 </html>
