@@ -73,6 +73,28 @@
   .cropwrap{position:relative;display:block;width:100%;margin:14px 0 8px;line-height:0;touch-action:none;overflow:hidden;border-radius:14px}
   .cropwrap[hidden]{display:none}
   .scanprev{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:var(--line2)}
+  /* 読み取り中: 金の走査線が上下する */
+  .cropwrap.scanning::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(180deg,rgba(20,16,18,.42),rgba(20,16,18,.12) 45%,rgba(20,16,18,.42));
+    animation:scanDim .01s forwards}
+  .cropwrap.scanning::after{content:"";position:absolute;left:0;right:0;top:0;height:18%;z-index:4;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(233,201,106,.10) 40%,rgba(233,201,106,.85) 50%,rgba(233,201,106,.10) 60%,transparent);
+    box-shadow:0 0 18px rgba(233,201,106,.55);
+    animation:scanSweep 1.5s cubic-bezier(.5,0,.5,1) infinite}
+  @keyframes scanSweep{0%{transform:translateY(-20%)}50%{transform:translateY(480%)}100%{transform:translateY(-20%)}}
+  @keyframes scanDim{to{opacity:1}}
+  .cropwrap.scanning .cropbox{opacity:.55}
+  .scanstatus.busy{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .scanbar{height:4px;border-radius:2px;background:var(--line2);overflow:hidden}
+  .scanbar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#f7de99);
+    border-radius:2px;transition:width .3s cubic-bezier(.16,1,.3,1)}
+  .scanlbl{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--sub)}
+  .scanlbl b{margin-left:auto;font-family:var(--head);color:var(--gold);font-size:13px}
+  .scanspin{width:15px;height:15px;color:var(--gold);animation:scanPulse 1.1s ease-in-out infinite}
+  @keyframes scanPulse{0%,100%{opacity:.35;transform:scale(.9)}50%{opacity:1;transform:scale(1.05)}}
+  @media(prefers-reduced-motion:reduce){
+    .cropwrap.scanning::after{animation:none;opacity:.5;top:41%}
+    .scanspin{animation:none;opacity:.9}}
   .cropbox{position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.42);border-radius:3px;cursor:move;touch-action:none}
   .cropbox .ch{position:absolute;width:24px;height:24px;background:var(--gold);border:2px solid #fff;border-radius:50%;touch-action:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}
   .cropbox .ch.tl{left:-12px;top:-12px}
@@ -1017,10 +1039,10 @@
 
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w4"></script>
-<script src="gloss.js?v=w3"></script>
+<script src="gloss.js?v=w4"></script>
 <script src="packs.js?v=3"></script>
 <script src="cities.js?v=1"></script>
 <script src="news.js"></script>
-<script src="app.js?v=68"></script>
+<script src="app.js?v=69"></script>
 </body>
 </html>
