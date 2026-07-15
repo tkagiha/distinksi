@@ -29,9 +29,16 @@ def parse_arr(src, name):
     return json.loads(m.group(1)) if m else []
 
 def main():
-    rss = fetch("https://www.antaranews.com/rss/terkini.xml")
-    items = re.findall(r"<item>(.*?)</item>", rss, re.S)
+    FEEDS = ["nasional", "ekonomi", "politik", "megapolitan", "tekno", "olahraga"]  # Indonesia domestic
+    items = []
+    for f in FEEDS:
+        try:
+            rss = fetch("https://www.antaranews.com/rss/%s.xml" % f)
+            items += re.findall(r"<item>(.*?)</item>", rss, re.S)
+        except Exception:
+            pass
     picked = []
+    seen = set()
     for it in items:
         def g(tag):
             m = re.search(r"<" + tag + r">(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</" + tag + r">", it, re.S)
@@ -39,7 +46,8 @@ def main():
         title, link = g("title"), g("link")
         im = re.search(r'<enclosure[^>]*url="([^"]+)"', it)
         img = im.group(1) if im else ""
-        if title and link and img:
+        if title and link and img and link not in seen:
+            seen.add(link)
             picked.append((title, link, img))
         if len(picked) >= 10:
             break
