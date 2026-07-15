@@ -407,6 +407,22 @@
   .greet b{color:var(--ink);font-weight:600}
   .homecta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:12px 0 2px;padding:14px;border-radius:15px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;color:#fff;background:linear-gradient(160deg,#d02a31,#a01820);box-shadow:0 6px 18px rgba(193,39,45,.3);transition:transform .15s}
   .homecta:active{transform:scale(.98)}
+  .catpop{position:fixed;left:50%;top:40%;z-index:97;pointer-events:none;font-size:30px;font-weight:800;color:var(--hl);text-shadow:0 3px 14px rgba(0,0,0,.35);white-space:nowrap;animation:catpop 1.75s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes catpop{0%{transform:translate(-50%,-50%) scale(.3) rotate(-12deg);opacity:0}18%{opacity:1;transform:translate(-50%,-50%) scale(1.25) rotate(6deg)}45%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}100%{transform:translate(-50%,-160%) scale(1.5) rotate(8deg);opacity:0}}
+  @media(prefers-reduced-motion:reduce){.catpop{animation-duration:.01s}}
+  .sayin{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:15px}
+  .sayload{font-size:13px;color:var(--sub);margin-top:12px;text-align:center}
+  .saycard{margin-top:14px;padding-top:12px;border-top:1px solid var(--line2)}
+  .sayid{display:flex;align-items:flex-start;gap:9px;font-size:17px}
+  .sayid .t{flex:1}
+  .sayja{font-size:12.5px;color:var(--sub);margin:5px 0 0 43px}
+  .saysec{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:16px 0 8px}
+  .sayscene{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+  .sayscene:hover{border-color:var(--gold)}
+  .sayscene:active{transform:scale(.99)}
+  .ss-e{font-size:17px}
+  .ss-n{flex:1;font-size:13.5px;font-weight:700}
+  .ss-go{font-size:11px;color:var(--gold);font-weight:700;white-space:nowrap}
   .simsel{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:12px}
   .simcard{padding:16px 18px}
   .simlog{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;max-height:340px;overflow-y:auto}
@@ -651,7 +667,7 @@
   </div>
 
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
-    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-sim">なりきり会話</button></div>
+    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-say">言いたいこと</button><button data-pane="t-sim">なりきり会話</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="pick"><select id="sSelect"></select></div>
@@ -661,6 +677,7 @@
       <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="dTrack"></div><div class="cnav"><button class="arrow" data-nav="d:-1">←</button><span class="counter" id="dCount"></span><button class="arrow" data-nav="d:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="t-travel"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">旅行で使えるフレーズ集。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="travelWrap"></div></div>
+    <div class="pane" id="t-say"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">日本語を入れるとインドネシア語にして、その表現が出てくる場面の会話へ案内します。</div><div id="sayWrap"></div></div>
     <div class="pane" id="t-sim"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">場面を選ぶと相手が話しかけてきます。あなたのセリフは<b>声で</b>答えてください（音声認識で判定）。</div><div id="simWrap"></div></div>
     <div class="pane" id="t-pack"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">場面別の表現パック。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="packWrap"></div></div>
   </div>
@@ -740,6 +757,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=50"></script>
+<script src="app.js?v=51"></script>
 </body>
 </html>
