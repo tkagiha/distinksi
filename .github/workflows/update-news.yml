@@ -36,7 +36,9 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore: daily news update ($(TZ=Asia/Jakarta date +%F))"
-            git push
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; echo "rebase failed"; exit 1; }
+            git push origin HEAD:main
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Trigger Pages deploy
