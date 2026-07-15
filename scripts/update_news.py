@@ -30,7 +30,7 @@ def parse_arr(src, name):
 
 def main():
     # インドネシア国内の出来事を扱うフィードのみ（dunia/international は使わない）
-    FEEDS = ["nasional", "megapolitan", "politik", "hukum", "humaniora"]
+    FEEDS = ["nasional", "megapolitan", "politik", "hukum"]
     PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
     picked, seen = [], set()
 
