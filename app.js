@@ -71,7 +71,7 @@ function lazyCarousel(track,count,renderFn,countEl,prevSel,nextSel,onIndex){
   let order=Array.from({length:count},(_,i)=>i);
   const slides=[];for(let i=0;i<count;i++){const d=document.createElement("div");d.className="slide";d.dataset.filled="0";track.appendChild(d);slides.push(d);}
   function fill(i){if(i<0||i>=count)return;const s=slides[i];if(s.dataset.filled==="1")return;s.innerHTML=renderFn(order[i]);s.dataset.filled="1";}
-  const idx=()=>Math.round(track.scrollLeft/track.clientWidth);
+  const idx=()=>{const cw=track.clientWidth;return cw?Math.round(track.scrollLeft/cw):0;};
   const prev=document.querySelector(prevSel),next=document.querySelector(nextSel);
   function update(){const i=idx();fill(i);fill(i-1);fill(i+1);if(countEl)countEl.textContent=(i+1)+" / "+count;if(prev)prev.disabled=i<=0;if(next)next.disabled=i>=count-1;if(onIndex)onIndex(order[i],i);}
   let tmr;track.addEventListener("scroll",()=>{clearTimeout(tmr);tmr=setTimeout(update,90);});
@@ -139,7 +139,7 @@ function initView(v){
 const PANEI={};
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
-  if(id==="l-packs")ensureCards(function(){buildPacks();});
+  if(id==="l-packs")ensureCards(function(){buildIslandPacks();});
   if(id==="l-gaul")buildGaul();
   if(id==="t-surv")buildSurv();
   if(id==="l-gram")ensureExtra(buildGrammar);
@@ -158,7 +158,7 @@ function initPane(id){
   if(id==="p-stats")ensureCards(buildStats);
   if(id==="a-time")buildTime();
   if(id==="a-date")ensureExtra(buildDate);
-  if(id==="a-listen")buildNumQuiz();
+  if(id==="a-listen")ensureExtra(buildNumQuiz);
   if(id==="r-daily")ensureExtra(buildLife);
   if(id==="r-geo")ensureExtra(buildGeo);
   if(id==="r-hist")ensureExtra(buildHistory);
@@ -216,7 +216,7 @@ function packSilhouette(id){var dots=_archBuild(),ci=-1;
   var pad=6,vb=(x0-pad)+" "+(y0-pad)+" "+((x1-x0)+pad*2)+" "+((y1-y0)+pad*2);
   return '<svg class="psil" viewBox="'+vb+'" aria-hidden="true">'+ds.map(function(d){
     return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="1.8"/>';}).join("")+'</svg>';}
-function buildPacks(force){var el=$("l-packs");if(!el)return;
+function buildIslandPacks(force){var el=$("l-packs");if(!el)return;
   if(_packView){renderPackDetail(_packView);return;}
   var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;
   el.innerHTML='<div class="packintro">島の点を全部ともすと、その島の語彙パックが開きます。</div><div class="packgrid">'+
@@ -240,7 +240,7 @@ function renderPackDetail(id){var p=packOf(id),el=$("l-packs");if(!p||!el)return
       +'<div class="reveal"><div class="meaning">'+esc(d.meaning)+'</div><div class="examples">'
       +d.ex.map(function(e){return '<div class="ex"><div class="id">'+spkBtn(e[2],e[0])+'<span class="t">'+wrapWords(e[0])+'</span></div><div class="ja">'+esc(e[1])+'</div></div>';}).join("")
       +'</div><div class="note"><div class="lbl">Catatan・語源メモ</div><p>'+esc(d.note)+'</p></div></div></div>';}).join("")+'</div>';
-  $("pkBack").onclick=function(){_packView=null;buildPacks();};}
+  $("pkBack").onclick=function(){_packView=null;buildIslandPacks();};}
 /* 接頭辞 */
 function buildAffix(arr,id){$(id).innerHTML=arr.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
   ${p.ex.map(e=>`<div class="lex">${spkBtn(e[2],e[0])}<span class="w">${esc(e[0])}</span><span class="m">${esc(e[1])}</span></div>`).join("")}</div>`).join("");}
@@ -630,7 +630,7 @@ function unlockPack(id){var o=packsOpen();if(o.indexOf(id)>=0)return false;
   if(window.CARDS)applyPacks();
   var p=packOf(id);
   if(p&&typeof celebrate==="function")celebrate("◆ "+p.island+"語彙パック解放 — "+p.theme+"の"+p.words.length+"語");
-  if(typeof buildPacks==="function"&&$("l-packs"))buildPacks(true);
+  if(typeof buildIslandPacks==="function"&&$("l-packs"))buildIslandPacks(true);
   return true;}
 let _archDots=null,_archLit=null,_archLabelY={};
 function _archBuild(){if(_archDots)return _archDots;var dots=ARCHPTS.map(function(p){return {x:p[0],y:p[1],ci:p[2]};});var order=dots.map(function(d,i){return i;}).sort(function(a,b){return dots[a].x-dots[b].x;});order.forEach(function(idx,rank){dots[idx].rank=rank;});var my={};dots.forEach(function(d){if(my[d.ci]==null||d.y>my[d.ci])my[d.ci]=d.y;});_archLabelY=my;_archDots=dots;return dots;}
@@ -1052,6 +1052,16 @@ async function prefetchAll(){const list=allAudio();const lbl=$("prefLbl"),btn=$(
   lbl.textContent="完了！ "+(N-fail)+" / "+N+" 保存"+(fail?("（未取得 "+fail+"）"):"");btn.disabled=false;}
 if($("btnPrefetch"))$("btnPrefetch").onclick=prefetchAll;
 /* ===== 学習データのバックアップ / 復元 ===== */
+function bkNudge(){var el=$("bkNudge");if(!el)return;
+  var b=LS("dks_bkup",{}),known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length,mw=Object.keys(LS("dks_mywords",{})).length;
+  if(known+mw<10){el.innerHTML="";return;}
+  if(b.snooze&&Date.now()<b.snooze){el.innerHTML="";return;}
+  var days=b.last?Math.floor((Date.now()-b.last)/86400000):null;
+  if(days!==null&&days<14){el.innerHTML="";return;}
+  var msg=(days===null)?"まだ一度もバックアップしていません。":("最後のバックアップから "+days+" 日たちました。");
+  el.innerHTML='<div class="bknudge"><div class="bkn-t">'+msg+'</div><div class="bkn-s">学習データはこの端末の中だけにあります。ブラウザのデータを消すと、覚えた '+known+'語・登録した '+mw+'語がすべて失われます。書き出してクラウドに置いておけば、機種変更でも戻せます。</div><div class="bkn-b"><button class="bkn-go" id="bknGo">今すぐ書き出す</button><button class="bkn-later" id="bknLater">あとで</button></div></div>';
+  var g=$("bknGo");if(g)g.onclick=function(){backupData();};
+  var l=$("bknLater");if(l)l.onclick=function(){var bb=LS("dks_bkup",{});bb.snooze=Date.now()+7*86400000;SV("dks_bkup",bb);el.innerHTML="";};}
 function bkInfo(){var el=$("bkLbl");if(!el)return;
   var known=_knownOf(LS("dks_status",{})),act=LS("dks_act",{}),mw=Object.keys(LS("dks_mywords",{})).length,b=LS("dks_bkup",{});
   var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
@@ -1162,7 +1172,7 @@ function nqGen(){
   if(NQCAT==="phone"){const n=nqRnd(9,11);let d="08";for(var i=0;i<n;i++)d+=nqRnd(0,9);
     const t=d.split("").map(function(c){return NQDIG[+c];}).join(" ");
     return {ans:d,text:t,audio:"",hint:"電話番号（数字のまま）",show:function(x){return x||"—";},len:13,disp:d};}
-  if(Math.random()<.5){const h=nqRnd(1,12),ms=[0,5,10,15,20,30,40,45,50],m=ms[nqRnd(0,ms.length-1)];
+  if(Math.random()<.5||!(MONTHS&&MONTHS.length)){const h=nqRnd(1,12),ms=[0,5,10,15,20,30,40,45,50],m=ms[nqRnd(0,ms.length-1)];
     const h24=h<7?h+12:h;const per=h24<11?"pagi":h24<15?"siang":h24<19?"sore":"malam";
     let w=["jam"].concat(toIndo(h).split(" "));if(m>0)w=w.concat(["lewat"]).concat(toIndo(m).split(" ")).concat(["menit"]);w.push(per);
     const ans=String(h).padStart(2,"0")+String(m).padStart(2,"0");
