@@ -46,7 +46,7 @@ def main():
     if not picked:
         print("no items fetched; abort"); return
 
-    today = (datetime.datetime.utcnow()+datetime.timedelta(hours=9)).date().isoformat()  # JST
+    today = (datetime.datetime.utcnow()+datetime.timedelta(hours=7)).date().isoformat()  # WIB (GMT+7)
     REAL = []
     for i, (title, link, img) in enumerate(picked):
         ja = translate(title)
