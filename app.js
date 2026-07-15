@@ -49,7 +49,7 @@ document.addEventListener("click",e=>{
   const pb=e.target.closest("[data-audio]");if(pb){e.stopPropagation();play(pb.dataset.audio,pb.dataset.text||"",pb);return;}
   const bk=e.target.closest("[data-book]");if(bk){e.stopPropagation();try{toggleBook(JSON.parse(bk.getAttribute("data-book")));if($("bookOv").classList.contains("on"))renderBookmarks();}catch(_){}return;}
   const nav=e.target.closest("[data-nav]");if(nav){const[k,d]=nav.dataset.nav.split(":");if(CAR[k])CAR[k].step(+d);return;}
-  const gt=e.target.closest("[data-goto]");if(gt){openTarget(gt.dataset.goto);return;}
+  const gt=e.target.closest("[data-goto]");if(gt){if(gt.dataset.qmode)_pendQ=gt.dataset.qmode;openTarget(gt.dataset.goto);return;}
   const tok=e.target.closest(".tok[data-w]");if(tok){e.stopPropagation();showPop(tok);return;}
   const rev=e.target.closest("[data-reveal]");if(rev&&(document.body.classList.contains("hidden")||document.body.classList.contains("roleplay"))){rev.classList.toggle("show");return;}
   pop.classList.remove("on");
@@ -204,7 +204,29 @@ function rnCard(r){return `<div class="rncard panelcard" data-reveal>
     <div class="rja ja-hide">${esc(r.ja)}</div>
     ${r.url?`<a class="rlink" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">記事を開く ↗</a>`:""}</div></div>`;}
 function fmtNewsDate(s){const p=(s||"").split("-");return p.length===3?(+p[1])+"/"+(+p[2]):s;}
-function renderNewsDay(day){$("rnDate").textContent="📅 "+day.date+(day.real?" のニュース":" のニュース（学習用）");$("rnWrap").innerHTML=day.items.map(rnCard).join("");}
+function renderNewsDay(day){$("rnDate").textContent="📅 "+day.date+(day.real?" のニュース":" のニュース（学習用）");$("rnWrap").innerHTML=day.items.map(rnCard).join("")+newsWordsCard(day);}
+/* ニュースから単語学習：その日の記事に出る未習語を抽出 */
+function newsWordsOf(day){var seen={},out=[];
+  (day.items||[]).forEach(function(it){
+    (it.id||"").split(/\s+/).forEach(function(p){
+      var n=norm(p);
+      if(!n||n.length<4||seen[n])return; seen[n]=1;
+      if(status[n]==="known")return;
+      var m=look(n); if(!m)return;
+      out.push([n,m]);
+    });
+  });
+  return out.slice(0,14);}
+function newsWordsCard(day){var ws=newsWordsOf(day);
+  if(!ws.length)return '<div class="nwcard panelcard"><h4>今日のニュースの新出語</h4><div class="nwempty">この日の語はすべて「覚えた」になっています。お見事！</div></div>';
+  return '<div class="nwcard panelcard"><h4>ニュースの新出語（'+ws.length+'語）</h4><div class="nwhint">タップで発音・意味／「＋復習」で苦手リストに入れて練習できます</div><div class="nwlist">'+
+    ws.map(function(x){return '<div class="nwrow"><span class="nww" data-audio="" data-text="'+esc(x[0])+'">'+esc(x[0])+'</span><span class="nwm">'+esc(x[1])+'</span><button class="nwadd" data-nw="'+esc(x[0])+'">＋復習</button></div>';}).join("")+
+    '</div><button class="nwall" id="nwAll">すべて復習に追加</button></div>';}
+(function(){document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-nw]");
+  if(b){var w=b.dataset.nw;status[w]="weak";SV("dks_status",status);b.textContent="追加済み";b.classList.add("done");b.disabled=true;if(typeof renderHomeStats==="function")renderHomeStats();return;}
+  if(e.target.closest("#nwAll")){var btns=document.querySelectorAll("[data-nw]");btns.forEach(function(x){if(!x.disabled){status[x.dataset.nw]="weak";x.textContent="追加済み";x.classList.add("done");x.disabled=true;}});SV("dks_status",status);if(typeof renderHomeStats==="function")renderHomeStats();var ab=$("nwAll");if(ab){ab.textContent="復習リストに追加しました";ab.disabled=true;}}
+});})();
 function buildRealNews(){if($("rnWrap").dataset.done)return;$("rnWrap").dataset.done=1;
   const week=(window.REALNEWS_WEEK&&window.REALNEWS_WEEK.length)?window.REALNEWS_WEEK:[{date:NEWS_UPDATED,real:true,items:REALNEWS}];
   const bar=$("rnDates");
@@ -374,14 +396,26 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
-  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}}
+  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');
+  var _WD=["日","月","火","水","木","金","土"],_wk="",_wt=0;
+  for(var wi=6;wi>=0;wi--){var _ds=_d(wi),_c=(ACT.hist||{})[_ds]||0;_wt+=_c;var _h=_c?Math.max(10,Math.min(100,_c*12)):3;
+    _wk+='<div class="wkbar" title="'+_ds+'：'+_c+'回"><span class="wkn">'+(_c||"")+'</span><div class="wkcol"><div class="wkfill" style="height:'+_h+'%"></div></div><span class="wkd">'+_WD[new Date(_ds+"T00:00:00").getDay()]+'</span></div>';}
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>今週の学習（合計 '+_wt+' 回）</h4><div class="wkchart">'+_wk+'</div></div>');
+  var _P=LS("dks_pron",{}),_pk=Object.keys(_P);
+  if(_pk.length){var _sum=0;_pk.forEach(function(k){_sum+=(_P[k].best||0);});var _avg=Math.round(_sum/_pk.length);
+    var _wkst=_pk.slice().sort(function(x,y){return (_P[x].best||0)-(_P[y].best||0);}).slice(0,3);
+    var _pr='<div class="dashbig"><div class="dstat"><b>'+_avg+'%</b><span>平均スコア</span></div><div class="dstat"><b>'+_pk.length+'</b><span>練習した語</span></div></div>';
+    if(_wkst.length)_pr+='<div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手な発音：'+_wkst.map(function(k){return esc(k)+'（'+(_P[k].best||0)+'%）';}).join(' ・ ')+'</div>';
+    el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>発音チェック</h4>'+_pr+'</div>');}
+  var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}}
 
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
-let quizStats=LS("dks_quizstats",{});
+let quizStats=LS("dks_quizstats",{}),_pendQ=null;
 function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);}
 function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
+  if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
   nextQ();
 }
 const rnd=a=>a[Math.random()*a.length|0];
@@ -518,7 +552,13 @@ function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
-  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();}
+  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();}
+function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0,weak=0;
+  Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
+  Object.keys(st).forEach(function(w){if(st[w]==="weak")weak++;});
+  var n=due+weak;
+  if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 復習する（'+n+'語）';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
+  else{el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる';el.dataset.goto="practice:p-daily";delete el.dataset.qmode;}}
 function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();celebrate(first?("🔥 "+ACT.streak+" 日連続！ チェックイン完了"):"🎉 今日ももう一度！ その調子！");}
 function celebrate(msg){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -542,7 +582,7 @@ async function toggleRec(){const btn=$("fRec");if(recState){try{mediaRec.stop();
 function playRec(){if(recURL){new Audio(recURL).play();}}
 function _sim(a,b){a=(a||"").toLowerCase().replace(/[^a-z ]/g,"").trim();b=(b||"").toLowerCase().replace(/[^a-z ]/g,"").trim();if(!a||!b)return 0;var m=a.length,n=b.length,dp=[];for(var i=0;i<=m;i++){dp[i]=[i];for(var j=1;j<=n;j++)dp[i][j]=i===0?j:0;}for(var i2=1;i2<=m;i2++)for(var j2=1;j2<=n;j2++)dp[i2][j2]=Math.min(dp[i2-1][j2]+1,dp[i2][j2-1]+1,dp[i2-1][j2-1]+(a[i2-1]===b[j2-1]?0:1));return Math.max(0,1-dp[m][n]/Math.max(m,n));}
 function checkPron(){if(!deck.length)return;var out=$("fCheckOut");var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){out.textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。";return;}var target=deck[fi].w;var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;var btn=$("fCheck");btn.classList.add("rec");out.textContent="🎤 発音してください…";
-  rec.onresult=function(e){var best=0,heard="";for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var s=_sim(alt,target);if(s>best){best=s;heard=alt;}}var pct=Math.round(best*100);var msg,cls;if(pct>=80){msg="Bagus! よくできました";cls="good";if(pct>=92)celebrate("🎉 発音バッチリ！ Sempurna!");}else if(pct>=55){msg="惜しい！もう一度";cls="mid";}else{msg="もう一度ゆっくり言ってみましょう";cls="low";}out.innerHTML='<span class="pscore '+cls+'">'+pct+'%</span> '+msg+'<div class="pheard">認識: '+esc(heard||"—")+' ／ お手本: '+esc(target)+'</div>';};
+  rec.onresult=function(e){var best=0,heard="";for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var s=_sim(alt,target);if(s>best){best=s;heard=alt;}}var pct=Math.round(best*100);try{var _P=LS("dks_pron",{});var _e=_P[target]||{best:0,tries:0};_e.tries++;_e.last=pct;if(pct>(_e.best||0))_e.best=pct;_P[target]=_e;SV("dks_pron",_P);}catch(_){}var msg,cls;if(pct>=80){msg="Bagus! よくできました";cls="good";if(pct>=92)celebrate("🎉 発音バッチリ！ Sempurna!");}else if(pct>=55){msg="惜しい！もう一度";cls="mid";}else{msg="もう一度ゆっくり言ってみましょう";cls="low";}out.innerHTML='<span class="pscore '+cls+'">'+pct+'%</span> '+msg+'<div class="pheard">認識: '+esc(heard||"—")+' ／ お手本: '+esc(target)+'</div>';};
   rec.onerror=function(e){out.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"マイクの許可が必要です。":"認識できませんでした。もう一度お試しください。";btn.classList.remove("rec");};
   rec.onend=function(){btn.classList.remove("rec");};
   try{rec.start();}catch(e){out.textContent="開始できませんでした。";btn.classList.remove("rec");}}
