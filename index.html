@@ -606,9 +606,10 @@
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
+    <div class="pane" id="l-gram"></div>
     <div class="pane" id="l-prefix"></div>
     <div class="pane" id="l-suffix"></div>
     <div class="pane" id="l-confix"></div>
@@ -721,6 +722,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=48"></script>
+<script src="app.js?v=49"></script>
 </body>
 </html>
