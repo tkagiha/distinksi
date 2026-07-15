@@ -473,7 +473,7 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   if(inc.length===0){footer='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
-  el.insertAdjacentHTML("beforeend",'<div class="dashcard archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">島をタップすると、その地方の地理が開きます</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">島をタップすると、その地方の地理が開きます</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
   if(changed)SV("dks_arch",arch);
