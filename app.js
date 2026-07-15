@@ -687,14 +687,41 @@ function buildScan(){if(_scanInit)return;_scanInit=true;
   var g=$("scanPickGal");if(g)g.onclick=function(){$("scanFileGal").click();};
   $("scanFile").onchange=function(e){scanHandle(e.target.files&&e.target.files[0]);e.target.value="";};
   if($("scanFileGal"))$("scanFileGal").onchange=function(e){scanHandle(e.target.files&&e.target.files[0]);e.target.value="";};}
-function scanPrep(bm){var w=bm.width,h=bm.height,L=Math.max(w,h);var s=L<1100?1100/L:(L>2200?2200/L:1);var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));var c=document.createElement("canvas");c.width=cw;c.height=ch;var x=c.getContext("2d");x.drawImage(bm,0,0,cw,ch);try{var d=x.getImageData(0,0,cw,ch),p=d.data;for(var i=0;i<p.length;i+=4){var v=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];v=(v-128)*1.45+128;v=v<0?0:v>255?255:v;p[i]=p[i+1]=p[i+2]=v;}x.putImageData(d,0,0);}catch(_){}return c;}
-function scanHandle(f){if(!f)return;var url=URL.createObjectURL(f);var prev=$("scanPrev");prev.src=url;prev.hidden=false;$("scanResult").innerHTML="";$("scanStatus").textContent="読み取りエンジンを準備中…（初回は少し時間がかかります）";
+function scanPrep(bm){var w=bm.width,h=bm.height,L=Math.max(w,h);
+  var s=L<1600?1600/L:(L>2600?2600/L:1);
+  var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));
+  var c=document.createElement("canvas");c.width=cw;c.height=ch;
+  var x=c.getContext("2d");try{x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";}catch(_){}
+  x.drawImage(bm,0,0,cw,ch);
+  try{var d=x.getImageData(0,0,cw,ch),p=d.data,i,v;
+    var hist=new Array(256),n=p.length/4;for(i=0;i<256;i++)hist[i]=0;
+    for(i=0;i<p.length;i+=4){v=(0.299*p[i]+0.587*p[i+1]+0.114*p[i+2])|0;p[i]=p[i+1]=p[i+2]=v;hist[v]++;}
+    var lo=0,hi=255,acc=0,cut=n*0.02;
+    for(i=0;i<256;i++){acc+=hist[i];if(acc>=cut){lo=i;break;}}
+    acc=0;for(i=255;i>=0;i--){acc+=hist[i];if(acc>=cut){hi=i;break;}}
+    var rng=Math.max(1,hi-lo);
+    for(i=0;i<p.length;i+=4){v=(p[i]-lo)*255/rng;v=v<0?0:v>255?255:v;p[i]=p[i+1]=p[i+2]=v;}
+    x.putImageData(d,0,0);}catch(_){}
+  return c;}
+function scanHandle(f){if(!f)return;var url=URL.createObjectURL(f);var prev=$("scanPrev");prev.src=url;prev.hidden=false;$("scanResult").innerHTML="";$("scanStatus").textContent="読み取りエンジンを準備中…（初回は辞書データの取得に時間がかかります）";
   ensureTesseract(function(){
-    var run=function(input){$("scanStatus").textContent="読み取り中… 0%";(async function(){var wk;try{
-        wk=await Tesseract.createWorker("ind+eng",1,{logger:function(m){var st=$("scanStatus");if(m.status==="recognizing text"&&st)st.textContent="読み取り中… "+Math.round((m.progress||0)*100)+"%";}});
-        await wk.setParameters({preserve_interword_spaces:"1",tessedit_pageseg_mode:"3"});
-        var r=await wk.recognize(input);await wk.terminate();
-        renderScan(((r.data&&r.data.text)||"").trim());
+    var run=function(input){(async function(){var wk,pass=0;try{
+        var psms=["11","6","3"];
+        wk=await Tesseract.createWorker("ind",1,{langPath:"https://tessdata.projectnaptha.com/4.0.0_best",
+          logger:function(m){var st=$("scanStatus");if(m.status==="recognizing text"&&st)st.textContent="読み取り中… "+(pass+1)+"/"+psms.length+"（"+Math.round((m.progress||0)*100)+"%）";}});
+        var best=null;
+        for(pass=0;pass<psms.length;pass++){
+          await wk.setParameters({preserve_interword_spaces:"1",tessedit_pageseg_mode:psms[pass]});
+          var r=await wk.recognize(input);var d=r.data,txt=((d&&d.text)||"").trim();
+          var len=txt.replace(/\s/g,"").length;if(!len)continue;
+          var score=(d.confidence||0)*Math.min(1,len/10);
+          if(!best||score>best.score)best={score:score,data:d};
+          if(best.data.confidence>=85&&len>=12)break;
+        }
+        await wk.terminate();
+        if(!best){renderScan("");return;}
+        var lines=((best.data.lines)||[]).filter(function(L){return (L.confidence||0)>=55&&((L.text||"").trim().length>1);}).map(function(L){return L.text.trim();});
+        renderScan(lines.length?lines.join("\n"):((best.data.text||"").trim()));
       }catch(err){try{if(wk)await wk.terminate();}catch(_){}$("scanStatus").textContent="読み取りに失敗しました。もう一度お試しください。";}})();};
     if(window.createImageBitmap){createImageBitmap(f).then(function(bm){run(scanPrep(bm));}).catch(function(){run(f);});}else run(f);
   });}
