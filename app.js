@@ -573,10 +573,9 @@ function jljPins(){var d=jlj();return d.visited.map(function(id){var c=cityOf(id
 function buildJelajah(){var el=$("homeJelajah");if(!el||!JC.length)return;
   var d=jlj(),today=_d(0),done=d.lastDate===today;
   el.innerHTML='<div class="jcard"><div class="jhead"><div><div class="jlbl">Jelajah</div>'
-   +'<div class="jttl">'+(done?"本日の旅は終了 — 明日また":"今日はどこへ行く？")+'</div></div>'
+   +'<div class="jttl">'+(done?"本日の旅は終了 — 明日また":"今日はどこへ行く？")+'</div>'
+   +'<div class="jhint">'+(done?"上の地図の金のピンが、訪れた街です":"上の地図をピンが跳ねて、行き先を決めます")+'</div></div>'
    +'<div class="jcount">'+d.visited.length+' / '+JC.length+'</div></div>'
-   +'<svg class="jmap" id="jMap" viewBox="0 0 568 226" aria-hidden="true">'+_jdots()+jljPins()
-   +'<g id="jHop" class="jhop" style="opacity:0"><circle r="8" class="jhr"/><circle r="4" class="jhd"/></g></svg>'
    +'<button class="jgo" id="jGo" aria-label="'+(done?"前回の街をもう一度見る":"今日の行き先を決める")+'">'
    +(done?"前回の街をもう一度見る":"行き先を決める")+'</button><div id="jResult"></div></div>';
   $("jGo").onclick=function(){
@@ -584,9 +583,9 @@ function buildJelajah(){var el=$("homeJelajah");if(!el||!JC.length)return;
     if(dd.lastDate===_d(0)){var last=dd.visited[dd.visited.length-1];if(last)jljCard(cityOf(last));return;}
     jljSpin();};
   if(done){var last=d.visited[d.visited.length-1];if(last)jljCard(cityOf(last),true);}}
-function _jdots(){var dots=_archBuild(),known=knownCount(),lit=Math.min(dots.length,known);
-  return dots.map(function(p){return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="1.5" class="jd'+(p.rank<lit?" on":"")+'"/>';}).join("");}
 function jljSpin(){var btn=$("jGo"),hop=$("jHop");if(!hop||btn.disabled)return;
+  var _m=document.querySelector("#homeArchFull .archmap");
+  if(_m&&_m.getBoundingClientRect().top<0)_m.scrollIntoView({behavior:"smooth",block:"center"});
   btn.disabled=true;$("jResult").innerHTML="";
   var target=jljPick(),n=8+(Math.random()*3|0);   /* 8〜10回 */
   var seq=[];for(var i=0;i<n-1;i++)seq.push(JC[Math.random()*JC.length|0]);
@@ -760,7 +759,7 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
   const _t=titleOf(known);
-  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+jljPins()+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">地図をタップすると、その場所の州・名所が開きます</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+jljPins()+'<g id="jHop" class="jhop" style="opacity:0"><circle r="8" class="jhr"/><circle r="4" class="jhd"/></g></svg><div class="archfoot">'+footer+'</div><div class="archtap">地図をタップすると、その場所の州・名所が開きます</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;
     if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);
