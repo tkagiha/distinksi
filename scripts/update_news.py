@@ -32,6 +32,8 @@ def main():
     # インドネシア国内の出来事を扱うフィードのみ（dunia/international は使わない）
     FEEDS = ["nasional", "megapolitan", "politik", "hukum"]
     PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
+    # 人物プロフィール／経歴紹介系は除外（出来事のニュースだけにする）
+    BLOCK = ("profil", "sosok", "riwayat", "biodata", "mengenal ", "siapa itu")
     picked, seen = [], set()
 
     def g_of(it, tag):
@@ -50,10 +52,13 @@ def main():
             title, link = g_of(it, "title"), g_of(it, "link")
             im = re.search(r'<enclosure[^>]*url="([^"]+)"', it)
             img = im.group(1) if im else ""
-            if title and link and img and link not in seen:
-                seen.add(link)
-                picked.append((title, link, img))
-                n += 1
+            if not (title and link and img) or link in seen:
+                continue
+            if any(b in title.lower() for b in BLOCK):
+                continue
+            seen.add(link)
+            picked.append((title, link, img))
+            n += 1
 
     for f in FEEDS:
         harvest(f, PER_FEED)
