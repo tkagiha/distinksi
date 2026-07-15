@@ -135,6 +135,7 @@ function initPane(id){
   if(id==="t-driver")buildDriver();
   if(id==="t-travel")buildTravel();
   if(id==="t-pack")buildPacks();
+  if(id==="t-sim")buildSim();
   if(id==="p-quiz")buildQuiz();
   if(id==="p-daily")buildDaily();
   if(id==="p-fill")buildFill();
@@ -191,6 +192,48 @@ function buildDriver(){if(CAR.d)return;const dTabs=$("dTabs");dTabs.innerHTML=DR
 }
 /* ニュース */
 function buildTravel(){if($("travelWrap").dataset.done)return;$("travelWrap").dataset.done=1;$("travelWrap").innerHTML=TRAVEL.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
+/* ===== なりきり会話（声で応答） ===== */
+var _simS={si:0,li:0,busy:false};
+function buildSim(){var w=$("simWrap");if(!w)return;
+  if(!w.dataset.done){w.dataset.done=1;
+    w.innerHTML='<select class="simsel" id="simSel">'+SCENES.map(function(s,i){return '<option value="'+i+'">'+(s.emoji||"")+" "+esc(s.name)+'</option>';}).join("")+'</select><div class="simcard panelcard"><div class="simlog" id="simLog"></div><div class="simturn" id="simTurn"></div><div class="simbtns"><button class="simmic" id="simMic"><svg class="icn"><use href="#i-mic"/></svg> 話す</button><button class="simskip" id="simSkip">スキップ</button></div><div class="simfb" id="simFb"></div></div>';
+    $("simSel").onchange=function(){_simS.si=+this.value;simStart();};
+    $("simMic").onclick=simSpeak;
+    $("simSkip").onclick=function(){simAdvance(true);};
+  }
+  simStart();}
+function simStart(){_simS.li=0;_simS.busy=false;$("simLog").innerHTML="";$("simFb").textContent="";simStep();}
+function simLine(){var s=SCENES[_simS.si];return s&&s.lines?s.lines[_simS.li]:null;}
+function simPush(l,me){var log=$("simLog");
+  log.insertAdjacentHTML("beforeend",'<div class="simrow '+(me?"me":"you")+'"><div class="simbub">'+esc(l[2])+'<div class="simja">'+esc(l[3])+'</div></div></div>');
+  log.scrollTop=log.scrollHeight;}
+function simStep(){var s=SCENES[_simS.si];if(!s)return;
+  var l=simLine();
+  if(!l){$("simTurn").innerHTML="会話終了！ お疲れさまでした 🎉";$("simMic").disabled=true;$("simSkip").textContent="最初から";$("simSkip").onclick=simStart;return;}
+  if(l[0]==="a"){ // 相手のセリフ：読み上げて次へ
+    simPush(l,false);play(l[4],l[2],null);
+    $("simTurn").textContent="相手が話しています…";
+    _simS.li++;setTimeout(simStep,1400);return;}
+  // あなたの番
+  $("simMic").disabled=false;$("simSkip").textContent="スキップ";$("simSkip").onclick=function(){simAdvance(true);};
+  $("simTurn").innerHTML='あなたの番：<span class="simtar">'+esc(l[2])+'</span><br>（'+esc(l[3])+'）';}
+function simAdvance(skip){var l=simLine();if(!l)return;
+  if(skip){simPush(l,true);play(l[4],l[2],null);}
+  _simS.li++;$("simFb").textContent="";setTimeout(simStep,700);}
+function simSpeak(){var l=simLine();if(!l||_simS.busy)return;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$("simFb").textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。スキップで進めます。";return;}
+  var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;
+  var btn=$("simMic");btn.classList.add("rec");_simS.busy=true;$("simFb").textContent="🎤 どうぞ話してください…";
+  rec.onresult=function(e){var best=0,heard="";
+    for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var sc=_sim(alt,l[2]);if(sc>best){best=sc;heard=alt;}}
+    var pct=Math.round(best*100);
+    if(pct>=60){$("simFb").innerHTML='<span class="pscore good">'+pct+'%</span> Bagus! 通じました';simPush(l,true);_simS.li++;setTimeout(simStep,900);}
+    else{$("simFb").innerHTML='<span class="pscore low">'+pct+'%</span> 認識: '+esc(heard||"—")+' — もう一度どうぞ';}
+  };
+  rec.onerror=function(e){$("simFb").textContent=(e.error==="not-allowed")?"マイクの許可が必要です。":"認識できませんでした。もう一度どうぞ。";};
+  rec.onend=function(){btn.classList.remove("rec");_simS.busy=false;};
+  try{rec.start();}catch(_){btn.classList.remove("rec");_simS.busy=false;}}
 function buildPacks(){if($("packWrap").dataset.done)return;$("packWrap").dataset.done=1;$("packWrap").innerHTML=PACKS.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
 function buildNews(){if(CAR.n)return;const nSel=$("nSelect");nSel.innerHTML=NEWS.map((nw,i)=>`<option value="${i}">${String(i+1).padStart(2,"0")}. ${esc(nw.title)}</option>`).join("");nSel.onchange=()=>CAR.n.goReal(+nSel.value);
   CAR.n=lazyCarousel($("nTrack"),NEWS.length,i=>{const nw=NEWS[i];
