@@ -80,8 +80,8 @@ const SECTIONS=[
   {id:"learn",label:"学ぶ",icon:"i-book",tabs:[["learn","ことば"],["num","数字"]]},
   {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"]]},
   {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
-  {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"],["scan","街"]]},
-  {id:"more",label:"辞書",icon:"i-search",tabs:[["dict","辞書"]]}
+  {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"]]},
+  {id:"more",label:"調べる",icon:"i-search",tabs:[["dict","辞書"],["scan","街を知る"]]}
 ];
 const TABS=SECTIONS.flatMap(s=>s.tabs);
 function sectionOf(v){return SECTIONS.find(s=>s.tabs.some(t=>t[0]===v));}
