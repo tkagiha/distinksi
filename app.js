@@ -806,7 +806,23 @@ $("fBook").onclick=()=>{if(deck.length){const c=deck[fi];toggleBook({id:c.w,ja:c
 $("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=shareCard;var _fc=$("fCheck");if(_fc)_fc.onclick=checkPron;
 
 /* 起動スプラッシュ演出 */
-(function(){const sp=$("splash");if(!sp)return;let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();},600);}
+function newsPopup(){try{
+  var upd=window.NEWS_UPDATED||NEWS_UPDATED||"";if(!upd)return;
+  if(LS("dks_newsseen","")===upd)return;
+  var ov=$("newsOv");if(!ov)return;
+  SV("dks_newsseen",upd);
+  var hh=new Date().getHours();
+  var g=hh<11?"おはようございます":hh<18?"こんにちは":"こんばんは";
+  var nm=LS("dks_name","");
+  $("nsGreet").textContent=g+(nm?"、"+nm:"")+"！";
+  $("nsDate").textContent=fmtNewsDate(upd)+" の最新ニュース";
+  var items=window.REALNEWS||[];
+  $("nsHead").innerHTML=items.length?('<div class="nsh1">'+esc(items[0].ja||items[0].id)+'</div>'+(items.length>1?'<div class="nsh2">ほか '+(items.length-1)+' 本</div>':"")):"";
+  ov.classList.add("on");
+  $("nsGo").onclick=function(){ov.classList.remove("on");openTarget("news");};
+  $("nsClose").onclick=function(){ov.classList.remove("on");};
+}catch(e){}}
+(function(){const sp=$("splash");if(!sp)return;let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();newsPopup();},600);}
   sp.addEventListener("click",done);setTimeout(done,2750);})();
 
 /* タブ間スワイプ（左右で移動） */
