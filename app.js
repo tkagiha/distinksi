@@ -80,7 +80,7 @@ const SECTIONS=[
   {id:"learn",label:"学ぶ",icon:"i-book",tabs:[["learn","ことば"],["num","数字"]]},
   {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"]]},
   {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
-  {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"],["scan","看板"]]},
+  {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"],["scan","街"]]},
   {id:"more",label:"辞書",icon:"i-search",tabs:[["dict","辞書"]]}
 ];
 const TABS=SECTIONS.flatMap(s=>s.tabs);
@@ -480,7 +480,7 @@ function nextFill(){const pool=[];SCENES.forEach(s=>s.lines.forEach(l=>{const w=
 
 /* ===== ホーム：アイコンタイル ===== */
 const HOME=[["learn","学ぶ","📚","#e2566a","#c0392b"],["practice","練習","🎯","#3aa0d6","#1b6e9e"],["talk","会話","💬","#4bbf7b","#2e7d4f"],
- ["num","数字","🔢","#eb8a4e","#c25a1b"],["scan","カメラ","📷","#7a5cc0","#5a3f96"],["news","ニュース","📰","#d1495b","#9c2b3b"],["dict","辞書","📖","#5aa0b5","#2e7d8f"]];
+ ["num","数字","🔢","#eb8a4e","#c25a1b"],["scan","街を知る","📷","#7a5cc0","#5a3f96"],["news","ニュース","📰","#d1495b","#9c2b3b"],["dict","辞書","📖","#5aa0b5","#2e7d8f"]];
 const READS=[["reads:r-info","情報","📋","#6d8f3a","#4d6b22"],["reads:r-daily","日常","🏙️","#4a7c9e","#2e5875"],["reads:r-geo","地理","🗺️","#b58a4c","#8a6224"],["reads:r-hist","歴史","🏛️","#a5794a","#6e4a24"],
  ["reads:r-cult","文化","🇮🇩","#c0392b","#8a1f1f"],["reads:r-japan","日本","🗾","#c96b86","#9e3a57"]];
 const tile=h=>{const flag=h[0]==="reads:r-cult";return `<div class="htile" data-goto="${h[0]}"><div class="ic ${flag?"flagic":""}" style="--g1:${h[3]};--g2:${h[4]}">${flag?"":h[2]}</div><div class="lb">${h[1]}</div></div>`;};
