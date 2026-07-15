@@ -5,7 +5,7 @@ let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||
 function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];SUFFIX=window.SUFFIX||[];CONFIX=window.CONFIX||[];GRAMMAR=window.GRAMMAR||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w3";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
 let CARDS=window.CARDS||[],_cardsP=null;
-function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];if(typeof applyPacks==="function")applyPacks();res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
+function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];if(typeof applyPacks==="function")applyPacks();if(typeof applyJelajah==="function")applyJelajah();res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
 const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a9 9 0 0 1 0 14"></path></svg>`;
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
@@ -561,6 +561,87 @@ const ARCH_CLUSTERS=[
 /* GEO と同順。地図(568x226)は正距円筒: x=2.4+(lon-95.2)*12.36, y=6.5+(5.9-lat)*12.15 */
 const GEOPT=[[23.4, 25.9], [50.6, 46.6], [69.1, 86.7], [81.5, 72.1], [116.7, 67.2], [93.9, 97.6], [113.6, 117.1], [137.1, 106.1], [90.2, 121.9], [124.8, 137.7], [146.4, 153.5], [155.7, 162.0], [137.1, 155.9], [187.8, 165.7], [189.9, 173.0], [217.5, 171.7], [249.0, 180.2], [275.6, 182.7], [327.5, 186.3], [185.3, 78.2], [228.6, 100.1], [249.6, 113.4], [265.7, 74.5], [266.9, 38.1], [365.8, 63.6], [339.8, 69.7], [316.3, 95.2], [299.0, 109.8], [308.9, 130.4], [337.4, 128.0], [423.9, 120.7], [406.6, 63.6], [541.3, 117.1], [472.1, 97.6], [551.2, 168.1], [510.4, 125.6], [542.5, 128.0], [448.6, 90.3], null, null, null, null, null, null, null, null, null, null, null, null];
 const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
+/* ===== Jelajah — 群島の旅 ===== */
+var JC=window.JCITIES||[];
+function jlj(){var d=LS("dks_jelajah",{lastDate:"",visited:[],learned:{}});
+  if(!d.visited)d.visited=[];if(!d.learned)d.learned={};return d;}
+function cityOf(id){for(var i=0;i<JC.length;i++)if(JC[i].id===id)return JC[i];return null;}
+function jljPick(){var d=jlj(),un=JC.filter(function(c){return d.visited.indexOf(c.id)<0;});
+  var pool=un.length?un:JC;
+  return {city:pool[Math.random()*pool.length|0],revisit:!un.length};}
+function jljPins(){var d=jlj();return d.visited.map(function(id){var c=cityOf(id);return c?'<g class="jpin"><circle cx="'+c.x+'" cy="'+c.y+'" r="7" class="jpr"/><circle cx="'+c.x+'" cy="'+c.y+'" r="3.5" class="jpd"/></g>':"";}).join("");}
+function buildJelajah(){var el=$("homeJelajah");if(!el||!JC.length)return;
+  var d=jlj(),today=_d(0),done=d.lastDate===today;
+  el.innerHTML='<div class="jcard"><div class="jhead"><div><div class="jlbl">Jelajah</div>'
+   +'<div class="jttl">'+(done?"本日の旅は終了 — 明日また":"今日はどこへ行く？")+'</div></div>'
+   +'<div class="jcount">'+d.visited.length+' / '+JC.length+'</div></div>'
+   +'<svg class="jmap" id="jMap" viewBox="0 0 568 226" aria-hidden="true">'+_jdots()+jljPins()
+   +'<g id="jHop" class="jhop" style="opacity:0"><circle r="8" class="jhr"/><circle r="4" class="jhd"/></g></svg>'
+   +'<button class="jgo" id="jGo" aria-label="'+(done?"前回の街をもう一度見る":"今日の行き先を決める")+'">'
+   +(done?"前回の街をもう一度見る":"行き先を決める")+'</button><div id="jResult"></div></div>';
+  $("jGo").onclick=function(){
+    var dd=jlj();
+    if(dd.lastDate===_d(0)){var last=dd.visited[dd.visited.length-1];if(last)jljCard(cityOf(last));return;}
+    jljSpin();};
+  if(done){var last=d.visited[d.visited.length-1];if(last)jljCard(cityOf(last),true);}}
+function _jdots(){var dots=_archBuild(),known=knownCount(),lit=Math.min(dots.length,known);
+  return dots.map(function(p){return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="1.5" class="jd'+(p.rank<lit?" on":"")+'"/>';}).join("");}
+function jljSpin(){var btn=$("jGo"),hop=$("jHop");if(!hop||btn.disabled)return;
+  btn.disabled=true;$("jResult").innerHTML="";
+  var target=jljPick(),n=8+(Math.random()*3|0);   /* 8〜10回 */
+  var seq=[];for(var i=0;i<n-1;i++)seq.push(JC[Math.random()*JC.length|0]);
+  seq.push(target.city);
+  var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  hop.style.opacity="1";
+  if(rm){hop.setAttribute("transform","translate("+target.city.x+","+target.city.y+")");
+    jljLand(target,btn);return;}
+  var t=0;
+  seq.forEach(function(c,i){
+    t+=180+i*i*14;                                /* 間隔を漸増させて減速 */
+    setTimeout(function(){
+      hop.setAttribute("transform","translate("+c.x+","+c.y+")");
+      hop.classList.remove("bounce");void hop.offsetWidth;hop.classList.add("bounce");
+      if(navigator.vibrate&&i===seq.length-1)try{navigator.vibrate(18);}catch(e){}
+    },t);});
+  setTimeout(function(){jljLand(target,btn);},t+520);}
+function jljLand(target,btn){
+  var d=jlj();d.lastDate=_d(0);
+  if(d.visited.indexOf(target.city.id)<0)d.visited.push(target.city.id);
+  SV("dks_jelajah",d);
+  jljCard(target.city,false,target.revisit);
+  btn.disabled=false;btn.textContent="前回の街をもう一度見る";
+  var af=$("homeArchFull");if(af){af.innerHTML="";renderArch(af);}
+  if(d.visited.length===JC.length&&!LS("dks_jelajah_done",0)){SV("dks_jelajah_done",1);
+    setTimeout(function(){titleCelebrate({name:"Penjelajah Nusantara",ja:"32の街をすべて訪ねた人"});},700);}
+  else if(typeof bumpActivity==="function")bumpActivity();}
+function jljCard(c,quiet,revisit){if(!c)return;
+  var d=jlj(),learned=!!d.learned[c.id];
+  $("jResult").innerHTML='<div class="jcity">'
+   +'<div class="jcname">'+esc(c.name)+(revisit?'<span class="jre">再訪</span>':'')
+   +(learned?'<span class="jlearned">学習済</span>':'')+'<span class="jregion">'+esc(c.region)+'</span></div>'
+   +'<div class="jsec"><div class="jslbl">挨拶</div><div class="jgreet">'+spkBtn("",c.greet.id)
+   +'<div><b>'+esc(c.greet.id)+'</b><span class="jkana">'+esc(c.greet.kana)+'</span></div></div>'
+   +'<div class="jnote">'+esc(c.greet.note)+'</div></div>'
+   +'<div class="jsec"><div class="jslbl">名物</div><div class="jfood">'+spkBtn("",c.food.name)+'<b>'+esc(c.food.name)+'</b></div>'
+   +'<div class="jnote">'+esc(c.food.note)+'</div></div>'
+   +'<div class="jsec"><div class="jslbl">ことば</div><div class="jword">'+spkBtn("",c.word.id)+'<b>'+esc(c.word.id)+'</b><span>'+esc(c.word.ja)+'</span></div></div>'
+   +'<div class="jsec"><div class="jslbl">この街</div><div class="jfact">'+esc(c.fact)+'</div></div>'
+   +'<button class="jlearn'+(learned?" done":"")+'" id="jLearn" data-city="'+c.id+'"'+(learned?" disabled":"")+' aria-label="この街の言葉を学ぶ">'
+   +(learned?"学習リストに追加済み":"この街の言葉を学ぶ（+"+c.pack.length+"語）")+'</button></div>';
+  var b=$("jLearn");if(b)b.onclick=function(){jljLearn(c);};}
+function jljLearn(c){var d=jlj();if(d.learned[c.id])return;
+  d.learned[c.id]=true;SV("dks_jelajah",d);
+  applyJCity(c);
+  var b=$("jLearn");if(b){b.textContent="学習リストに追加済み";b.classList.add("done");b.disabled=true;}
+  var n=$("jResult").querySelector(".jcname");
+  if(n&&!n.querySelector(".jlearned"))n.insertAdjacentHTML("beforeend",'<span class="jlearned">学習済</span>');
+  celebrate("◆ "+c.name+"の言葉 "+c.pack.length+"語を追加しました");}
+function applyJCity(c){if(!window.CARDS)return 0;
+  var have={};window.CARDS.forEach(function(x){have[x.w.toLowerCase()]=1;});var n=0;
+  c.pack.forEach(function(w){var k=w.word.toLowerCase();if(have[k])return;have[k]=1;n++;
+    window.CARDS.push({w:w.word,ja:w.meaning,audio:"",lv:2,src:["旅"],ex:[w.ex[0][0],w.ex[0][1],""],city:c.id});});
+  if(n)CARDS=window.CARDS;return n;}
+function applyJelajah(){var d=jlj(),n=0;JC.forEach(function(c){if(d.learned[c.id])n+=applyJCity(c);});return n;}
 /* ===== Kata Hari Ini（今日の一言） ===== */
 function _hash(n){n=(n^61)^(n>>>16);n=n+(n<<3);n=n^(n>>>4);n=Math.imul(n,0x27d4eb2d);n=n^(n>>>15);return n>>>0;}
 function kataPick(){if(!CARDS.length)return null;
@@ -679,7 +760,7 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
   const _t=titleOf(known);
-  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">地図をタップすると、その場所の州・名所が開きます</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+jljPins()+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">地図をタップすると、その場所の州・名所が開きます</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;
     if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);
@@ -728,6 +809,12 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
     var _pr='<div class="dashbig"><div class="dstat"><b>'+_avg+'%</b><span>平均スコア</span></div><div class="dstat"><b>'+_pk.length+'</b><span>練習した語</span></div></div>';
     if(_wkst.length)_pr+='<div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手な発音：'+_wkst.map(function(k){return esc(k)+'（'+(_P[k].best||0)+'%）';}).join(' ・ ')+'</div>';
     el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>発音チェック</h4>'+_pr+'</div>');}
+  var _jv=jlj().visited.length,_jt=(window.JCITIES||[]).length;
+  if(_jt){var _jp=Math.round(_jv/_jt*100);
+    el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>訪れた街</h4>'
+      +'<div class="dashbig"><div class="dstat"><b>'+_jv+' / '+_jt+'</b><span>Jelajah</span></div></div>'
+      +'<div class="jbar"><span style="width:'+_jp+'%"></span></div>'
+      +'<div class="jbarl">'+(_jv===_jt?"32の街をすべて訪ねました — <b>Penjelajah Nusantara</b>":"残り <b>"+(_jt-_jv)+"</b> の街")+'</div></div>');}
   var _tk=knownCount(),_tc=titleOf(_tk),_tn=nextTitle(_tk);
   var _road='<div class="troad">'+TITLES.map(function(t){
     var got=_tk>=t.n,cur=_tc&&_tc.id===t.id;
@@ -735,6 +822,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   _road+='<div class="tnext">'+(_tn?('次の称号 <b>'+esc(_tn.name)+'</b> まで あと <b>'+(_tn.n-_tk)+'</b> 語'):'すべての称号を授かりました。Nusantara はあなたのもの。')+'</div>';
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>称号の道のり</h4>'+_road+'</div>');
   var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}
+  if(typeof buildJelajah==="function")buildJelajah();
   if(typeof buildKata==="function")buildKata();}
 
 /* ===== 群島シェアカード ===== */
@@ -771,10 +859,16 @@ function shareArch(){
     g.fillStyle=on?GOLD2:"rgba(43,36,34,.16)";g.fill();});
   CITIES.forEach(function(c){g.beginPath();g.arc(mx+c[0]*sx,my+c[1]*sy,6,0,Math.PI*2);
     g.strokeStyle="rgba(193,39,45,.5)";g.lineWidth=2;g.stroke();});
+  /* 訪れた街の金ピン */
+  var _jv=jlj().visited,_jn=0;
+  _jv.forEach(function(id){var c=cityOf(id);if(!c)return;_jn++;
+    g.beginPath();g.arc(mx+c.x*sx,my+c.y*sy,9,0,Math.PI*2);
+    g.strokeStyle="rgba(233,201,106,.75)";g.lineWidth=2.5;g.stroke();
+    g.beginPath();g.arc(mx+c.x*sx,my+c.y*sy,4.5,0,Math.PI*2);g.fillStyle=GOLD2;g.fill();});
   /* 数値・称号・日付 */
   const t=titleOf(known),base=my+mh+86;
   g.fillStyle=INK;g.font='700 82px Georgia,"Hiragino Mincho ProN",serif';
-  g.fillText(known+" 語 ・ "+islands+" 島点灯",W/2,base);
+  g.fillText(known+" 語 ・ "+islands+" 島点灯"+(_jn?" ・ "+_jn+" 街":""),W/2,base);
   if(t){g.fillStyle=GOLD2;g.font='600 46px Georgia,"Hiragino Mincho ProN",serif';
     g.fillText(t.name,W/2,base+72);
     g.fillStyle=SUB;g.font='400 26px "Hiragino Kaku Gothic ProN",sans-serif';
