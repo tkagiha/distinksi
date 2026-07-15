@@ -616,7 +616,8 @@ $("searchIn").addEventListener("input",()=>{if(!SIDX)buildIndex();const q=$("sea
 
 /* ===== 設定 ===== */
 function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");document.body.classList.add(fs);[...$("setFont").children].forEach(b=>b.classList.toggle("active",b.dataset.fs===fs));SV("dks_font",fs);}
-function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
+function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);
+  var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribute("content",dark?"#721923":"#c1272d");var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
 try{if(window.matchMedia)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){if(LS("dks_theme","auto")==="auto")applyTheme("auto");});}catch(e){}
 $("btnSettings").onclick=()=>{$("setOv").classList.add("on");if(typeof bkInfo==="function")bkInfo();};
 (function(){var nm=LS("dks_name","");var u=$("setUserName");if(u)u.textContent=nm||"ゲスト";var _nm=$("setName");if(_nm){_nm.value=nm;_nm.addEventListener("input",function(){var v=_nm.value.trim();SV("dks_name",v);if(u)u.textContent=v||"ゲスト";renderGreet();});}})();
