@@ -98,6 +98,7 @@ function showView(v,dir){
   else{mt.innerHTML="";if(bar)bar.style.display="none";}
   if(!INIT[v]){INIT[v]=1;initView(v);}
   if(v==="home")ensureCards(buildStats);
+  if(v==="dict")buildDict();
   window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
   const av=document.querySelector('.view[data-view="'+v+'"]');
   if(av){av.classList.remove("enter","enter-l","enter-r");void av.offsetWidth;av.classList.add(dir==="l"?"enter-l":dir==="r"?"enter-r":"enter");}
@@ -122,7 +123,6 @@ function initView(v){
   if(v==="num"){buildNumbers();initPane("a-list");}
   if(v==="reads"){ensureExtra(function(){buildNews();initPane("r-info");});}
   if(v==="scan"){buildScan();}
-  if(v==="dict"){buildDict();}
 }
 const PANEI={};
 function initPane(id){
