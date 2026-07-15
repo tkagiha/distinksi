@@ -3,6 +3,7 @@
 # extra.js の REALNEWS / REALNEWS_WEEK を更新（過去7日分を保持）。
 import json, re, os, html, time, datetime, urllib.request, urllib.parse
 from gtts import gTTS
+import hashlib
 
 BASE = os.getcwd()
 AUD = os.path.join(BASE, "audio", "realnews")
@@ -76,7 +77,8 @@ def main():
     REAL = []
     for i, (title, link, img) in enumerate(picked):
         ja = translate(title)
-        fn = "realnews/%s_r%02d.mp3" % (today, i)
+        h = hashlib.sha1(title.encode("utf-8")).hexdigest()[:10]
+        fn = "realnews/%s_%s.mp3" % (today, h)
         path = os.path.join(BASE, "audio", fn)
         if not os.path.exists(path):
             for _ in range(3):
@@ -84,8 +86,10 @@ def main():
                     gTTS(title, lang="id", slow=False).save(path); break
                 except Exception:
                     time.sleep(2)
+        # 生成できなければ音声パスを空に（アプリ側の読み上げにフォールバックし、文とズレない）
+        au = ("audio/" + fn) if os.path.exists(path) else ""
         REAL.append({"title": ja[:24], "id": title, "ja": ja, "emoji": EMO[i % len(EMO)],
-                     "img": img, "svg": "", "url": link, "audio": "audio/" + fn})
+                     "img": img, "svg": "", "url": link, "audio": au})
 
     et = open(NJS, encoding="utf-8").read() if os.path.exists(NJS) else ""
     week = parse_arr(et, "REALNEWS_WEEK")
