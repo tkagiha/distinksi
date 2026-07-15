@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Artikula｜ネイティブが使うインドネシア語</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#c62434">
@@ -22,7 +22,7 @@
   .wrap{max-width:720px;margin:0 auto;padding:0 20px}
   .serif,h1,h2,.logo .lt,.shead h2,.stitle,.dtitle,.ntitle,.fword,.numcell .big,.conv .out,.big-num{font-family:"Hiragino Mincho ProN","Yu Mincho",YuMincho,Georgia,serif;font-feature-settings:"palt"}
 
-  header{position:sticky;top:0;z-index:40;background:var(--head);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);box-shadow:0 2px 12px rgba(150,40,54,.18);border-bottom:2px solid rgba(201,155,52,.7)}
+  header{position:sticky;top:0;z-index:40;padding-top:env(safe-area-inset-top,0px);background:var(--head);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);box-shadow:0 2px 12px rgba(150,40,54,.18);border-bottom:2px solid rgba(201,155,52,.7)}
   .nav{display:flex;align-items:center;justify-content:space-between;height:56px}
   .logo{display:flex;align-items:center;gap:10px}
   .garuda{width:36px;height:36px;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
@@ -35,7 +35,7 @@
   #btnSettings .icn{width:23px;height:23px}
   .hicons #btnInstall svg{width:17px;height:17px}
   /* main tabs */
-  .maintabs{position:sticky;top:56px;z-index:39;background:var(--bg);border-bottom:1px solid var(--line);display:flex;overflow-x:auto;scrollbar-width:none}
+  .maintabs{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:39;background:var(--bg);border-bottom:1px solid var(--line);display:flex;overflow-x:auto;scrollbar-width:none}
   .maintabs::-webkit-scrollbar{display:none}
   .maintabs .wrapf{display:flex;gap:4px;max-width:720px;margin:0 auto;padding:0 14px;width:100%}
   .maintabs button{flex:none;background:none;border:none;font-family:inherit;font-size:14px;color:var(--sub);padding:13px 12px;cursor:pointer;border-bottom:2.5px solid transparent;font-weight:600}
