@@ -39,7 +39,7 @@ let curAudio=null,curBtn=null;
 function clearPlaying(){if(curBtn){curBtn.classList.remove("playing");curBtn=null;}}
 function stopAll(){if(curAudio){try{curAudio.pause();}catch(e){}curAudio=null;}if("speechSynthesis"in window)speechSynthesis.cancel();clearPlaying();}
 function synthFb(text,btn){if(!("speechSynthesis"in window)){if(curBtn===btn)clearPlaying();return;}const u=new SpeechSynthesisUtterance(text);u.lang="id-ID";if(idVoice)u.voice=idVoice;u.rate=.9*SPEED*_rateMul;u.onend=u.onerror=()=>{if(curBtn===btn)clearPlaying();};speechSynthesis.speak(u);}
-function onlineTTS(text,btn){const a=new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=id&q="+encodeURIComponent(text));a.playbackRate=SPEED*_rateMul;curAudio=a;let fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;synthFb(text,btn);};a.onended=()=>{if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
+function onlineTTS(text,btn){if(navigator.onLine===false){synthFb(text,btn);return;}const a=new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=id&q="+encodeURIComponent(text));a.playbackRate=SPEED*_rateMul;curAudio=a;let fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;synthFb(text,btn);};a.onended=()=>{if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
 function play(src,text,btn){stopAll();curBtn=btn;if(btn)btn.classList.add("playing");if(!src){onlineTTS(text,btn);return;}const a=new Audio(src);a.playbackRate=SPEED*_rateMul;curAudio=a;let done=false,fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;onlineTTS(text,btn);};a.onended=()=>{if(REPEAT&&!done){done=true;a.currentTime=0;a.play();return;}if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
 function playList(srcs,btn){stopAll();curBtn=btn;if(btn)btn.classList.add("playing");let i=0;function nx(){if(i>=srcs.length){if(curBtn===btn)clearPlaying();return;}const a=new Audio(srcs[i]);a.playbackRate=SPEED;curAudio=a;let adv=false;const go=()=>{if(adv)return;adv=true;i++;nx();};a.onended=go;a.onerror=go;a.play().catch(go);}nx();}
 const wordsToSrcs=ws=>ws.map(w=>"audio/w/"+w+".mp3");
@@ -140,6 +140,8 @@ const PANEI={};
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
   if(id==="l-packs")ensureCards(function(){buildPacks();});
+  if(id==="l-gaul")buildGaul();
+  if(id==="t-surv")buildSurv();
   if(id==="l-gram")ensureExtra(buildGrammar);
   if(id==="l-prefix")ensureExtra(buildPrefix);
   if(id==="l-suffix")ensureExtra(buildSuffix);
@@ -172,6 +174,34 @@ function buildWords(){if(CAR.w)return;CAR.w=lazyCarousel($("wTrack"),WORDS.lengt
    <div class="note"><div class="lbl">Catatan・語源メモ</div><p>${esc(d.note)}</p></div></div></div>`;
 },$("wCount"),'[data-nav="w:-1"]','[data-nav="w:1"]');const wsb=$("wShuffle");if(wsb)wsb.onclick=()=>CAR.w.shuffle();}
 
+/* ===== 未解放の共通表示 ===== */
+function lockCard(opt){/* opt: {sil, title, cond, cls} — グレーのシルエット＋金の鍵＋解放条件1行 */
+  return '<div class="lockbox '+(opt.cls||"")+'">'+(opt.sil||"")
+   +'<svg class="icn lkkey"><use href="#i-lock"/></svg>'
+   +'<div class="lkttl">'+esc(opt.title)+'</div><div class="lkmask">？？？</div>'
+   +'<div class="lkcond">'+opt.cond+'</div></div>';}
+/* ===== Bahasa Gaul ===== */
+const GTONE={chat:["チャット限定","gt-chat"],casual:["くだけた会話","gt-casual"]};
+function buildGaul(){var el=$("l-gaul");if(!el||el.dataset.done)return;el.dataset.done=1;
+  var G=window.GAUL||[];
+  el.innerHTML='<div class="packintro">WhatsApp や SNS で毎日飛び交う言葉です。フォーマル度に注意して使い分けてください。</div>'
+   +'<div class="gaullist">'+G.map(function(g){var t=GTONE[g.tone]||GTONE.chat;
+     return '<div class="gaulrow">'
+      +'<div class="gtop">'+spkBtn("",g.s)+'<span class="gs">'+esc(g.s)+'</span><span class="gtone '+t[1]+'">'+t[0]+'</span></div>'
+      +'<div class="gf">＝ '+esc(g.f)+'</div><div class="gja">'+esc(g.ja)+'</div>'
+      +'<div class="gchat"><div class="gbub">'+spkBtn("",g.ex)+'<span class="t">'+wrapWords(g.ex)+'</span></div><div class="gexja">'+esc(g.exja)+'</div></div>'
+      +'<div class="gnote">'+esc(g.note)+'</div></div>';}).join("")+'</div>';}
+/* ===== サバイバルシート ===== */
+function buildSurv(){var el=$("t-surv");if(!el||el.dataset.done)return;el.dataset.done=1;
+  var S=window.SURVIVAL||[];
+  el.innerHTML='<div class="packintro">現地で焦ったときに、上から順に読めるようにしています。文はすべて音声で再生できます（オフラインでも動作）。</div>'
+   +S.map(function(s){return '<div class="survsec"><div class="survhead"><svg class="icn"><use href="#'+s.icon+'"/></svg><div><b>'+esc(s.title)+'</b><span>'+esc(s.sub)+'</span></div></div>'
+    +s.items.map(function(it){return '<div class="survrow">'+spkBtn("",it.id)
+      +'<div class="sbody"><div class="id"><span class="t">'+wrapWords(it.id)+'</span></div><div class="ja">'+esc(it.ja)+'</div>'
+      +(it.note?'<div class="snote">'+esc(it.note)+'</div>':'')+'</div>'
+      +'<button class="sbook" data-book=\'{"id":'+JSON.stringify(it.id)+',"ja":'+JSON.stringify(it.ja)+',"audio":""}\' aria-label="この表現を覚えたリストに保存">★</button></div>';}).join("")
+    +'</div>';}).join("");
+  refreshBookBtns();}
 /* ===== 島パック一覧 ===== */
 var _packView=null;
 function packThreshold(id){var dots=_archBuild(),mx=-1,ci=-1;
@@ -195,9 +225,9 @@ function buildPacks(force){var el=$("l-packs");if(!el)return;
        +packSilhouette(p.id)+'<div class="pkname">'+esc(p.island)+'</div><div class="pktheme">'+esc(p.theme)+'</div>'
        +'<div class="pkmeta">'+p.words.length+'語 ・ 解放済み</div></button>';
      return '<div class="packcard lock" aria-label="'+esc(p.island)+'語彙パック（未解放）">'
-       +packSilhouette(p.id)+'<svg class="icn pklock"><use href="#i-lock"/></svg>'
-       +'<div class="pkname">'+esc(p.island)+'</div><div class="pktheme">？？？</div>'
-       +'<div class="pkmeta">'+esc(p.island)+'を全点灯で解放<br><span class="pkrem">あと '+Math.max(0,th-known)+' 語</span></div></div>';}).join("")+'</div>';
+       +lockCard({sil:packSilhouette(p.id),title:p.island,
+         cond:esc(p.island)+' を全点灯で解放 ・ あと <b>'+Math.max(0,th-known)+'</b> 語'})
+       +'</div>';}).join("")+'</div>';
   el.querySelectorAll("[data-pack]").forEach(function(b){b.onclick=function(){_packView=b.dataset.pack;renderPackDetail(_packView);};});}
 function renderPackDetail(id){var p=packOf(id),el=$("l-packs");if(!p||!el)return;
   el.innerHTML='<div class="packhead"><button class="chip" id="pkBack" aria-label="パック一覧に戻る">← 一覧</button>'
@@ -529,6 +559,27 @@ const ARCH_CLUSTERS=[
  {id:"papua",name:"Papua",cx:500,cy:108,region:"パプア"}
 ];
 const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
+/* ===== Kata Hari Ini（今日の一言） ===== */
+function _hash(n){n=(n^61)^(n>>>16);n=n+(n<<3);n=n^(n>>>4);n=Math.imul(n,0x27d4eb2d);n=n^(n>>>15);return n>>>0;}
+function kataPick(){if(!CARDS.length)return null;
+  var seed=todayNum(),st=LS("dks_status",{});
+  var fresh=CARDS.filter(function(c){return c.ja&&!st[c.w];});
+  if(fresh.length)return {c:fresh[_hash(seed)%fresh.length],mode:"new"};
+  var tn=todayNum(),due=CARDS.filter(function(c){return c.ja&&srs[c.w]&&srs[c.w].due<=tn;});
+  if(due.length)return {c:due[_hash(seed)%due.length],mode:"due"};
+  return {c:CARDS[_hash(seed)%CARDS.length],mode:"review"};}
+function buildKata(){var el=$("homeKata");if(!el)return;
+  var p=kataPick();if(!p){el.innerHTML="";return;}
+  var c=p.c,st=LS("dks_status",{}),known=st[c.w]==="known";
+  var lbl=p.mode==="new"?"Kata Hari Ini ・ 今日の一言":(p.mode==="due"?"Kata Hari Ini ・ 今日の復習":"Kata Hari Ini");
+  var ex=(c.ex&&c.ex[0])?'<div class="kex"><div class="id">'+spkBtn(c.ex[2]||"",c.ex[0])+'<span class="t">'+wrapWords(c.ex[0])+'</span></div><div class="ja">'+esc(c.ex[1])+'</div></div>':"";
+  el.innerHTML='<div class="katacard"><div class="klbl">'+lbl+'</div>'
+    +'<div class="khead">'+spkBtn(c.audio||"",c.w)+'<span class="kword">'+esc(c.w)+'</span></div>'
+    +'<div class="kja">'+esc(c.ja)+'</div>'+ex
+    +'<button class="kbtn'+(known?" done":"")+'" id="kataKnown"'+(known?" disabled":"")+' aria-label="この語を覚えたに追加">'+(known?"覚えた ✓":"覚えたに追加")+'</button></div>';
+  var b=$("kataKnown");if(b)b.onclick=function(){srsUpdate(c.w,"known");b.textContent="覚えた ✓";b.classList.add("done");b.disabled=true;
+    if(typeof bumpActivity==="function")bumpActivity();
+    var af=$("homeArchFull");if(af){af.innerHTML="";renderArch(af);}};}
 /* ===== 称号 ===== */
 const TITLES=[
  {n:50,id:"pemula",name:"Pemula",ja:"はじまりの人"},
@@ -671,7 +722,8 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
     return '<div class="tstep'+(got?" got":"")+(cur?" cur":"")+'"><div class="tdot"></div><div class="tinfo"><b>'+esc(t.name)+'</b><span>'+esc(t.ja)+' ・ '+t.n+'語</span></div></div>';}).join("")+'</div>';
   _road+='<div class="tnext">'+(_tn?('次の称号 <b>'+esc(_tn.name)+'</b> まで あと <b>'+(_tn.n-_tk)+'</b> 語'):'すべての称号を授かりました。Nusantara はあなたのもの。')+'</div>';
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>称号の道のり</h4>'+_road+'</div>');
-  var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}}
+  var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}
+  if(typeof buildKata==="function")buildKata();}
 
 /* ===== 群島シェアカード ===== */
 function _cssv(n,f){try{var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||f;}catch(e){return f;}}
@@ -747,7 +799,9 @@ function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode=
   const full=CARDS.filter(c=>c.ja);let src=full;
   const tn=(typeof todayNum==="function")?todayNum():0;
   if(weak){const wp=full.filter(x=>status[x.w]==="weak");
-    if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard"><div class="qlock"><svg class="icn qlockic"><use href="#i-target"/></svg><div class="qlockt">苦手が5語たまったら解放されます</div><div class="qlocks">現在 '+wp.length+' 語。カードで「✗ 苦手」を付けるか、クイズで間違えるとここに集まります。</div></div></div>';return;}
+    if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard">'+lockCard({cls:"qlock",title:"苦手撲滅",
+      sil:'<svg class="icn qlockic" aria-hidden="true"><use href="#i-target"/></svg>',
+      cond:'苦手が5語たまったら解放 ・ 現在 <b>'+wp.length+'</b> 語<br>カードの「✗ 苦手」やクイズの誤答でここに集まります'})+'</div>';return;}
     src=wp;}
   else if(review){const rp=full.filter(x=>status[x.w]==="weak"||(srs[x.w]&&srs[x.w].due<=tn&&status[x.w]!=="known"));if(rp.length)src=rp;}
   else if(listen){const lp=full.filter(x=>status[x.w]==="known"||(srs[x.w]&&srs[x.w].due<=tn));if(lp.length>=4)src=lp;}
@@ -821,7 +875,7 @@ function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box
 
 /* ===== 検索 ===== */
 let SIDX=null;
-const SCAT=["辞書","自分の単語","単語","島パック","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
+const SCAT=["辞書","自分の単語","単語","島パック","略語","サバイバル","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
 function buildIndex(){SIDX=[];
   const add=(id,ja,audio,src,go)=>{if(id&&ja)SIDX.push({id:String(id),ja:String(ja),audio:audio||"",src:src,go:go});};
   const wau=w=>"audio/w/"+String(w).replace(/\//g,"_")+".mp3";
@@ -835,6 +889,8 @@ function buildIndex(){SIDX=[];
   try{DRIVER.forEach(g=>g.items.forEach(it=>{add(it[0],it[1],it[2],"ドライバー","talk:t-driver");(it[3]||[]).forEach(x=>add(x[0],x[1],x[2],"ドライバー","talk:t-driver"));}));}catch(e){}
   try{TRAVEL.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"旅行","talk:t-travel")));}catch(e){}
   try{PACKS.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"テーマ別","talk:t-pack")));}catch(e){}
+  try{(window.GAUL||[]).forEach(g=>{add(g.s,g.ja+"（＝"+g.f+"）","","略語","learn:l-gaul");add(g.ex,g.exja,"","略語","learn:l-gaul");});}catch(e){}
+  try{(window.SURVIVAL||[]).forEach(s=>s.items.forEach(it=>add(it.id,it.ja,"","サバイバル","talk:t-surv")));}catch(e){}
   try{(window.ISLANDPACKS||[]).forEach(p=>{if(!packOpen(p.id))return;
     p.words.forEach(w=>{add(w.word,w.meaning,w.audio,"島パック","learn:l-packs");
       (w.ex||[]).forEach(e=>add(e[0],e[1],e[2],"島パック","learn:l-packs"));});});}catch(e){}
