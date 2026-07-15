@@ -616,8 +616,17 @@ async function prefetchAll(){const list=allAudio();const lbl=$("prefLbl"),btn=$(
   lbl.textContent="完了！ "+(N-fail)+" / "+N+" 保存"+(fail?("（未取得 "+fail+"）"):"");btn.disabled=false;}
 if($("btnPrefetch"))$("btnPrefetch").onclick=prefetchAll;
 /* ===== 学習データのバックアップ / 復元 ===== */
-function bkInfo(){var el=$("bkLbl");if(!el)return;var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;var a=LS("dks_act",{});var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
-  el.textContent="覚えた "+known+"語 ・ 連続 "+(a.streak||0)+"日 ・ 保存項目 "+n+"件（この端末内のみ）";}
+function bkInfo(){var el=$("bkLbl");if(!el)return;var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;var a=LS("dks_act",{});var mw=Object.keys(LS("dks_mywords",{})).length;var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
+  var base="覚えた "+known+"語 ・ 連続 "+(a.streak||0)+"日 ・ 登録した単語 "+mw+"語 ・ 保存項目 "+n+"件";
+  el.textContent=base+"（この端末内のみ）";
+  (async function(){try{
+    if(navigator.storage&&navigator.storage.persisted){
+      var p=await navigator.storage.persisted();
+      if(!p&&navigator.storage.persist){try{p=await navigator.storage.persist();}catch(_){}}
+      el.textContent=base+"／自動削除の防止: "+(p?"有効":"未許可")+"（この端末内のみ・手動削除では消えます）";
+    }}catch(e){}})();}
+function ensurePersist(){try{if(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted){navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist().catch(function(){});});}}catch(e){}}
+ensurePersist();
 function backupData(){try{
     var data={};
     for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)data[k]=localStorage.getItem(k);}
