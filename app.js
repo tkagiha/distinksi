@@ -461,7 +461,8 @@ function gotoGeoRegion(region){openTarget("reads:r-geo");
 function renderArch(el){const dots=_archBuild(),total=dots.length;
   const known=Object.values(LS("dks_status",{})).filter(v=>v==="known").length;
   const lit=Math.min(total,Math.min(total,known)),pct=Math.round(lit/total*100);
-  const firstRender=(_archLit==null),prev=firstRender?lit:_archLit;
+  const seen=LS("dks_arch_seen",0);
+  const firstRender=(_archLit==null),prev=firstRender?Math.min(seen,lit):_archLit;
   const maxRank={};dots.forEach(d=>{if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
   const complete=ci=>maxRank[ci]<lit;
   const circ=dots.map(d=>{const on=d.rank<lit,isNew=on&&d.rank>=prev;return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="1.7" class="ad'+(on?" on":"")+(isNew?" new":"")+'"/>';}).join("");
@@ -476,6 +477,7 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   const arch=LS("dks_arch",[]);let changed=false;
   ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
   if(changed)SV("dks_arch",arch);
+  SV("dks_arch_seen",lit);
   _archLit=lit;}
 let _archHomeLit=null;
 function renderArchHome(){var el=$("homeArch");if(!el)return;var dots=_archBuild(),total=dots.length;
