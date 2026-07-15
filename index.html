@@ -420,6 +420,12 @@
   .nwadd.done{color:var(--sub);border-color:var(--line2);font-weight:400}
   .nwall{width:100%;margin-top:12px;padding:11px;border-radius:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
   .nwall:disabled{color:var(--sub);border-color:var(--line2);cursor:default}
+  .bknudge{background:linear-gradient(135deg,rgba(201,155,52,.15),rgba(192,57,43,.07));border:1px solid var(--gold);border-radius:14px;padding:13px 15px;margin:12px 0 0}
+  .bkn-t{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .bkn-s{font-size:12px;color:var(--sub);margin:4px 0 10px;line-height:1.65}
+  .bkn-b{display:flex;gap:8px}
+  .bkn-go{flex:1;padding:9px;border-radius:10px;border:none;background:linear-gradient(160deg,#d02a31,#a01820);color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .bkn-later{padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--sub);font-family:inherit;font-size:12.5px;cursor:pointer}
   .wkchart{display:flex;align-items:flex-end;gap:6px;height:96px}
   .wkbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%}
   .wkcol{flex:1;width:100%;display:flex;align-items:flex-end;background:var(--line2);border-radius:6px;overflow:hidden}
@@ -585,6 +591,7 @@
 <div class="wrap appmain">
   <div class="view active" data-view="home" data-init="1">
     <div id="homeGreet" class="greet"></div>
+    <div id="bkNudge"></div>
     <div class="hero"><div class="eyebrow">Bahasa Indonesia</div>
       <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
       <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。さあ、最初の一歩をここから。</p>
@@ -713,6 +720,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>
