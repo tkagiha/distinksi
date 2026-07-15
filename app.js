@@ -939,7 +939,8 @@ function searchRender(){
   box.innerHTML=html;
   if(typeof refreshBookBtns==="function")refreshBookBtns();
 }
-$("btnSearch").onclick=()=>{$("searchOv").classList.add("on");$("searchIn").focus();ensureExtra(function(){SIDX=null;});};
+$("btnSearch").onclick=()=>{$("searchOv").classList.add("on");$("searchIn").focus();
+  ensureExtra(function(){SIDX=null;var q=$("searchIn");if(q&&q.value.trim())searchRender();});};
 var _sqT=null;
 $("searchIn").addEventListener("input",()=>{clearTimeout(_sqT);_sqT=setTimeout(searchRender,200);});
 $("searchRes").addEventListener("click",e=>{if(e.target.closest("[data-goto]"))$("searchOv").classList.remove("on");});
