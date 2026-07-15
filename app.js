@@ -668,9 +668,16 @@ function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dk
   if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 復習する（'+n+'語）';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
   else{el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる';el.dataset.goto="practice:p-daily";delete el.dataset.qmode;}}
 var _ciN=0,_ciT=null;
-function catScream(){var el=document.createElement("div");el.className="catpop";el.textContent="ﾐ゛ｬｧｧｧﾖ゛ｫｫｫｫｰ";document.body.appendChild(el);setTimeout(function(){el.remove();},1800);
+var _catBusy=false;
+function catScream(){if(_catBusy)return;_catBusy=true;
+  var ov=document.createElement("div");ov.className="catov";
+  ov.innerHTML='<div class="catemo">😺</div><div class="cattxt">ﾐ゛ｬｧｧｧﾖ゛ｫｫｫｫｰ</div>';
+  var stop=function(e){e.preventDefault();e.stopPropagation();};
+  ov.addEventListener("click",stop,true);ov.addEventListener("touchstart",stop,{capture:true,passive:false});
+  document.body.appendChild(ov);
   celebrate("🐱 ﾐ゛ｬｧｧｧﾖ゛ｫｫｫｫｰ");
-  if(navigator.vibrate)try{navigator.vibrate([30,40,30,40,140]);}catch(e){}}
+  if(navigator.vibrate)try{navigator.vibrate([30,40,30,40,140]);}catch(e){}
+  setTimeout(function(){if(ov.parentNode)ov.remove();_catBusy=false;},1950);}
 function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();
   _ciN++;clearTimeout(_ciT);_ciT=setTimeout(function(){_ciN=0;},2500);
   if(_ciN>=10){_ciN=0;catScream();return;}
