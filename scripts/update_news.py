@@ -8,6 +8,7 @@ BASE = os.getcwd()
 AUD = os.path.join(BASE, "audio", "realnews")
 os.makedirs(AUD, exist_ok=True)
 EJS = os.path.join(BASE, "extra.js")
+NJS = os.path.join(BASE, "news.js")
 UA = {"User-Agent": "Mozilla/5.0 (compatible; ArtikulaBot/1.0)"}
 EMO = ["📰","🗞️","🌏","🏛️","⚽","💰","🎬","🌦️","🚉","🔬","🎓","🕌"]
 
@@ -60,21 +61,16 @@ def main():
         REAL.append({"title": ja[:24], "id": title, "ja": ja, "emoji": EMO[i % len(EMO)],
                      "img": img, "svg": "", "url": link, "audio": "audio/" + fn})
 
-    et = open(EJS, encoding="utf-8").read()
-    keep = ["REGISTER", "MONTHS", "PREFIX", "HISTORY", "GEO", "DAILY", "CULTURE"]
-    arrays = {n: parse_arr(et, n) for n in keep}
+    et = open(NJS, encoding="utf-8").read() if os.path.exists(NJS) else ""
     week = parse_arr(et, "REALNEWS_WEEK")
     week = [w for w in week if w.get("date") != today]
     week.insert(0, {"date": today, "real": True, "items": REAL})
     week = week[:7]
 
-    out = ""
-    for n in keep:
-        out += "window.%s = %s;\n" % (n, json.dumps(arrays[n], ensure_ascii=False))
-    out += "window.REALNEWS = %s;\n" % json.dumps(REAL, ensure_ascii=False)
+    out = "window.REALNEWS = %s;\n" % json.dumps(REAL, ensure_ascii=False)
     out += "window.REALNEWS_WEEK = %s;\n" % json.dumps(week, ensure_ascii=False)
     out += 'window.NEWS_UPDATED = "%s";\n' % today
-    open(EJS, "w", encoding="utf-8").write(out)
+    open(NJS, "w", encoding="utf-8").write(out)
 
     # 参照されていない実ニュース音声を削除
     refs = set()
