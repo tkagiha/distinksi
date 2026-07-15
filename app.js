@@ -21,15 +21,26 @@ const spkBtn=(a,t)=>`<button class="spk" data-audio="${esc(a)}" data-text="${esc
 
 /* 音声（速度・リピート対応） */
 let SPEED=LS("dks_speed",1),REPEAT=LS("dks_repeat",false);
-let idVoice=null;
-function pickVoice(){if(!("speechSynthesis"in window))return;idVoice=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("id"))||null;}
+let idVoice=null,_rateMul=1;
+function idVoices(){if(!("speechSynthesis"in window))return [];
+  var vs=speechSynthesis.getVoices()||[];
+  return vs.filter(function(v){return v.lang&&v.lang.toLowerCase().replace("_","-").indexOf("id")===0;});}
+function pickVoice(){if(!("speechSynthesis"in window))return;
+  var vs=idVoices(),saved=LS("dks_voice","");
+  if(saved){var f=vs.filter(function(v){return v.voiceURI===saved||v.name===saved;})[0];if(f){idVoice=f;return;}}
+  var isId=function(v){return v.lang.toLowerCase().replace("_","-")==="id-id";};
+  idVoice=vs.filter(function(v){return isId(v)&&v.localService===false;})[0]
+       || vs.filter(isId)[0]
+       || vs[0] || null;}
+function ttsHasVoice(){return ("speechSynthesis"in window)&&!!idVoice;}
+function speakSlow(t,b){_rateMul=0.75;play("",t,b);setTimeout(function(){_rateMul=1;},60);}
 if("speechSynthesis"in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
 let curAudio=null,curBtn=null;
 function clearPlaying(){if(curBtn){curBtn.classList.remove("playing");curBtn=null;}}
 function stopAll(){if(curAudio){try{curAudio.pause();}catch(e){}curAudio=null;}if("speechSynthesis"in window)speechSynthesis.cancel();clearPlaying();}
-function synthFb(text,btn){if(!("speechSynthesis"in window))return;const u=new SpeechSynthesisUtterance(text);u.lang="id-ID";if(idVoice)u.voice=idVoice;u.rate=.9*SPEED;u.onend=u.onerror=()=>{if(curBtn===btn)clearPlaying();};speechSynthesis.speak(u);}
-function onlineTTS(text,btn){const a=new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=id&q="+encodeURIComponent(text));a.playbackRate=SPEED;curAudio=a;let fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;synthFb(text,btn);};a.onended=()=>{if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
-function play(src,text,btn){stopAll();curBtn=btn;if(btn)btn.classList.add("playing");if(!src){onlineTTS(text,btn);return;}const a=new Audio(src);a.playbackRate=SPEED;curAudio=a;let done=false,fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;onlineTTS(text,btn);};a.onended=()=>{if(REPEAT&&!done){done=true;a.currentTime=0;a.play();return;}if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
+function synthFb(text,btn){if(!("speechSynthesis"in window)){if(curBtn===btn)clearPlaying();return;}const u=new SpeechSynthesisUtterance(text);u.lang="id-ID";if(idVoice)u.voice=idVoice;u.rate=.9*SPEED*_rateMul;u.onend=u.onerror=()=>{if(curBtn===btn)clearPlaying();};speechSynthesis.speak(u);}
+function onlineTTS(text,btn){const a=new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=id&q="+encodeURIComponent(text));a.playbackRate=SPEED*_rateMul;curAudio=a;let fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;synthFb(text,btn);};a.onended=()=>{if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
+function play(src,text,btn){stopAll();curBtn=btn;if(btn)btn.classList.add("playing");if(!src){onlineTTS(text,btn);return;}const a=new Audio(src);a.playbackRate=SPEED*_rateMul;curAudio=a;let done=false,fell=false;const fb=()=>{if(fell)return;fell=true;if(curAudio===a)curAudio=null;onlineTTS(text,btn);};a.onended=()=>{if(REPEAT&&!done){done=true;a.currentTime=0;a.play();return;}if(curAudio===a)curAudio=null;if(curBtn===btn)clearPlaying();};a.onerror=fb;a.play().catch(fb);}
 function playList(srcs,btn){stopAll();curBtn=btn;if(btn)btn.classList.add("playing");let i=0;function nx(){if(i>=srcs.length){if(curBtn===btn)clearPlaying();return;}const a=new Audio(srcs[i]);a.playbackRate=SPEED;curAudio=a;let adv=false;const go=()=>{if(adv)return;adv=true;i++;nx();};a.onended=go;a.onerror=go;a.play().catch(go);}nx();}
 const wordsToSrcs=ws=>ws.map(w=>"audio/w/"+w+".mp3");
 function playSeq(words,btn){playList(wordsToSrcs(words),btn);}
@@ -78,7 +89,7 @@ const CAR={};
 /* ===== メインタブ ルーター ===== */
 const SECTIONS=[
   {id:"learn",label:"学ぶ",icon:"i-book",tabs:[["learn","ことば"],["num","数字"]]},
-  {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"]]},
+  {id:"practice",label:"練習",icon:"i-target",tabs:[["practice","練習"],["speak","話す"]]},
   {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
   {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"],["talk","会話"]]},
   {id:"more",label:"調べる",icon:"i-search",tabs:[["dict","辞書"],["scan","街を知る"]]}
@@ -99,6 +110,7 @@ function showView(v,dir){
   if(!INIT[v]){INIT[v]=1;initView(v);}
   if(v==="home")ensureCards(buildStats);
   if(v==="dict")buildDict();
+  if(v==="speak")ensureCards(buildSpeak);
   window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
   const av=document.querySelector('.view[data-view="'+v+'"]');
   if(av){av.classList.remove("enter","enter-l","enter-r");void av.offsetWidth;av.classList.add(dir==="l"?"enter-l":dir==="r"?"enter-r":"enter");}
@@ -193,6 +205,40 @@ function buildDriver(){if(CAR.d)return;const dTabs=$("dTabs");dTabs.innerHTML=DR
 }
 /* ニュース */
 function buildTravel(){if($("travelWrap").dataset.done)return;$("travelWrap").dataset.done=1;$("travelWrap").innerHTML=TRAVEL.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
+/* ===== 話す（発音チェック・録音） ===== */
+var spDeck=[],spI=0,spFilter="weak",_spInit=false;
+function spCur(){return spDeck.length?spDeck[spI]:null;}
+function spBuild(){var st=LS("dks_status",{}),tn=todayNum(),sr=LS("dks_srs",{});
+  var pool=CARDS.filter(function(c){return c.w&&c.ja;});
+  if(spFilter==="weak")spDeck=pool.filter(function(c){return st[c.w]==="weak";});
+  else if(spFilter==="due")spDeck=pool.filter(function(c){return sr[c.w]&&sr[c.w].due<=tn&&st[c.w]!=="known";});
+  else if(spFilter==="known")spDeck=pool.filter(function(c){return st[c.w]==="known";});
+  else spDeck=pool.slice();
+  if(!spDeck.length)spDeck=pool.slice(0,200);
+  for(var i=spDeck.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=spDeck[i];spDeck[i]=spDeck[j];spDeck[j]=t;}
+  spI=0;spDraw();}
+function spDraw(){var c=spCur(),out=$("fCheckOut");
+  if(out)out.innerHTML="";
+  var pr=$("fPlayRec");if(pr)pr.disabled=true;
+  if(!c){$("spWord").textContent="該当なし";$("spJa").textContent="";$("spCount").textContent="0 / 0";return;}
+  $("spWord").textContent=c.w;$("spJa").textContent=c.ja;
+  $("spCount").textContent=(spI+1)+" / "+spDeck.length;
+  var P=LS("dks_pron",{})[c.w];
+  if(P&&out)out.innerHTML='<span class="pheard">これまでの最高 '+(P.best||0)+'%（'+(P.tries||0)+'回）</span>';}
+function buildSpeak(){
+  if(!_spInit){_spInit=true;
+    var f=$("spFil");
+    f.innerHTML=[["weak","苦手"],["due","復習"],["known","覚えた"],["all","すべて"]].map(function(x){
+      return '<button data-spf="'+x[0]+'"'+(x[0]===spFilter?' class="active"':'')+'>'+x[1]+'</button>';}).join("");
+    f.addEventListener("click",function(e){var b=e.target.closest("[data-spf]");if(!b)return;
+      [].forEach.call(f.children,function(x){x.classList.toggle("active",x===b);});spFilter=b.dataset.spf;spBuild();});
+    $("spPlay").innerHTML=SPK;
+    $("spPlay").onclick=function(){var c=spCur();if(c)play(c.audio,c.w,$("spPlay"));};
+    $("spSlow").onclick=function(){var c=spCur();if(c)speakSlow(c.w,$("spPlay"));};
+    $("spPrev").onclick=function(){if(spDeck.length){spI=(spI-1+spDeck.length)%spDeck.length;spDraw();}};
+    $("spNext").onclick=function(){if(spDeck.length){spI=(spI+1)%spDeck.length;spDraw();}};
+  }
+  spBuild();}
 /* ===== 言いたいこと（日本語→インドネシア語→その場面の会話へ） ===== */
 function jaToId(text){return fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=id&dt=t&q="+encodeURIComponent(text))
   .then(function(r){return r.json();})
@@ -426,7 +472,11 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
   if($("fBook"))$("fBook").classList.toggle("on",isBooked(c.w));
   if(auto&&!fFlip){play(c.audio,c.w,$("fSpk"));if(typeof bumpActivity==="function")bumpActivity();}
 }
-function mark(s){if(!deck.length)return;const w=deck[fi].w;status[w]=s;SV("dks_status",status);const tn=todayNum();if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}else{srs[w]={lvl:1,due:tn+1};}SV("dks_srs",srs);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
+function srsUpdate(w,s){if(!w)return;status[w]=s;SV("dks_status",status);const tn=todayNum();
+  if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}
+  else{srs[w]={lvl:1,due:tn+1};}
+  SV("dks_srs",srs);}
+function mark(s){if(!deck.length)return;const w=deck[fi].w;srsUpdate(w,s);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
 /* 群島プログレス（記録タブ） */
 const ARCHPTS=[[0.8,5.5,0],[10.7,6.6,0],[4.9,11.1,0],[10.1,11.0,0],[16.0,12.7,0],[23.9,11.4,0],[27.2,12.7,0],[11.4,18.0,0],[17.6,16.5,0],[22.1,16.9,0],[27.6,16.3,0],[32.2,16.1,0],[17.5,22.2,0],[21.5,22.1,0],[28.4,23.0,0],[34.4,23.5,0],[39.7,21.2,0],[258.3,21.5,2],[261.6,23.7,2],[268.6,23.4,2],[274.1,23.6,2],[20.9,27.0,0],[38.1,28.9,0],[43.6,28.1,0],[161.1,27.5,2],[256.0,28.2,2],[264.6,26.9,2],[267.8,28.3,2],[274.4,28.5,2],[281.0,27.0,2],[374.4,27.2,4],[28.1,32.7,0],[34.8,32.3,0],[40.2,32.5,0],[43.2,32.6,0],[51.2,35.1,0],[54.4,33.6,0],[141.3,33.6,0],[263.9,33.4,2],[273.1,32.7,2],[279.6,32.1,2],[375.0,33.5,4],[33.4,39.6,0],[39.7,38.8,0],[46.2,40.3,0],[49.0,40.2,0],[57.3,40.1,0],[60.4,40.3,0],[139.8,40.4,0],[251.6,39.1,2],[257.7,40.1,2],[262.3,39.0,2],[268.6,39.4,2],[275.4,38.5,2],[11.2,43.4,0],[16.4,45.0,0],[33.2,45.3,0],[39.6,44.5,0],[44.4,45.7,0],[51.8,45.7,0],[56.2,44.1,0],[60.2,46.3,0],[135.4,46.0,0],[175.0,43.9,2],[250.9,43.3,2],[259.2,44.4,2],[261.9,45.2,2],[269.7,43.7,2],[274.7,44.3,2],[284.1,46.4,2],[375.7,44.5,4],[415.3,45.5,5],[27.2,49.4,0],[43.5,49.7,0],[51.7,49.0,0],[56.7,49.7,0],[63.1,48.9,0],[68.2,49.9,0],[71.6,48.8,0],[83.0,50.2,0],[180.4,49.7,2],[246.4,50.5,2],[252.1,48.9,2],[262.2,49.1,2],[268.0,51.4,2],[272.9,49.1,2],[280.6,49.4,2],[291.4,50.5,2],[374.4,49.9,4],[404.7,51.8,4],[408.0,50.2,5],[414.8,50.0,5],[43.7,54.6,0],[51.6,55.8,0],[54.6,55.6,0],[65.9,55.1,0],[74.3,56.8,0],[77.3,55.5,0],[90.0,57.1,0],[213.9,57.1,2],[223.8,57.3,2],[242.1,56.9,2],[246.5,57.6,2],[252.1,56.1,2],[258.2,55.6,2],[262.7,56.3,2],[268.3,57.4,2],[275.0,56.1,2],[285.3,56.2,2],[370.0,56.3,4],[414.4,56.2,5],[28.1,61.2,0],[33.3,60.2,0],[49.4,60.9,0],[55.2,60.1,0],[62.1,61.1,0],[66.1,62.3,0],[71.5,60.9,0],[83.8,62.7,0],[90.6,60.5,0],[94.7,62.3,0],[100.4,63.1,0],[105.5,63.0,0],[173.2,60.3,2],[178.2,62.7,2],[184.2,62.1,2],[211.6,62.3,2],[217.7,61.3,2],[225.3,62.5,2],[230.8,62.8,2],[246.9,61.1,2],[251.7,62.1,2],[258.2,60.8,2],[269.2,60.6,2],[273.2,62.9,2],[284.1,60.1,2],[319.9,60.8,4],[324.6,62.2,4],[363.1,62.9,4],[370.4,60.3,4],[399.0,62.2,4],[404.0,62.7,4],[409.2,61.4,5],[413.0,62.2,5],[33.4,66.2,0],[50.8,68.6,0],[56.5,66.4,0],[60.8,66.0,0],[65.7,68.1,0],[73.9,66.5,0],[77.4,67.6,0],[88.5,68.1,0],[100.2,66.2,0],[107.4,66.6,0],[111.6,67.4,0],[117.2,68.3,0],[122.4,65.7,0],[172.3,65.7,2],[179.0,66.2,2],[191.5,68.3,2],[200.9,67.7,2],[207.2,66.9,2],[212.3,67.0,2],[218.9,68.2,2],[225.3,66.1,2],[228.9,67.0,2],[235.4,66.7,2],[245.8,67.1,2],[253.5,68.5,2],[258.8,68.7,2],[264.7,67.6,2],[269.8,65.8,2],[275.0,67.5,2],[279.4,67.4,2],[291.7,66.6,2],[308.6,67.0,4],[312.3,67.7,4],[318.8,67.5,4],[324.5,67.3,4],[330.6,66.9,4],[342.8,67.4,4],[346.0,68.4,4],[352.0,65.9,4],[358.5,66.4,4],[364.0,67.4,4],[397.8,67.9,4],[404.0,66.0,5],[410.4,67.9,5],[413.1,68.3,5],[50.3,71.7,0],[57.1,72.5,0],[62.8,73.2,0],[65.8,72.3,0],[71.9,74.1,0],[78.7,71.3,0],[82.9,72.4,0],[89.5,73.0,0],[99.2,73.1,0],[116.1,71.7,0],[174.5,74.0,2],[180.6,73.4,2],[184.2,73.6,2],[191.2,72.8,2],[196.4,72.3,2],[201.8,72.5,2],[205.8,72.3,2],[212.2,74.4,2],[218.3,72.4,2],[229.1,71.6,2],[233.6,74.0,2],[240.7,72.6,2],[250.9,71.4,2],[257.0,72.2,2],[263.9,73.0,2],[275.7,73.1,2],[278.7,71.8,2],[309.3,72.1,4],[312.8,71.3,4],[325.5,71.9,4],[330.1,71.8,4],[353.1,71.5,4],[363.5,71.6,4],[398.2,72.3,4],[413.9,72.8,5],[432.6,73.0,5],[43.5,79.1,0],[60.2,78.6,0],[66.9,79.7,0],[74.2,78.8,0],[83.2,78.2,0],[88.7,77.5,0],[105.5,78.6,0],[118.8,77.7,0],[124.0,79.4,0],[174.8,80.0,2],[178.6,76.9,2],[183.6,79.9,2],[188.8,79.7,2],[194.9,79.2,2],[200.3,77.3,2],[207.8,77.1,2],[212.3,79.7,2],[219.1,79.6,2],[225.5,76.9,2],[228.8,79.3,2],[235.8,76.9,2],[240.8,77.5,2],[246.2,77.1,2],[250.5,80.0,2],[262.0,78.4,2],[267.6,78.2,2],[273.4,79.0,2],[278.9,79.2,2],[309.2,79.1,4],[396.8,78.8,4],[402.8,77.6,5],[426.2,77.8,5],[436.2,79.9,5],[440.8,79.2,5],[40.0,82.9,0],[61.2,82.5,0],[66.2,84.2,0],[71.4,83.0,0],[83.4,83.2,0],[90.7,82.7,0],[95.6,85.1,0],[99.8,83.8,0],[111.6,82.5,0],[117.4,83.6,0],[180.5,84.8,2],[183.3,84.3,2],[190.3,83.9,2],[197.1,83.7,2],[201.5,85.2,2],[207.0,84.0,2],[212.8,85.0,2],[218.9,84.8,2],[223.7,82.5,2],[236.1,84.9,2],[239.6,83.1,2],[245.0,85.0,2],[250.7,82.7,2],[258.4,84.2,2],[261.8,84.6,2],[269.5,83.9,2],[273.0,84.6,2],[307.3,83.2,4],[329.0,83.4,4],[346.2,82.6,4],[396.9,84.9,4],[402.5,84.7,5],[409.8,84.3,5],[438.0,82.6,5],[449.4,84.2,5],[454.6,84.0,5],[459.8,84.6,5],[464.1,83.1,5],[471.5,82.9,6],[497.6,85.3,6],[46.2,88.3,0],[66.5,90.9,0],[79.8,88.1,0],[84.3,91.1,0],[89.1,91.0,0],[95.7,88.2,0],[100.3,89.4,0],[105.6,90.4,0],[111.0,90.5,0],[117.0,88.2,0],[180.4,89.5,2],[183.7,88.3,2],[191.6,88.4,2],[196.0,89.7,2],[200.4,89.5,2],[206.1,89.7,2],[212.8,89.2,2],[217.4,89.3,2],[223.1,88.4,2],[228.8,90.8,2],[235.2,90.8,2],[239.2,91.0,2],[246.4,90.5,2],[252.2,90.2,2],[256.7,90.4,2],[262.1,88.8,2],[267.3,89.3,2],[301.6,89.9,4],[309.5,88.1,4],[314.0,90.2,4],[325.8,89.5,4],[331.7,88.0,4],[337.4,89.3,4],[341.3,88.3,4],[346.4,90.3,4],[438.1,90.4,5],[443.5,90.6,5],[448.3,89.4,5],[454.6,90.5,5],[460.4,89.0,5],[466.3,89.7,6],[471.8,88.4,6],[477.5,90.5,6],[480.8,90.7,6],[492.7,88.8,6],[504.6,90.3,6],[509.3,90.5,6],[74.3,95.2,0],[80.0,94.2,0],[85.1,94.1,0],[89.7,93.6,0],[94.2,96.6,0],[105.6,94.7,0],[110.7,95.4,0],[130.1,95.7,0],[133.0,95.6,0],[172.2,96.3,2],[184.6,96.0,2],[196.8,93.7,2],[201.0,94.0,2],[208.6,96.5,2],[211.7,95.5,2],[218.6,93.7,2],[230.1,94.5,2],[236.0,94.5,2],[240.9,94.9,2],[247.9,95.7,2],[253.0,95.8,2],[257.2,96.7,2],[263.9,95.8,2],[301.8,93.8,4],[307.4,94.8,4],[315.1,96.7,4],[318.2,94.6,4],[326.2,94.2,4],[329.8,95.0,4],[334.7,94.4,4],[341.3,94.8,4],[348.7,94.5,4],[351.9,96.5,4],[364.4,96.1,4],[397.7,94.5,4],[403.6,94.4,5],[429.8,95.4,5],[437.6,95.8,5],[446.8,94.6,5],[454.1,96.7,5],[465.7,94.9,6],[471.8,96.0,6],[475.5,94.9,6],[482.6,94.7,6],[498.9,96.5,6],[526.1,95.4,6],[531.3,96.3,6],[538.5,96.3,6],[73.0,101.8,0],[76.9,101.8,0],[82.8,99.9,0],[90.0,100.3,0],[94.7,101.0,0],[105.5,101.9,0],[113.0,100.9,0],[116.1,101.7,0],[121.7,100.8,0],[128.6,99.4,0],[134.8,101.5,0],[185.5,100.7,2],[189.9,99.8,2],[195.7,100.1,2],[200.6,101.6,2],[207.3,100.6,2],[211.8,101.5,2],[217.4,100.0,2],[224.2,101.4,2],[231.1,101.6,2],[236.6,102.1,2],[241.5,101.5,2],[245.0,99.9,2],[250.4,102.0,2],[258.3,101.2,2],[262.4,100.3,2],[301.3,101.7,4],[307.9,102.4,4],[314.9,101.7,4],[319.1,101.8,4],[323.6,99.5,4],[347.9,102.2,4],[354.3,100.6,4],[365.0,101.9,4],[368.4,99.2,4],[429.9,101.1,5],[435.6,99.8,5],[459.9,99.4,5],[464.7,100.5,5],[471.0,101.5,6],[475.2,101.3,6],[482.2,100.7,6],[486.1,102.1,6],[510.5,101.8,6],[519.3,99.5,6],[530.5,99.4,6],[536.8,102.2,6],[542.3,101.4,6],[84.5,105.5,0],[89.4,105.2,0],[96.7,106.5,0],[100.3,105.1,0],[107.1,107.5,0],[113.1,105.1,0],[117.2,105.8,0],[124.0,105.3,0],[129.1,107.9,0],[135.3,104.8,0],[138.6,105.2,0],[162.9,107.7,1],[185.4,107.5,2],[195.0,107.8,2],[201.4,107.1,2],[206.4,105.8,2],[212.3,105.8,2],[217.1,106.2,2],[225.5,106.9,2],[231.0,107.2,2],[236.3,108.0,2],[241.6,105.7,2],[245.6,106.1,2],[250.5,105.5,2],[262.7,107.3,2],[298.3,105.3,4],[302.5,106.9,4],[308.1,107.8,4],[313.3,107.7,4],[319.8,107.9,4],[323.5,105.5,4],[329.7,107.7,4],[382.3,106.9,4],[471.5,107.4,6],[476.5,105.7,6],[480.0,105.4,6],[488.5,105.3,6],[493.3,106.7,6],[511.1,106.0,6],[519.9,105.0,6],[524.8,107.5,6],[530.8,107.9,6],[537.2,107.1,6],[548.0,106.0,6],[554.5,105.2,6],[66.0,110.6,0],[79.8,112.2,0],[82.6,111.1,0],[96.4,113.5,0],[101.9,110.8,0],[111.2,110.9,0],[118.8,111.1,0],[121.9,111.2,0],[130.2,111.9,0],[135.1,110.6,0],[139.8,111.4,0],[144.7,112.5,0],[158.3,111.9,1],[161.4,110.4,1],[190.7,112.5,2],[194.9,113.0,2],[203.0,112.8,2],[208.3,111.6,2],[214.1,111.0,2],[217.5,112.3,2],[225.3,110.7,2],[228.7,110.5,2],[235.0,110.8,2],[239.8,112.8,2],[251.7,112.6,2],[256.0,113.4,2],[262.3,111.9,2],[292.8,111.9,2],[295.9,113.5,2],[301.8,111.7,4],[307.5,112.5,4],[312.1,111.6,4],[323.2,112.3,4],[329.6,111.9,4],[386.9,113.2,4],[413.7,111.3,5],[421.5,113.2,5],[425.3,112.1,5],[432.3,113.0,5],[460.7,111.0,5],[463.4,113.3,5],[470.6,111.0,6],[476.6,111.2,6],[480.8,111.6,6],[487.3,112.6,6],[491.4,112.8,6],[504.6,113.0,6],[508.0,111.9,6],[515.8,112.7,6],[521.3,111.0,6],[527.9,112.9,6],[531.1,111.8,6],[539.1,111.1,6],[542.9,113.5,6],[550.1,111.1,6],[555.2,111.6,6],[560.5,112.9,6],[564.4,111.1,6],[71.8,118.5,0],[85.0,117.9,0],[90.7,118.8,0],[110.6,116.0,0],[116.6,118.2,0],[121.6,116.7,0],[128.0,118.3,0],[136.0,116.1,0],[156.2,117.3,1],[162.3,116.8,1],[166.6,116.3,1],[213.4,117.2,2],[219.1,116.7,2],[228.3,117.9,2],[234.2,118.3,2],[241.8,118.5,2],[252.5,117.8,2],[256.4,116.6,2],[263.5,116.3,2],[297.2,118.2,4],[302.8,118.9,4],[307.1,117.0,4],[325.7,118.6,4],[331.1,119.1,4],[336.9,117.0,4],[341.0,118.3,4],[345.8,117.9,4],[387.1,117.7,4],[396.2,117.2,5],[403.1,116.8,5],[409.3,116.7,5],[413.8,117.5,5],[420.7,118.5,5],[425.2,117.4,5],[432.6,119.0,5],[437.2,116.3,5],[442.3,118.0,5],[465.2,117.0,5],[469.0,118.4,6],[476.9,117.4,6],[480.3,117.3,6],[485.9,119.1,6],[491.4,116.9,6],[502.7,116.2,6],[508.5,117.7,6],[516.3,116.5,6],[519.8,118.4,6],[526.2,117.1,6],[530.8,116.8,6],[539.1,116.4,6],[542.4,118.4,6],[550.1,118.9,6],[565.5,118.3,6],[89.2,122.7,0],[94.8,122.0,0],[99.9,124.5,0],[106.1,123.6,0],[113.2,124.0,0],[116.8,124.5,0],[124.2,124.8,0],[135.4,122.4,0],[247.4,124.7,2],[251.4,123.6,2],[258.9,123.1,2],[302.0,122.8,4],[309.5,123.8,4],[312.4,124.5,4],[324.6,123.9,4],[330.2,121.9,4],[392.0,123.7,4],[409.7,122.2,5],[443.7,124.7,5],[448.0,124.6,5],[481.5,121.9,6],[485.6,122.7,6],[493.5,124.0,6],[504.1,122.2,6],[509.9,124.5,6],[514.2,123.5,6],[521.5,124.0,6],[527.1,123.9,6],[531.3,124.3,6],[539.0,121.8,6],[544.6,123.0,6],[555.3,123.8,6],[558.9,123.1,6],[566.0,124.8,6],[94.1,130.0,0],[101.0,127.2,0],[111.5,129.2,0],[118.9,128.5,0],[123.0,128.2,0],[129.0,129.3,0],[135.2,130.2,0],[303.2,129.9,4],[307.6,127.5,4],[336.7,129.2,4],[340.4,127.7,4],[346.2,129.1,4],[498.0,128.1,6],[505.3,129.7,6],[510.5,129.8,6],[516.8,129.4,6],[520.2,129.6,6],[525.6,129.2,6],[530.9,129.9,6],[537.6,128.1,6],[544.6,127.5,6],[550.2,129.6,6],[553.3,129.6,6],[560.2,130.1,6],[565.9,128.6,6],[102.4,134.5,0],[107.2,133.2,0],[112.4,134.0,0],[116.8,135.4,0],[121.7,134.3,0],[135.7,132.9,0],[256.5,133.2,2],[295.6,134.7,3],[308.2,133.8,3],[312.1,133.5,3],[325.2,134.6,4],[331.8,135.0,4],[342.0,134.5,4],[348.4,134.9,4],[452.9,135.6,5],[510.1,133.3,6],[520.3,135.7,6],[525.6,133.3,6],[530.9,133.3,6],[542.1,134.4,6],[549.0,134.6,6],[554.1,134.5,6],[558.4,133.0,6],[565.4,133.6,6],[110.6,140.0,0],[117.1,138.7,0],[128.8,138.9,0],[134.9,139.8,1],[303.6,140.4,3],[306.9,141.2,3],[314.3,138.8,3],[329.9,141.2,3],[342.9,140.9,4],[348.4,140.3,4],[469.5,140.9,6],[526.4,139.6,6],[531.3,140.0,6],[538.3,141.3,6],[544.3,141.2,6],[548.6,139.7,6],[553.8,141.5,6],[559.0,138.9,6],[564.9,141.4,6],[117.0,145.3,0],[122.8,146.9,0],[127.6,147.2,1],[133.6,146.7,1],[301.9,145.3,3],[309.5,145.2,3],[313.3,144.5,3],[341.2,146.3,3],[459.6,144.1,5],[482.6,145.7,6],[485.7,146.8,6],[530.9,144.9,6],[536.9,146.9,6],[550.4,145.4,6],[566.3,144.7,6],[129.2,151.1,1],[134.0,151.5,1],[139.1,151.0,1],[150.4,152.3,1],[485.7,151.0,6],[537.2,150.2,6],[542.9,151.2,6],[548.5,150.0,6],[554.5,150.6,6],[561.5,150.8,6],[565.4,150.3,6],[133.6,156.0,1],[141.1,155.4,1],[146.4,155.5,1],[152.6,156.5,1],[157.1,158.0,1],[195.3,157.3,1],[200.3,157.8,1],[481.9,156.8,6],[486.4,156.1,6],[536.6,157.5,6],[543.4,157.7,6],[549.2,157.1,6],[555.8,157.8,6],[560.2,156.2,6],[136.0,161.4,1],[139.5,160.8,1],[144.3,161.0,1],[151.0,163.5,1],[157.4,163.9,1],[163.5,162.7,1],[168.3,160.8,1],[173.2,161.6,1],[179.6,161.0,1],[194.7,163.1,1],[202.6,162.7,1],[206.0,162.7,1],[214.0,164.0,1],[219.2,160.9,1],[225.2,162.9,1],[228.9,163.7,1],[236.2,163.7,1],[252.8,162.8,1],[257.1,162.5,1],[454.6,161.5,5],[483.2,161.8,6],[488.3,163.7,6],[541.9,161.7,6],[555.4,161.3,6],[558.7,161.9,6],[566.8,161.3,6],[146.1,167.4,1],[156.6,167.9,1],[163.7,169.3,1],[169.4,167.9,1],[175.1,166.8,1],[180.5,168.4,1],[186.0,167.7,1],[192.0,166.5,1],[197.1,169.0,1],[201.2,169.1,1],[206.3,168.8,1],[212.7,167.7,1],[217.4,169.0,1],[224.7,166.7,1],[273.9,167.7,3],[331.3,167.8,3],[441.1,167.5,5],[447.1,169.1,5],[452.0,167.8,5],[538.5,167.1,6],[543.1,166.4,6],[548.0,168.5,6],[555.2,168.4,6],[559.8,168.7,6],[566.1,167.1,6],[184.0,173.7,1],[191.5,173.1,1],[196.0,174.1,1],[200.6,174.0,1],[207.0,175.1,1],[216.9,172.9,1],[222.8,172.5,1],[229.7,172.6,1],[236.1,172.3,1],[241.2,174.8,1],[280.1,175.0,3],[365.5,175.0,3],[381.1,172.1,3],[387.8,173.4,3],[426.9,174.1,5],[431.5,172.4,5],[446.6,175.2,5],[531.7,172.1,6],[538.9,173.5,6],[544.4,174.2,6],[549.5,174.4,6],[553.8,174.3,6],[559.1,173.8,6],[565.9,174.5,6],[202.0,177.9,1],[207.5,178.9,1],[219.1,178.0,1],[223.1,178.7,1],[229.8,178.6,1],[235.0,180.2,1],[245.9,180.6,1],[253.4,178.6,1],[262.9,179.6,3],[280.2,178.1,3],[285.0,179.6,3],[292.5,179.2,3],[296.0,179.5,3],[301.7,180.1,3],[306.9,178.4,3],[313.4,180.5,3],[318.1,178.2,3],[329.9,178.9,3],[341.5,178.9,3],[348.1,180.5,3],[352.6,180.5,3],[357.6,180.7,3],[364.1,179.8,3],[369.2,178.5,3],[409.5,179.0,5],[413.0,178.4,5],[526.9,179.8,6],[531.3,178.5,6],[541.7,179.6,6],[559.2,178.1,6],[239.5,183.8,1],[247.9,183.3,1],[253.0,184.9,1],[257.8,184.9,1],[262.9,185.0,3],[267.5,186.1,3],[273.1,183.6,3],[280.6,185.3,3],[286.6,185.4,3],[292.6,183.4,3],[295.2,184.0,3],[303.3,183.7,3],[308.1,185.7,3],[312.5,184.9,3],[320.5,185.6,3],[324.5,184.7,3],[369.7,186.3,3],[301.3,190.1,3],[358.8,190.2,3],[363.0,190.3,3],[369.8,191.7,3],[565.7,188.9,6],[296.0,195.2,3],[301.8,195.7,3],[307.6,195.4,3],[312.1,197.1,3],[358.8,196.6,3],[364.4,196.4,3],[369.2,194.6,3],[308.3,201.5,3],[313.5,200.5,3],[354.1,200.4,3],[358.4,203.1,3],[347.2,205.9,3],[346.0,211.7,3]];
 const ARCH_CLUSTERS=[
@@ -523,7 +573,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
 let qMode="mean",qScore=0,qTotal=0;
 let quizStats=LS("dks_quizstats",{}),_pendQ=null;
 function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);}
-function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
+function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">苦手撲滅</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
   nextQ();
@@ -532,14 +582,22 @@ const rnd=a=>a[Math.random()*a.length|0];
 const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const withEx=()=>CARDS.filter(c=>c.ex);
 function nextQ(){if(qMode==="arrange")return arrangeQ();if(qMode==="type")return typeQ();mcQ();}
-function mcQ(){const listen=qMode==="listen",review=qMode==="review";const full=CARDS.filter(c=>c.ja&&c.audio);let src=full;if(review){const tn=(typeof todayNum==="function")?todayNum():0;const rp=full.filter(x=>status[x.w]==="weak"||(srs[x.w]&&srs[x.w].due<=tn));if(rp.length)src=rp;}const c=rnd(src);const opts=shuf([c].concat(shuf(full.filter(x=>x.ja!==c.ja)).slice(0,3)));
-  $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう":review?"復習：この語の意味は？":"この単語の意味は？"}</div>
+function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode==="weak";
+  const full=CARDS.filter(c=>c.ja&&c.audio);let src=full;
+  const tn=(typeof todayNum==="function")?todayNum():0;
+  if(weak){const wp=full.filter(x=>status[x.w]==="weak");
+    if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard"><div class="qlock"><svg class="icn qlockic"><use href="#i-target"/></svg><div class="qlockt">苦手が5語たまったら解放されます</div><div class="qlocks">現在 '+wp.length+' 語。カードで「✗ 苦手」を付けるか、クイズで間違えるとここに集まります。</div></div></div>';return;}
+    src=wp;}
+  else if(review){const rp=full.filter(x=>status[x.w]==="weak"||(srs[x.w]&&srs[x.w].due<=tn&&status[x.w]!=="known"));if(rp.length)src=rp;}
+  else if(listen){const lp=full.filter(x=>status[x.w]==="known"||(srs[x.w]&&srs[x.w].due<=tn));if(lp.length>=4)src=lp;}
+  const c=rnd(src);const opts=shuf([c].concat(shuf(full.filter(x=>x.ja!==c.ja)).slice(0,3)));
+  $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう（文字は答えたら出ます）":weak?"苦手撲滅：この語の意味は？":review?"復習：この語の意味は？":"この単語の意味は？"}</div>
    <div class="qword">${listen?spkBtn(c.audio,c.w).replace('class="spk"','class="spk" style="width:52px;height:52px"'):esc(c.w)+" "+spkBtn(c.audio,c.w)}</div>
    <div class="qopts">${opts.map(o=>`<button data-ok="${o.ja===c.ja?1:0}" data-w="${esc(o.w)}" data-au="${esc(o.audio||"")}">${esc(o.ja)}</button>`).join("")}</div>
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   if(listen)setTimeout(()=>play(c.audio,c.w,null),200);
   const opt=$("qBody").querySelectorAll(".qopts button");
-  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent="Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":"mean",ok);if(typeof bumpActivity==="function")bumpActivity();}));
+  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent=weak?"Benar! 苦手をひとつ克服 🎉":"Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";if(weak&&typeof celebrate==="function"){const left=CARDS.filter(x=>status[x.w]==="weak").length;if(left===0)celebrate("🎉 苦手をすべて克服！ Hebat!");}}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":(weak?"weak":"mean"),ok);if(typeof srsUpdate==="function")srsUpdate(c.w,ok?"known":"weak");if(typeof bumpActivity==="function")bumpActivity();if(typeof updBadge==="function")updBadge();}));
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").length;return n>=3&&n<=6;});const c=rnd(pool);const words=c.ex[0].replace(/[.?!,]/g,"").split(" ");const jum=shuf(words.slice());
@@ -659,7 +717,7 @@ function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");docu
 function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);
   var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribute("content",dark?"#721923":"#c1272d");var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
 try{if(window.matchMedia)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){if(LS("dks_theme","auto")==="auto")applyTheme("auto");});}catch(e){}
-$("btnSettings").onclick=()=>{$("setOv").classList.add("on");if(typeof bkInfo==="function")bkInfo();};
+$("btnSettings").onclick=()=>{$("setOv").classList.add("on");if(typeof bkInfo==="function")bkInfo();if(typeof buildVoiceUI==="function")buildVoiceUI();};
 (function(){var nm=LS("dks_name","");var u=$("setUserName");if(u)u.textContent=nm||"ゲスト";var _nm=$("setName");if(_nm){_nm.value=nm;_nm.addEventListener("input",function(){var v=_nm.value.trim();SV("dks_name",v);if(u)u.textContent=v||"ゲスト";renderGreet();});}})();
 var _stEl=$("setTheme");if(_stEl)_stEl.addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b)applyTheme(b.dataset.th);});
 $("setFont").addEventListener("click",e=>{const b=e.target.closest("[data-fs]");if(b)applyFont(b.dataset.fs);});
@@ -744,7 +802,7 @@ async function toggleRec(){const btn=$("fRec");if(recState){try{mediaRec.stop();
 }
 function playRec(){if(recURL){new Audio(recURL).play();}}
 function _sim(a,b){a=(a||"").toLowerCase().replace(/[^a-z ]/g,"").trim();b=(b||"").toLowerCase().replace(/[^a-z ]/g,"").trim();if(!a||!b)return 0;var m=a.length,n=b.length,dp=[];for(var i=0;i<=m;i++){dp[i]=[i];for(var j=1;j<=n;j++)dp[i][j]=i===0?j:0;}for(var i2=1;i2<=m;i2++)for(var j2=1;j2<=n;j2++)dp[i2][j2]=Math.min(dp[i2-1][j2]+1,dp[i2][j2-1]+1,dp[i2-1][j2-1]+(a[i2-1]===b[j2-1]?0:1));return Math.max(0,1-dp[m][n]/Math.max(m,n));}
-function checkPron(){if(!deck.length)return;var out=$("fCheckOut");var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){out.textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。";return;}var target=deck[fi].w;var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;var btn=$("fCheck");btn.classList.add("rec");out.textContent="🎤 発音してください…";
+function checkPron(){var c=spCur();if(!c)return;var out=$("fCheckOut");var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){out.textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。";return;}var target=c.w;var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;var btn=$("fCheck");btn.classList.add("rec");out.textContent="🎤 発音してください…";
   rec.onresult=function(e){var best=0,heard="";for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var s=_sim(alt,target);if(s>best){best=s;heard=alt;}}var pct=Math.round(best*100);try{var _P=LS("dks_pron",{});var _e=_P[target]||{best:0,tries:0};_e.tries++;_e.last=pct;if(pct>(_e.best||0))_e.best=pct;_P[target]=_e;SV("dks_pron",_P);}catch(_){}var msg,cls;if(pct>=80){msg="Bagus! よくできました";cls="good";if(pct>=92)celebrate("🎉 発音バッチリ！ Sempurna!");}else if(pct>=55){msg="惜しい！もう一度";cls="mid";}else{msg="もう一度ゆっくり言ってみましょう";cls="low";}out.innerHTML='<span class="pscore '+cls+'">'+pct+'%</span> '+msg+'<div class="pheard">認識: '+esc(heard||"—")+' ／ お手本: '+esc(target)+'</div>';};
   rec.onerror=function(e){out.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"マイクの許可が必要です。":"認識できませんでした。もう一度お試しください。";btn.classList.remove("rec");};
   rec.onend=function(){btn.classList.remove("rec");};
@@ -789,6 +847,19 @@ function bkInfo(){var el=$("bkLbl");if(!el)return;
       if(!p&&navigator.storage.persist){try{p=await navigator.storage.persist();}catch(_){}}
       el.textContent=base+"\n自動削除の防止: "+(p?"有効":"未許可")+"（手動削除では消えます）";
     }}catch(e){}})();}
+function buildVoiceUI(){var sel=$("setVoice"),note=$("voiceNote");if(!sel)return;
+  var vs=idVoices();
+  if(!vs.length){sel.innerHTML='<option>利用できる音声なし</option>';sel.disabled=true;
+    if(note)note.textContent="この端末にインドネシア語の読み上げ音声がありません。録音済み音声とオンライン読み上げで再生するため、学習に支障はありません。";
+    return;}
+  sel.disabled=false;
+  var saved=LS("dks_voice","");
+  sel.innerHTML=vs.map(function(v){var id=v.voiceURI||v.name;
+    return '<option value="'+esc(id)+'"'+((saved&&saved===id)||(!saved&&idVoice&&(idVoice.voiceURI||idVoice.name)===id)?" selected":"")+'>'+esc(v.name)+(v.localService===false?"（クラウド）":"")+'</option>';}).join("");
+  if(note)note.textContent="クラウド音声のほうが自然です。端末により選べる音声は異なります。";
+  sel.onchange=function(){SV("dks_voice",sel.value);pickVoice();};
+  var t=$("setVoiceTest");if(t)t.onclick=function(){_rateMul=1;if("speechSynthesis"in window){var u=new SpeechSynthesisUtterance("Selamat pagi, apa kabar?");u.lang="id-ID";if(idVoice)u.voice=idVoice;u.rate=.9*SPEED;speechSynthesis.speak(u);}};}
+if("speechSynthesis"in window){try{speechSynthesis.addEventListener("voiceschanged",function(){pickVoice();buildVoiceUI();});}catch(e){}}
 function ensurePersist(){try{if(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted){navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist().catch(function(){});});}}catch(e){}}
 ensurePersist();
 function _knownOf(obj){try{return Object.values(obj||{}).filter(function(v){return v==="known";}).length;}catch(e){return 0;}}
@@ -859,25 +930,84 @@ function bkBadge(){var el=$("btnSettings");if(!el)return;
   bkInfo();})();
 
 let nqScore=0,nqTotal=0,nqCur=null,nqVal="",nqDone=false;
-function buildNumQuiz(){$("a-listen").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">音声を聞いて数字を入力しよう</div>
-  <div style="text-align:center;margin:10px 0 14px"><button class="spk" id="nqPlay" style="width:54px;height:54px"></button></div>
+/* ===== 数字 聞き取り実戦 ===== */
+var NQCAT="basic",NQSET=[],NQI=0,NQMISS=[],NQOK=0;const NQLEN=10;
+const NQDIG=["kosong","satu","dua","tiga","empat","lima","enam","tujuh","delapan","sembilan"];
+function nqRnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function nqGen(){
+  if(NQCAT==="basic"){const n=NUMBERS[Math.random()*NUMBERS.length|0];
+    return {ans:String(n[0]),text:n[1],audio:n[2],hint:"数字",show:function(v){return v?parseInt(v,10).toLocaleString():"0";},len:12,disp:n[0].toLocaleString()};}
+  if(NQCAT==="price"){const unit=[500,1000,5000][nqRnd(0,2)];const v=nqRnd(2,120)*unit;const t=toIndo(v)+" rupiah";
+    return {ans:String(v),text:t,audio:"",hint:"値段（Rp）",show:function(x){return "Rp "+(x?parseInt(x,10).toLocaleString():"0");},len:9,disp:"Rp "+v.toLocaleString()};}
+  if(NQCAT==="phone"){const n=nqRnd(9,11);let d="08";for(var i=0;i<n;i++)d+=nqRnd(0,9);
+    const t=d.split("").map(function(c){return NQDIG[+c];}).join(" ");
+    return {ans:d,text:t,audio:"",hint:"電話番号（数字のまま）",show:function(x){return x||"—";},len:13,disp:d};}
+  if(Math.random()<.5){const h=nqRnd(1,12),ms=[0,5,10,15,20,30,40,45,50],m=ms[nqRnd(0,ms.length-1)];
+    const h24=h<7?h+12:h;const per=h24<11?"pagi":h24<15?"siang":h24<19?"sore":"malam";
+    let w=["jam"].concat(toIndo(h).split(" "));if(m>0)w=w.concat(["lewat"]).concat(toIndo(m).split(" ")).concat(["menit"]);w.push(per);
+    const ans=String(h).padStart(2,"0")+String(m).padStart(2,"0");
+    return {ans:ans,text:w.join(" "),audio:"",hint:"時刻（HHMM の4桁）",len:4,
+      show:function(x){x=(x||"").padEnd(4,"_");return x.slice(0,2)+":"+x.slice(2);},
+      disp:ans.slice(0,2)+":"+ans.slice(2)};}
+  const mo=nqRnd(1,12),dmax=[31,28,31,30,31,30,31,31,30,31,30,31][mo-1],d=nqRnd(1,dmax);
+  const t=["tanggal"].concat(toIndo(d).split(" ")).join(" ")+" "+MONTHS[mo-1][1];
+  const ans=String(d).padStart(2,"0")+String(mo).padStart(2,"0");
+  return {ans:ans,text:t,audio:"",hint:"日付（DDMM の4桁）",len:4,
+    show:function(x){x=(x||"").padEnd(4,"_");return x.slice(0,2)+"/"+x.slice(2);},
+    disp:ans.slice(0,2)+"/"+ans.slice(2)};}
+function buildNumQuiz(){$("a-listen").innerHTML=`<div class="quizbox panelcard">
+  <div class="subtabs" id="nqCat" role="tablist" aria-label="出題カテゴリ">${[["basic","基本"],["price","価格"],["phone","電話番号"],["dt","日付・時刻"]].map(x=>`<button data-nc="${x[0]}"${x[0]===NQCAT?' class="active"':''}>${x[1]}</button>`).join("")}</div>
+  <div class="qprompt" id="nqHint">音声を聞いて数字を入力しよう</div>
+  <div class="nqbar"><span class="nqprog" id="nqProg">1 / ${NQLEN}</span></div>
+  <div style="text-align:center;margin:10px 0 14px;display:flex;gap:10px;justify-content:center;align-items:center">
+    <button class="spk" id="nqPlay" style="width:54px;height:54px" aria-label="再生"></button>
+    <button class="chip nqslow" id="nqSlow" aria-label="ゆっくり再生">ゆっくり</button></div>
   <div class="nqdisp" id="nqDisp">0</div>
   <div class="nqpad" id="nqPad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="nkey" data-k="${n}">${n}</button>`).join("")}<button class="nkey nkfn" data-k="back">⌫</button><button class="nkey" data-k="0">0</button><button class="nkey nkfn" data-k="clear">C</button></div>
   <button class="qnext nqcheck" id="nqCheck">確認する</button>
   <div class="qfb" id="nqfb"></div>
   <div class="qfoot"><span class="qscore" id="nqScoreL">スコア ${nqScore} / ${nqTotal}</span><button class="qnext" id="nqNext">次へ →</button></div></div>`;
   $("nqPlay").innerHTML=SPK;$("nqNext").onclick=nqQuestion;$("nqCheck").onclick=nqSubmit;
+  $("nqSlow").onclick=function(){if(nqCur)speakSlow(nqCur.text,$("nqPlay"));};
+  $("nqCat").addEventListener("click",function(e){var b=e.target.closest("[data-nc]");if(!b)return;
+    [].forEach.call($("nqCat").children,function(x){x.classList.toggle("active",x===b);});
+    NQCAT=b.dataset.nc;nqReset();});
   $("nqPad").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b)nqInput(b.dataset.k);});
   document.addEventListener("keydown",e=>{const num=document.querySelector('.view[data-view="num"]');if(!num||!num.classList.contains("active")||!$("a-listen").classList.contains("active"))return;if(e.key>="0"&&e.key<="9")nqInput(e.key);else if(e.key==="Backspace"){e.preventDefault();nqInput("back");}else if(e.key==="Enter")nqSubmit();});
-  nqQuestion();}
-function nqFmt(v){return v?parseInt(v,10).toLocaleString():"0";}
-function nqInput(k){if(nqDone)return;if(k==="back")nqVal=nqVal.slice(0,-1);else if(k==="clear")nqVal="";else if(nqVal.length<12){nqVal=(nqVal===""&&k==="0")?"":nqVal+k;}$("nqDisp").textContent=nqFmt(nqVal);}
-function nqQuestion(){nqCur=NUMBERS[Math.random()*NUMBERS.length|0];nqVal="";nqDone=false;$("nqfb").textContent="";const d=$("nqDisp");d.className="nqdisp";d.textContent="0";const p=()=>play(nqCur[2],nqCur[1],$("nqPlay"));$("nqPlay").onclick=p;setTimeout(p,250);}
-function nqSubmit(){if(nqDone)return;if(nqVal===""){$("nqfb").textContent="数字を入力してください";$("nqfb").style.color="var(--sub)";return;}nqDone=true;nqTotal++;const ok=parseInt(nqVal,10)===nqCur[0],d=$("nqDisp");if(ok){nqScore++;d.classList.add("ok");$("nqfb").textContent="Benar! 🎉 "+nqCur[1];$("nqfb").style.color="#2e7d3c";}else{d.classList.add("ng");$("nqfb").innerHTML="正解: <b>"+nqCur[0].toLocaleString()+"</b>（"+esc(nqCur[1])+"）";$("nqfb").style.color="var(--hl)";}$("nqScoreL").textContent="スコア "+nqScore+" / "+nqTotal;qStat("number",ok);bumpActivity();}
+  nqReset();}
+function nqReset(){NQI=0;NQMISS=[];NQOK=0;nqQuestion();}
+function nqInput(k){if(nqDone||!nqCur)return;const mx=nqCur.len||12;
+  if(k==="back")nqVal=nqVal.slice(0,-1);else if(k==="clear")nqVal="";
+  else if(nqVal.length<mx){nqVal=(nqVal===""&&k==="0"&&NQCAT!=="phone"&&nqCur.len!==4)?"":nqVal+k;}
+  $("nqDisp").textContent=nqCur.show(nqVal);}
+function nqQuestion(){
+  if(NQI>=NQLEN)return nqResult();
+  nqCur=nqGen();nqVal="";nqDone=false;$("nqfb").textContent="";
+  $("nqHint").textContent="音声を聞いて入力しよう — "+nqCur.hint;
+  $("nqProg").textContent=(NQI+1)+" / "+NQLEN;
+  const d=$("nqDisp");d.className="nqdisp";d.textContent=nqCur.show("");
+  const p=()=>{_rateMul=1;play(nqCur.audio,nqCur.text,$("nqPlay"));};$("nqPlay").onclick=p;setTimeout(p,250);}
+function nqSubmit(){if(nqDone||!nqCur)return;
+  if(nqVal===""){$("nqfb").textContent="数字を入力してください";$("nqfb").style.color="var(--sub)";return;}
+  nqDone=true;nqTotal++;NQI++;
+  const ok=(nqCur.len===4||NQCAT==="phone")?(nqVal===nqCur.ans):(parseInt(nqVal,10)===parseInt(nqCur.ans,10));
+  const d=$("nqDisp");
+  if(ok){nqScore++;NQOK++;d.classList.add("ok");$("nqfb").textContent="Benar! 🎉 "+nqCur.text;$("nqfb").style.color="#2e7d3c";}
+  else{d.classList.add("ng");NQMISS.push({a:nqCur.disp,t:nqCur.text});
+    $("nqfb").innerHTML="正解: <b>"+esc(nqCur.disp)+"</b>（"+esc(nqCur.text)+"）";$("nqfb").style.color="var(--hl)";}
+  $("nqScoreL").textContent="スコア "+nqScore+" / "+nqTotal;
+  $("nqNext").textContent=(NQI>=NQLEN)?"結果を見る →":"次へ →";
+  qStat("number",ok);bumpActivity();}
+function nqResult(){const pct=Math.round(NQOK/NQLEN*100);
+  const miss=NQMISS.length?'<div class="nqmisst">聞き逃した数字</div><ul class="nqmiss">'+NQMISS.map(function(m){return '<li><b>'+esc(m.a)+'</b><span>'+esc(m.t)+'</span></li>';}).join("")+'</ul>':'<div class="nqperf">全問正解！ Luar biasa 🎉</div>';
+  $("a-listen").querySelector(".quizbox").innerHTML='<div class="qprompt">10問おわり</div><div class="nqpct">'+pct+'<small>%</small></div><div class="nqsub">'+NQOK+' / '+NQLEN+' 正解</div>'+miss+'<button class="qnext" id="nqAgain">もう一度（10問）</button>';
+  $("nqAgain").onclick=function(){buildNumQuiz();};
+  if(pct===100&&typeof celebrate==="function")celebrate("🎉 10問全問正解！");}
 
 $("rolePlay").onclick=()=>{const on=document.body.classList.toggle("roleplay");$("rolePlay").classList.toggle("on",on);document.querySelectorAll(".line.show").forEach(e=>e.classList.remove("show"));};
 $("fBook").onclick=()=>{if(deck.length){const c=deck[fi];toggleBook({id:c.w,ja:c.ja,audio:c.audio});$("fBook").classList.toggle("on",isBooked(c.w));}};
-$("fRec").onclick=toggleRec;$("fPlayRec").onclick=playRec;$("fShare").onclick=shareCard;var _fc=$("fCheck");if(_fc)_fc.onclick=checkPron;
+$("fShare").onclick=shareCard;
+(function(){var r=$("fRec");if(r)r.onclick=toggleRec;var p=$("fPlayRec");if(p)p.onclick=playRec;var c=$("fCheck");if(c)c.onclick=checkPron;})();
 
 /* 起動スプラッシュ演出 */
 function newsPopup(){try{
