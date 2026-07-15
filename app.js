@@ -5,7 +5,7 @@ let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||
 function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];SUFFIX=window.SUFFIX||[];CONFIX=window.CONFIX||[];GRAMMAR=window.GRAMMAR||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w3";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
 let CARDS=window.CARDS||[],_cardsP=null;
-function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
+function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];if(typeof applyPacks==="function")applyPacks();res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
 const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a9 9 0 0 1 0 14"></path></svg>`;
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
@@ -139,6 +139,7 @@ function initView(v){
 const PANEI={};
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
+  if(id==="l-packs")ensureCards(function(){buildPacks();});
   if(id==="l-gram")ensureExtra(buildGrammar);
   if(id==="l-prefix")ensureExtra(buildPrefix);
   if(id==="l-suffix")ensureExtra(buildSuffix);
@@ -171,6 +172,45 @@ function buildWords(){if(CAR.w)return;CAR.w=lazyCarousel($("wTrack"),WORDS.lengt
    <div class="note"><div class="lbl">Catatan・語源メモ</div><p>${esc(d.note)}</p></div></div></div>`;
 },$("wCount"),'[data-nav="w:-1"]','[data-nav="w:1"]');const wsb=$("wShuffle");if(wsb)wsb.onclick=()=>CAR.w.shuffle();}
 
+/* ===== 島パック一覧 ===== */
+var _packView=null;
+function packThreshold(id){var dots=_archBuild(),mx=-1,ci=-1;
+  for(var i=0;i<ARCH_CLUSTERS.length;i++)if(ARCH_CLUSTERS[i].id===id)ci=i;
+  dots.forEach(function(d){if(d.ci===ci&&d.rank>mx)mx=d.rank;});return mx+1;}
+function packSilhouette(id){var dots=_archBuild(),ci=-1;
+  for(var i=0;i<ARCH_CLUSTERS.length;i++)if(ARCH_CLUSTERS[i].id===id)ci=i;
+  var ds=dots.filter(function(d){return d.ci===ci;});
+  if(!ds.length)return "";
+  var x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  ds.forEach(function(d){x0=Math.min(x0,d.x);x1=Math.max(x1,d.x);y0=Math.min(y0,d.y);y1=Math.max(y1,d.y);});
+  var pad=6,vb=(x0-pad)+" "+(y0-pad)+" "+((x1-x0)+pad*2)+" "+((y1-y0)+pad*2);
+  return '<svg class="psil" viewBox="'+vb+'" aria-hidden="true">'+ds.map(function(d){
+    return '<circle cx="'+d.x.toFixed(1)+'" cy="'+d.y.toFixed(1)+'" r="1.8"/>';}).join("")+'</svg>';}
+function buildPacks(force){var el=$("l-packs");if(!el)return;
+  if(_packView){renderPackDetail(_packView);return;}
+  var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;
+  el.innerHTML='<div class="packintro">島の点を全部ともすと、その島の語彙パックが開きます。</div><div class="packgrid">'+
+   IPACKS.map(function(p){var open=packOpen(p.id),th=packThreshold(p.id);
+     if(open)return '<button class="packcard on" data-pack="'+p.id+'" aria-label="'+esc(p.island)+'語彙パックを開く">'
+       +packSilhouette(p.id)+'<div class="pkname">'+esc(p.island)+'</div><div class="pktheme">'+esc(p.theme)+'</div>'
+       +'<div class="pkmeta">'+p.words.length+'語 ・ 解放済み</div></button>';
+     return '<div class="packcard lock" aria-label="'+esc(p.island)+'語彙パック（未解放）">'
+       +packSilhouette(p.id)+'<svg class="icn pklock"><use href="#i-lock"/></svg>'
+       +'<div class="pkname">'+esc(p.island)+'</div><div class="pktheme">？？？</div>'
+       +'<div class="pkmeta">'+esc(p.island)+'を全点灯で解放<br><span class="pkrem">あと '+Math.max(0,th-known)+' 語</span></div></div>';}).join("")+'</div>';
+  el.querySelectorAll("[data-pack]").forEach(function(b){b.onclick=function(){_packView=b.dataset.pack;renderPackDetail(_packView);};});}
+function renderPackDetail(id){var p=packOf(id),el=$("l-packs");if(!p||!el)return;
+  el.innerHTML='<div class="packhead"><button class="chip" id="pkBack" aria-label="パック一覧に戻る">← 一覧</button>'
+   +'<div><div class="pkhname">'+esc(p.island)+'</div><div class="pkhtheme">'+esc(p.theme)+' ・ '+p.words.length+'語</div></div></div>'
+   +'<div class="packlist">'+p.words.map(function(d,i){
+     return '<div class="card packw" data-reveal><div class="tag"><span class="num">'+esc(p.island)+' #'+String(i+1).padStart(2,"0")+'</span></div>'
+      +'<div class="headline">'+spkBtn(d.audio,d.word)+'<span class="word">'+esc(d.word)+'</span></div>'
+      +'<div class="fkata" style="text-align:left;margin:1px 0 2px">'+idKata(d.word)+'</div>'
+      +'<div class="gloss">'+esc(d.gloss)+'</div><div class="taphint">タップで意味 →</div>'
+      +'<div class="reveal"><div class="meaning">'+esc(d.meaning)+'</div><div class="examples">'
+      +d.ex.map(function(e){return '<div class="ex"><div class="id">'+spkBtn(e[2],e[0])+'<span class="t">'+wrapWords(e[0])+'</span></div><div class="ja">'+esc(e[1])+'</div></div>';}).join("")
+      +'</div><div class="note"><div class="lbl">Catatan・語源メモ</div><p>'+esc(d.note)+'</p></div></div></div>';}).join("")+'</div>';
+  $("pkBack").onclick=function(){_packView=null;buildPacks();};}
 /* 接頭辞 */
 function buildAffix(arr,id){$(id).innerHTML=arr.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
   ${p.ex.map(e=>`<div class="lex">${spkBtn(e[2],e[0])}<span class="w">${esc(e[0])}</span><span class="m">${esc(e[1])}</span></div>`).join("")}</div>`).join("");}
@@ -439,7 +479,7 @@ function buildFlash(){let _cardSwiped=false,_cx0=null,_cy0=null;
   const lv=$("lvChips"),sc=$("srcChips"),st=$("stChips");
   const mk=(box,arr,cb)=>{box.innerHTML="";arr.forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;if(v==="all")b.classList.add("active");b.dataset.v=v;b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");cb(v);};box.appendChild(b);});};
   mk(lv,[["all","すべて"],["1","初級"],["2","中級"],["3","上級"]],v=>{fLevel=v;rebuild();});
-  mk(sc,[["all","すべて"],["自分","自分の単語"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"]],v=>{fSrc=v;rebuild();});
+  mk(sc,[["all","すべて"],["自分","自分の単語"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"],["島パック","島パック"]],v=>{fSrc=v;rebuild();});
   mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
   $("fSpk").innerHTML=SPK;
   $("fcard").addEventListener("click",e=>{if(_cardSwiped){_cardSwiped=false;return;}if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
@@ -489,6 +529,58 @@ const ARCH_CLUSTERS=[
  {id:"papua",name:"Papua",cx:500,cy:108,region:"パプア"}
 ];
 const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
+/* ===== 称号 ===== */
+const TITLES=[
+ {n:50,id:"pemula",name:"Pemula",ja:"はじまりの人"},
+ {n:150,id:"penjelajah",name:"Penjelajah",ja:"島を渡る人"},
+ {n:300,id:"pelaut",name:"Pelaut",ja:"海をゆく人"},
+ {n:500,id:"nakhoda",name:"Nakhoda",ja:"船を率いる人"},
+ {n:880,id:"nusantarawan",name:"Nusantarawan",ja:"群島を識る人"}
+];
+function knownCount(){return Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;}
+function titleOf(k){var t=null;TITLES.forEach(function(x){if(k>=x.n)t=x;});return t;}
+function nextTitle(k){for(var i=0;i<TITLES.length;i++)if(k<TITLES[i].n)return TITLES[i];return null;}
+function checkTitle(){var k=knownCount(),t=titleOf(k);if(!t)return;
+  if(LS("dks_title","")===t.id)return;
+  var first=!LS("dks_title","");SV("dks_title",t.id);
+  setTimeout(function(){titleCelebrate(t);},first&&k>=t.n?400:1200);}
+function titleCelebrate(t){
+  const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(!rm){const cx=window.innerWidth/2,cy=Math.min(window.innerHeight*0.32,260);
+    for(let i=0;i<40;i++){const f=document.createElement("div");f.className="foil"+(Math.random()<0.16?" red":"");
+      f.style.left=(4+Math.random()*92)+"vw";f.style.setProperty("--fx",(Math.random()*80-40).toFixed(0)+"px");
+      f.style.setProperty("--fr",(Math.random()*300-150).toFixed(0)+"deg");
+      f.style.animationDelay=(Math.random()*.7).toFixed(2)+"s";
+      f.style.animationDuration=(1.5+Math.random()*1.2).toFixed(2)+"s";
+      document.body.appendChild(f);setTimeout(function(){f.remove();},3600);}
+    const g=document.createElement("div");g.className="cel-glow";g.style.left=cx+"px";g.style.top=cy+"px";
+    document.body.appendChild(g);setTimeout(function(){g.remove();},750);}
+  const w=document.createElement("div");w.className="titlewrap";
+  w.innerHTML='<div class="titlebox"><div class="tlbl">称号を授かりました</div><div class="tname">'+esc(t.name)+'</div><div class="tja">'+esc(t.ja)+'</div></div>';
+  document.body.appendChild(w);requestAnimationFrame(function(){w.classList.add("on");});
+  setTimeout(function(){w.classList.remove("on");setTimeout(function(){w.remove();},400);},2000);
+  if(navigator.vibrate)try{navigator.vibrate([20,40,20,40,40]);}catch(e){}}
+/* ===== 島＝語彙パック ===== */
+var IPACKS=window.ISLANDPACKS||[];
+function packOf(id){for(var i=0;i<IPACKS.length;i++)if(IPACKS[i].id===id)return IPACKS[i];return null;}
+function packsOpen(){return LS("dks_packs",[]);}
+function packOpen(id){return packsOpen().indexOf(id)>=0;}
+function applyPacks(){if(!IPACKS.length||!window.CARDS)return;
+  var have={};window.CARDS.forEach(function(c){have[c.w.toLowerCase()]=1;});
+  var open=packsOpen(),added=0;
+  IPACKS.forEach(function(p){if(open.indexOf(p.id)<0)return;
+    p.words.forEach(function(w){var k=w.word.toLowerCase();if(have[k])return;have[k]=1;added++;
+      window.CARDS.push({w:w.word,ja:w.meaning,audio:w.audio||"",lv:2,src:["島パック"],
+        ex:[w.ex[0][0],w.ex[0][1],""],pack:p.id});});});
+  if(added)CARDS=window.CARDS;
+  return added;}
+function unlockPack(id){var o=packsOpen();if(o.indexOf(id)>=0)return false;
+  o.push(id);SV("dks_packs",o);
+  if(window.CARDS)applyPacks();
+  var p=packOf(id);
+  if(p&&typeof celebrate==="function")celebrate("◆ "+p.island+"語彙パック解放 — "+p.theme+"の"+p.words.length+"語");
+  if(typeof buildPacks==="function"&&$("l-packs"))buildPacks(true);
+  return true;}
 let _archDots=null,_archLit=null,_archLabelY={};
 function _archBuild(){if(_archDots)return _archDots;var dots=ARCHPTS.map(function(p){return {x:p[0],y:p[1],ci:p[2]};});var order=dots.map(function(d,i){return i;}).sort(function(a,b){return dots[a].x-dots[b].x;});order.forEach(function(idx,rank){dots[idx].rank=rank;});var my={};dots.forEach(function(d){if(my[d.ci]==null||d.y>my[d.ci])my[d.ci]=d.y;});_archLabelY=my;_archDots=dots;return dots;}
 function gotoGeoRegion(region){openTarget("reads:r-geo");
@@ -523,11 +615,17 @@ function renderArch(el){const dots=_archBuild(),total=dots.length;
   if(inc.length===0){footer='\u5168\u7fa4\u5cf6\u70b9\u706f\uff01 <b>Nusantara</b> \u306f\u3042\u306a\u305f\u306e\u3082\u306e';}
   else{let best=inc[0],rem=1e9;inc.forEach(ci=>{const r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
     footer='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u5168\u70b9\u706f\u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
-  el.insertAdjacentHTML("beforeend",'<div class="archcard"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">島をタップすると、その地方の地理が開きます</div></div>');
+  const _t=titleOf(known);
+  el.insertAdjacentHTML("beforeend",'<div class="archcard"><div class="archtop"><h4>\u7fa4\u5cf6\u30d7\u30ed\u30b0\u30ec\u30b9</h4><button class="archshare" id="archShare" aria-label="\u7fa4\u5cf6\u30ab\u30fc\u30c9\u3092\u5171\u6709"><svg class="icn"><use href="#i-share"/></svg></button></div>'+(_t?'<div class="archtitle">'+esc(_t.name)+'<span>'+esc(_t.ja)+'</span></div>':'')+'<div class="archhead"><b>'+known+'</b>\u8a9e \u30fb '+pct+'% \u70b9\u706f</div><svg class="archmap" viewBox="0 0 568 226" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+cities+labels+'</svg><div class="archfoot">'+footer+'</div><div class="archtap">島をタップすると、その地方の地理が開きます</div></div>');
   const arch=LS("dks_arch",[]);let changed=false;
-  ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);}});
+  ARCH_CLUSTERS.forEach((c,ci)=>{if(complete(ci)&&arch.indexOf(c.id)<0){arch.push(c.id);changed=true;
+    if(!firstRender)setTimeout(()=>celebrate("\u25c6 "+c.name+" \u5168\u5cf6\u70b9\u706f \u2014 Selamat!"),200+ci*450);
+    setTimeout(function(){unlockPack(c.id);},firstRender?0:900+ci*450);}
+   else if(complete(ci)&&!packOpen(c.id)){unlockPack(c.id);}});
   if(changed)SV("dks_arch",arch);
   SV("dks_arch_seen",lit);
+  var _sb=el.querySelector("#archShare");if(_sb)_sb.onclick=shareArch;
+  checkTitle();
   _archLit=lit;}
 let _archHomeLit=null;
 function renderArchHome(){var el=$("homeArch");if(!el)return;var dots=_archBuild(),total=dots.length;
@@ -567,8 +665,71 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
     var _pr='<div class="dashbig"><div class="dstat"><b>'+_avg+'%</b><span>平均スコア</span></div><div class="dstat"><b>'+_pk.length+'</b><span>練習した語</span></div></div>';
     if(_wkst.length)_pr+='<div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手な発音：'+_wkst.map(function(k){return esc(k)+'（'+(_P[k].best||0)+'%）';}).join(' ・ ')+'</div>';
     el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>発音チェック</h4>'+_pr+'</div>');}
+  var _tk=knownCount(),_tc=titleOf(_tk),_tn=nextTitle(_tk);
+  var _road='<div class="troad">'+TITLES.map(function(t){
+    var got=_tk>=t.n,cur=_tc&&_tc.id===t.id;
+    return '<div class="tstep'+(got?" got":"")+(cur?" cur":"")+'"><div class="tdot"></div><div class="tinfo"><b>'+esc(t.name)+'</b><span>'+esc(t.ja)+' ・ '+t.n+'語</span></div></div>';}).join("")+'</div>';
+  _road+='<div class="tnext">'+(_tn?('次の称号 <b>'+esc(_tn.name)+'</b> まで あと <b>'+(_tn.n-_tk)+'</b> 語'):'すべての称号を授かりました。Nusantara はあなたのもの。')+'</div>';
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>称号の道のり</h4>'+_road+'</div>');
   var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}}
 
+/* ===== 群島シェアカード ===== */
+function _cssv(n,f){try{var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||f;}catch(e){return f;}}
+function shareArch(){
+  const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const g=cv.getContext("2d");
+  /* 紅白構図はスプラッシュと同じ。ライト/ダークに関わらず固定色（旗の紅白） */
+  const RED="#c1272d",RED2="#8f151d",WHITE="#ffffff",GOLD="#e9c96a",GOLD2="#d8ac4e",INK="#2b2422",SUB="#8a7f76";
+  const BAND=Math.round(H*0.46);
+  const grd=g.createRadialGradient(W/2,BAND*0.55,60,W/2,BAND*0.55,W*0.95);
+  grd.addColorStop(0,"#d02a31");grd.addColorStop(.55,RED);grd.addColorStop(1,RED2);
+  g.fillStyle=grd;g.fillRect(0,0,W,BAND);
+  g.fillStyle=WHITE;g.fillRect(0,BAND,W,H-BAND);
+  g.fillStyle=GOLD;g.fillRect(0,BAND-3,W,3);
+  /* 紅の帯：ロゴと金の題字 */
+  g.textAlign="center";
+  const tg=g.createLinearGradient(0,BAND*0.34,0,BAND*0.58);
+  tg.addColorStop(0,"#fff7e2");tg.addColorStop(.46,"#f7de99");tg.addColorStop(1,GOLD2);
+  g.fillStyle=tg;g.font='600 116px Georgia,"Hiragino Mincho ProN",serif';
+  g.fillText("Artikula",W/2,BAND*0.52);
+  g.strokeStyle="rgba(255,224,140,.85)";g.lineWidth=2;
+  g.beginPath();g.moveTo(W/2-70,BAND*0.60);g.lineTo(W/2+70,BAND*0.60);g.stroke();
+  g.fillStyle="rgba(255,239,208,.85)";g.font='500 30px "Hiragino Kaku Gothic ProN",sans-serif';
+  g.fillText("B A H A S A   I N D O N E S I A",W/2,BAND*0.70);
+  /* 白の帯：群島ドットマップ */
+  const dots=_archBuild(),total=dots.length,known=knownCount(),lit=Math.min(total,known);
+  const maxRank={};dots.forEach(function(d){if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
+  const islands=ARCH_CLUSTERS.filter(function(c,ci){return maxRank[ci]<lit;}).length;
+  const mw=W-120,mh=Math.round(mw*226/568),mx=60,my=BAND+70;
+  const sx=mw/568,sy=mh/226;
+  dots.forEach(function(d){const on=d.rank<lit;
+    g.beginPath();g.arc(mx+d.x*sx,my+d.y*sy,on?3.2:2.4,0,Math.PI*2);
+    g.fillStyle=on?GOLD2:"rgba(43,36,34,.16)";g.fill();});
+  CITIES.forEach(function(c){g.beginPath();g.arc(mx+c[0]*sx,my+c[1]*sy,6,0,Math.PI*2);
+    g.strokeStyle="rgba(193,39,45,.5)";g.lineWidth=2;g.stroke();});
+  /* 数値・称号・日付 */
+  const t=titleOf(known),base=my+mh+86;
+  g.fillStyle=INK;g.font='700 82px Georgia,"Hiragino Mincho ProN",serif';
+  g.fillText(known+" 語 ・ "+islands+" 島点灯",W/2,base);
+  if(t){g.fillStyle=GOLD2;g.font='600 46px Georgia,"Hiragino Mincho ProN",serif';
+    g.fillText(t.name,W/2,base+72);
+    g.fillStyle=SUB;g.font='400 26px "Hiragino Kaku Gothic ProN",sans-serif';
+    g.fillText(t.ja,W/2,base+112);}
+  var _a=LS("dks_act",{}),days=(_a.ci===_d(0)||_a.ci===_d(1))?(_a.streak||0):0;
+  if(days){g.fillStyle=SUB;g.font='400 26px "Hiragino Kaku Gothic ProN",sans-serif';
+    g.fillText(days+" 日連続",W/2,base+(t?156:72));}
+  const d=new Date(),ds=d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0");
+  g.fillStyle="rgba(43,36,34,.42)";g.font='400 24px "Hiragino Kaku Gothic ProN",sans-serif';
+  g.fillText(ds,W/2,H-58);
+  cv.toBlob(function(b){if(!b)return;
+    const file=new File([b],"artikula-nusantara.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
+      navigator.share({files:[file],title:"Artikula",text:known+"語 ・ "+islands+"島点灯"}).catch(function(){});
+    }else{const u=URL.createObjectURL(b),link=document.createElement("a");
+      link.href=u;link.download="artikula-nusantara.png";link.click();
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+      if(typeof celebrate==="function")celebrate("画像を保存しました");}
+  },"image/png");}
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
 let quizStats=LS("dks_quizstats",{}),_pendQ=null;
@@ -583,7 +744,7 @@ const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const withEx=()=>CARDS.filter(c=>c.ex);
 function nextQ(){if(qMode==="arrange")return arrangeQ();if(qMode==="type")return typeQ();mcQ();}
 function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode==="weak";
-  const full=CARDS.filter(c=>c.ja&&c.audio);let src=full;
+  const full=CARDS.filter(c=>c.ja);let src=full;
   const tn=(typeof todayNum==="function")?todayNum():0;
   if(weak){const wp=full.filter(x=>status[x.w]==="weak");
     if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard"><div class="qlock"><svg class="icn qlockic"><use href="#i-target"/></svg><div class="qlockt">苦手が5語たまったら解放されます</div><div class="qlocks">現在 '+wp.length+' 語。カードで「✗ 苦手」を付けるか、クイズで間違えるとここに集まります。</div></div></div>';return;}
@@ -660,7 +821,7 @@ function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box
 
 /* ===== 検索 ===== */
 let SIDX=null;
-const SCAT=["辞書","自分の単語","単語","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
+const SCAT=["辞書","自分の単語","単語","島パック","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
 function buildIndex(){SIDX=[];
   const add=(id,ja,audio,src,go)=>{if(id&&ja)SIDX.push({id:String(id),ja:String(ja),audio:audio||"",src:src,go:go});};
   const wau=w=>"audio/w/"+String(w).replace(/\//g,"_")+".mp3";
@@ -674,6 +835,9 @@ function buildIndex(){SIDX=[];
   try{DRIVER.forEach(g=>g.items.forEach(it=>{add(it[0],it[1],it[2],"ドライバー","talk:t-driver");(it[3]||[]).forEach(x=>add(x[0],x[1],x[2],"ドライバー","talk:t-driver"));}));}catch(e){}
   try{TRAVEL.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"旅行","talk:t-travel")));}catch(e){}
   try{PACKS.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"テーマ別","talk:t-pack")));}catch(e){}
+  try{(window.ISLANDPACKS||[]).forEach(p=>{if(!packOpen(p.id))return;
+    p.words.forEach(w=>{add(w.word,w.meaning,w.audio,"島パック","learn:l-packs");
+      (w.ex||[]).forEach(e=>add(e[0],e[1],e[2],"島パック","learn:l-packs"));});});}catch(e){}
   try{(window.REALNEWS||[]).forEach(n=>add(n.id,n.ja,n.audio,"ニュース","news"));}catch(e){}
   try{NEWS.forEach(n=>add(n.id,n.ja,n.audio,"読み物","reads:r-info"));}catch(e){}
   try{CULTURE.forEach(c=>add(c.id,c.ja,c.audio,"文化","reads:r-cult"));}catch(e){}
