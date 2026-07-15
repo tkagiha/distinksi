@@ -823,7 +823,11 @@ function newsPopup(){try{
   $("nsGo").onclick=function(){ov.classList.remove("on");openTarget("news");};
   $("nsClose").onclick=function(){ov.classList.remove("on");};
 }catch(e){}}
-(function(){const sp=$("splash");if(!sp)return;let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();newsPopup();},600);}
+(function(){const sp=$("splash");if(!sp)return;
+  var seen=false;try{seen=!!sessionStorage.getItem("dks_splash");}catch(e){seen=false;}
+  if(seen){sp.remove();newsPopup();return;}
+  try{sessionStorage.setItem("dks_splash","1");}catch(e){}
+  let gone=false;function done(){if(gone)return;gone=true;sp.classList.add("hide");setTimeout(()=>{if(sp.parentNode)sp.remove();newsPopup();},600);}
   sp.addEventListener("click",done);setTimeout(done,2750);})();
 
 /* タブ間スワイプ（左右で移動） */
