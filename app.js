@@ -642,7 +642,7 @@ function jljFlag(c){
    +'<path class="jfcloth jfr" d="M0.7 -17 L13 -14.4 L13 -11.4 L0.7 -14"/>'
    +'<path class="jfcloth jfw" d="M0.7 -14 L13 -11.4 L13 -8.4 L0.7 -11"/>'
    +'<circle class="jfbase" cx="0" cy="0" r="2.6"/>'
-   +'<text class="jfname" x="0" y="9">'+esc(c.name)+'</text>';
+   +'<text class="jfname" x="0" y="9">'+esc(c.nameId||c.name)+'</text>';
   svg.appendChild(g);
   requestAnimationFrame(function(){g.classList.add("on");});
   /* 画面座標に変換して、その一点で火花 */
@@ -658,8 +658,9 @@ function jljReveal(c){
   el.innerHTML='<div class="jrv-flash"></div>'
    +'<div class="jrv-rays"></div>'
    +'<div class="jrv-box"><div class="jrv-rule"></div>'
-   +'<div class="jrv-name" data-t="'+esc(c.name)+'">'+esc(c.name)+'</div>'
-   +'<div class="jrv-sub">'+esc(c.region)+'</div><div class="jrv-rule"></div></div>';
+   +'<div class="jrv-name">'+esc(c.nameId||c.name)+'</div>'
+   +'<div class="jrv-kana">'+esc(c.name)+'</div>'
+   +'<div class="jrv-sub">'+esc(c.regionId||"")+' ・ '+esc(c.region)+'</div><div class="jrv-rule"></div></div>';
   host.appendChild(el);
   requestAnimationFrame(function(){el.classList.add("on");});
   setTimeout(function(){el.classList.add("out");setTimeout(function(){el.remove();},380);},rm?900:1450);}
@@ -679,8 +680,10 @@ function jljLand(target,btn){
 function jljCard(c,quiet,revisit){if(!c)return;
   var d=jlj(),learned=!!d.learned[c.id];
   $("jResult").innerHTML='<div class="jcity">'
-   +'<div class="jcname"><svg class="jcflag" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="0" width="18" height="6" fill="#ce1126"/><rect x="0" y="6" width="18" height="6" fill="#fff"/><rect x="0" y="0" width="18" height="12" fill="none" stroke="rgba(0,0,0,.14)" stroke-width="0.6"/></svg>'+esc(c.name)+(revisit?'<span class="jre">再訪</span>':'')
-   +(learned?'<span class="jlearned">学習済</span>':'')+'<span class="jregion">'+esc(c.region)+'</span></div>'
+   +'<div class="jcname"><svg class="jcflag" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="0" width="18" height="6" fill="#ce1126"/><rect x="0" y="6" width="18" height="6" fill="#fff"/><rect x="0" y="0" width="18" height="12" fill="none" stroke="rgba(0,0,0,.14)" stroke-width="0.6"/></svg>'
+   +esc(c.nameId||c.name)+'<span class="jckana">'+esc(c.name)+'</span>'+(revisit?'<span class="jre">再訪</span>':'')
+   +(learned?'<span class="jlearned">学習済</span>':'')+'</div>'
+   +'<div class="jregion">'+esc(c.regionId||"")+' ・ '+esc(c.region)+'</div>'
    +'<div class="jsec"><div class="jslbl">挨拶</div><div class="jgreet">'+spkBtn("",c.greet.id)
    +'<div><b>'+esc(c.greet.id)+'</b><span class="jkana">'+esc(c.greet.kana)+'</span></div></div>'
    +'<div class="jnote">'+esc(c.greet.note)+'</div></div>'
@@ -697,7 +700,7 @@ function jljLearn(c){var d=jlj();if(d.learned[c.id])return;
   var b=$("jLearn");if(b){b.textContent="学習リストに追加済み";b.classList.add("done");b.disabled=true;}
   var n=$("jResult").querySelector(".jcname");
   if(n&&!n.querySelector(".jlearned"))n.insertAdjacentHTML("beforeend",'<span class="jlearned">学習済</span>');
-  celebrate("◆ "+c.name+"の言葉 "+c.pack.length+"語を追加しました");}
+  celebrate("◆ "+(c.nameId||c.name)+"（"+c.name+"）の言葉 "+c.pack.length+"語を追加しました");}
 function applyJCity(c){if(!window.CARDS)return 0;
   var have={};window.CARDS.forEach(function(x){have[x.w.toLowerCase()]=1;});var n=0;
   c.pack.forEach(function(w){var k=w.word.toLowerCase();if(have[k])return;have[k]=1;n++;
