@@ -31,7 +31,8 @@
   .hicons button{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .hicons button:active{transform:scale(.92)}
   .hicons button[hidden]{display:none}
-  #btnSettings{background:none;border:none;width:auto;padding:0 2px}
+  #btnSettings{background:none;border:none;width:auto;padding:0 2px;position:relative}
+  .hicons button.hasdot::after{content:"";position:absolute;top:1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px rgba(150,28,40,.9)}
   #btnSettings .icn{width:23px;height:23px}
   .hicons #btnInstall svg{width:17px;height:17px}
   /* main tabs */
@@ -293,6 +294,13 @@
   .setuser .sun{font-family:"Hiragino Mincho ProN","Yu Mincho",YuMincho,Georgia,serif;font-size:19px;font-weight:700;line-height:1.3}
   .setuser .sus{font-size:11px;opacity:.82;margin-top:3px;letter-spacing:1.5px;text-transform:uppercase}
   .setbody{padding:14px 18px 24px;flex:1;overflow-y:auto}
+  .scat{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:14px 0 6px;display:flex;align-items:center;gap:7px}
+  .scat span{font-size:10px;color:var(--sub);background:var(--line2);border-radius:999px;padding:1px 7px;letter-spacing:0}
+  .sres[data-goto]{cursor:pointer;border-radius:9px}
+  .sres[data-goto]:hover{background:var(--line2)}
+  .smore{font-size:11px;color:var(--sub);padding:2px 0 0 42px}
+  .snone{color:var(--sub);font-size:13px;padding:14px 0;text-align:center}
+  .setnote{font-size:11.5px;color:var(--sub);line-height:1.6;margin:10px 0 0}
   .setsep{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:18px 0 4px;padding-top:12px;border-top:1px solid var(--line)}
   .searchin{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);color:var(--ink);margin-bottom:12px}
   .sres{padding:11px 0;border-bottom:1px solid var(--line2);display:flex;align-items:flex-start;gap:9px}
@@ -476,6 +484,13 @@
   .nwadd.done{color:var(--sub);border-color:var(--line2);font-weight:400}
   .nwall{width:100%;margin-top:12px;padding:11px;border-radius:12px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
   .nwall:disabled{color:var(--sub);border-color:var(--line2);cursor:default}
+  .skrisk{display:flex;align-items:center;gap:11px;border:1px solid var(--hl);border-radius:14px;padding:11px 13px;margin:12px 0 0;background:linear-gradient(135deg,rgba(192,57,43,.08),transparent)}
+  .skrisk .skic{width:22px;height:22px;color:var(--gold);flex:none}
+  .sktx{flex:1;line-height:1.5}
+  .sktx b{display:block;font-size:13px;color:var(--ink)}
+  .sktx span{font-size:11.5px;color:var(--sub)}
+  .skgo{flex:none;padding:8px 13px;border-radius:999px;border:1px solid var(--hl);background:transparent;color:var(--hl);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .skgo:active{transform:scale(.95)}
   .bknudge{background:linear-gradient(135deg,rgba(201,155,52,.15),rgba(192,57,43,.07));border:1px solid var(--gold);border-radius:14px;padding:13px 15px;margin:12px 0 0}
   .bkn-t{font-size:13.5px;font-weight:700;color:var(--ink)}
   .bkn-s{font-size:12px;color:var(--sub);margin:4px 0 10px;line-height:1.65}
@@ -651,6 +666,7 @@
 <div class="wrap appmain">
   <div class="view active" data-view="home" data-init="1">
     <div id="homeGreet" class="greet"></div>
+    <div id="skRisk"></div>
     <div id="bkNudge"></div>
     <div class="hero"><div class="eyebrow">Bahasa Indonesia</div>
       <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
@@ -772,8 +788,9 @@
   <div class="setsep">学習データ</div>
   <div class="setrow"><span>バックアップを保存</span><button class="go" id="btnBackup" style="border:none">書き出す</button></div>
   <div class="setrow"><span>バックアップから復元</span><button class="go" id="btnRestore" style="border:none">読み込む</button></div>
+  <div class="setnote">リマインダーは、アプリを開いた時とアイコンのバッジでお知らせします。</div>
   <input type="file" id="restoreFile" accept="application/json,.json" hidden>
-  <div id="bkLbl" style="font-size:12px;color:var(--sub);text-align:right;line-height:1.6"></div>
+  <div id="bkLbl" style="font-size:12px;color:var(--sub);text-align:right;line-height:1.7;white-space:pre-line"></div>
 </div></div></div>
 <div class="overlay" id="newsOv"><div class="sheet newssheet">
   <div class="nsemo">📰</div>
@@ -791,6 +808,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=55"></script>
+<script src="app.js?v=56"></script>
 </body>
 </html>
