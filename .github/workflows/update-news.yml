@@ -2,7 +2,7 @@ name: Daily news update
 
 on:
   schedule:
-    - cron: '0 21 * * *'   # 06:00 JST (21:00 UTC)
+    - cron: '0 21 * * *'   # 04:00 WIB (21:00 UTC)
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
             echo "No changes."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "chore: daily news update ($(TZ=Asia/Tokyo date +%F))"
+            git commit -m "chore: daily news update ($(TZ=Asia/Jakarta date +%F))"
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
