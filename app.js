@@ -557,7 +557,7 @@ function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
-  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();}
+  const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();}
 function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0,weak=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
   Object.keys(st).forEach(function(w){if(st[w]==="weak")weak++;});
@@ -625,6 +625,16 @@ function bkInfo(){var el=$("bkLbl");if(!el)return;var known=Object.values(LS("dk
       if(!p&&navigator.storage.persist){try{p=await navigator.storage.persist();}catch(_){}}
       el.textContent=base+"／自動削除の防止: "+(p?"有効":"未許可")+"（この端末内のみ・手動削除では消えます）";
     }}catch(e){}})();}
+function bkNudge(){var el=$("bkNudge");if(!el)return;
+  var b=LS("dks_bkup",{}),known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length,mw=Object.keys(LS("dks_mywords",{})).length;
+  if(known+mw<10){el.innerHTML="";return;}
+  if(b.snooze&&Date.now()<b.snooze){el.innerHTML="";return;}
+  var days=b.last?Math.floor((Date.now()-b.last)/86400000):null;
+  if(days!==null&&days<14){el.innerHTML="";return;}
+  var msg=(days===null)?"まだ一度もバックアップしていません。":("最後のバックアップから "+days+" 日たちました。");
+  el.innerHTML='<div class="bknudge"><div class="bkn-t">'+msg+'</div><div class="bkn-s">学習データはこの端末の中だけにあります。ブラウザのデータを消すと、覚えた '+known+'語・登録した '+mw+'語がすべて失われます。書き出してクラウドに置いておけば、機種変更でも戻せます。</div><div class="bkn-b"><button class="bkn-go" id="bknGo">今すぐ書き出す</button><button class="bkn-later" id="bknLater">あとで</button></div></div>';
+  var g=$("bknGo");if(g)g.onclick=function(){backupData();};
+  var l=$("bknLater");if(l)l.onclick=function(){var bb=LS("dks_bkup",{});bb.snooze=Date.now()+7*86400000;SV("dks_bkup",bb);el.innerHTML="";};}
 function ensurePersist(){try{if(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted){navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist().catch(function(){});});}}catch(e){}}
 ensurePersist();
 function backupData(){try{
@@ -636,7 +646,9 @@ function backupData(){try{
     el.href=url;el.download="artikula-backup-"+new Date().toISOString().slice(0,10)+".json";
     document.body.appendChild(el);el.click();
     setTimeout(function(){URL.revokeObjectURL(url);el.remove();},600);
-    var lbl=$("bkLbl");if(lbl)lbl.textContent="バックアップを書き出しました。安全な場所に保管してください。";
+    SV("dks_bkup",{last:Date.now()});
+    var lbl=$("bkLbl");if(lbl)lbl.textContent="バックアップを書き出しました。クラウド（Googleドライブ等）に保管してください。";
+    if(typeof bkNudge==="function")bkNudge();
   }catch(e){alert("書き出しに失敗しました。");}}
 function restoreData(file){var r=new FileReader();
   r.onload=function(){try{
