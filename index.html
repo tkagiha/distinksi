@@ -614,7 +614,7 @@
   </div>
 
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
-    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button></div>
+    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="pick"><select id="sSelect"></select></div>
@@ -624,6 +624,7 @@
       <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="dTrack"></div><div class="cnav"><button class="arrow" data-nav="d:-1">←</button><span class="counter" id="dCount"></span><button class="arrow" data-nav="d:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="t-travel"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">旅行で使えるフレーズ集。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="travelWrap"></div></div>
+    <div class="pane" id="t-pack"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">場面別の表現パック。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="packWrap"></div></div>
   </div>
 
   <div class="view" data-view="news"><div class="shead"><div class="kick">Berita</div><h2>ニュース</h2><p>過去1週間のニュース。上の日付を左右にスライドして選択。<svg class="icn"><use href="#i-sound"/></svg>で発音・タップで意味。</p></div>
@@ -693,9 +694,9 @@
 <footer class="wrap">Made with <b>♥</b> for Japanese learners of Indonesian ・ Selamat belajar!</footer>
 
 <nav class="botnav" id="botNav"></nav>
-<script src="data.js?v=w3"></script>
+<script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=39"></script>
+<script src="app.js?v=40"></script>
 </body>
 </html>
