@@ -1,8 +1,8 @@
 "use strict";
 const WORDS=window.WORDS||[],SCENES=window.SCENES||[],NEWS=window.NEWS||[],DRIVER=window.DRIVER||[],JAPAN=window.JAPAN||[],
   NUMBERS=window.NUMBERS||[],GLOSS=window.GLOSS||{},WORDAUDIO=window.WORDAUDIO||{},PERIBAHASA=window.PERIBAHASA||[],TRAVEL=window.TRAVEL||[],PACKS=window.PACKS||[];
-let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],SUFFIX=window.SUFFIX||[],CONFIX=window.CONFIX||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
-function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];SUFFIX=window.SUFFIX||[];CONFIX=window.CONFIX||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
+let REGISTER=window.REGISTER||[],MONTHS=window.MONTHS||[],PREFIX=window.PREFIX||[],SUFFIX=window.SUFFIX||[],CONFIX=window.CONFIX||[],GRAMMAR=window.GRAMMAR||[],CULTURE=window.CULTURE||[],REALNEWS=window.REALNEWS||[],NEWS_UPDATED=window.NEWS_UPDATED||"",HISTORY=window.HISTORY||[],GEO=window.GEO||[],DAILY=window.DAILY||[],_extraP=null;
+function _syncExtra(){REGISTER=window.REGISTER||[];MONTHS=window.MONTHS||[];PREFIX=window.PREFIX||[];SUFFIX=window.SUFFIX||[];CONFIX=window.CONFIX||[];GRAMMAR=window.GRAMMAR||[];CULTURE=window.CULTURE||[];REALNEWS=window.REALNEWS||[];NEWS_UPDATED=window.NEWS_UPDATED||"";HISTORY=window.HISTORY||[];GEO=window.GEO||[];DAILY=window.DAILY||[];}
 function ensureExtra(cb){if(window.CULTURE&&window.CULTURE.length){_syncExtra();return cb();}if(!_extraP){_extraP=new Promise(function(res){var s=document.createElement("script");s.src="extra.js?v=w3";s.onload=function(){res();};s.onerror=function(){res();};document.head.appendChild(s);});}_extraP.then(function(){_syncExtra();cb();});}
 let CARDS=window.CARDS||[],_cardsP=null;
 function ensureCards(cb){if(window.CARDS&&window.CARDS.length){CARDS=window.CARDS;return cb();}if(!_cardsP){_cardsP=new Promise(function(res){var s=document.createElement("script");s.src="cards.js?v=w1";s.onload=function(){CARDS=window.CARDS||[];res();};s.onerror=function(){res();};document.head.appendChild(s);});}_cardsP.then(cb);}
@@ -127,6 +127,7 @@ function initView(v){
 const PANEI={};
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
+  if(id==="l-gram")ensureExtra(buildGrammar);
   if(id==="l-prefix")ensureExtra(buildPrefix);
   if(id==="l-suffix")ensureExtra(buildSuffix);
   if(id==="l-confix")ensureExtra(buildConfix);
@@ -159,6 +160,7 @@ function buildWords(){if(CAR.w)return;CAR.w=lazyCarousel($("wTrack"),WORDS.lengt
 /* 接頭辞 */
 function buildAffix(arr,id){$(id).innerHTML=arr.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
   ${p.ex.map(e=>`<div class="lex">${spkBtn(e[2],e[0])}<span class="w">${esc(e[0])}</span><span class="m">${esc(e[1])}</span></div>`).join("")}</div>`).join("");}
+function buildGrammar(){buildAffix(GRAMMAR,"l-gram");}
 function buildPrefix(){buildAffix(PREFIX,"l-prefix");}
 function buildSuffix(){buildAffix(SUFFIX,"l-suffix");}
 function buildConfix(){buildAffix(CONFIX,"l-confix");}
