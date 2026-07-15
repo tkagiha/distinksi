@@ -29,28 +29,41 @@ def parse_arr(src, name):
     return json.loads(m.group(1)) if m else []
 
 def main():
-    FEEDS = ["nasional", "ekonomi", "politik", "megapolitan", "tekno", "olahraga"]  # Indonesia domestic
-    items = []
-    for f in FEEDS:
+    # インドネシア国内の出来事を扱うフィードのみ（dunia/international は使わない）
+    FEEDS = ["nasional", "megapolitan", "politik", "hukum", "humaniora"]
+    PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
+    picked, seen = [], set()
+
+    def g_of(it, tag):
+        m = re.search(r"<" + tag + r">(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</" + tag + r">", it, re.S)
+        return html.unescape(m.group(1).strip()) if m else ""
+
+    def harvest(feed, cap):
+        n = 0
         try:
-            rss = fetch("https://www.antaranews.com/rss/%s.xml" % f)
-            items += re.findall(r"<item>(.*?)</item>", rss, re.S)
+            rss = fetch("https://www.antaranews.com/rss/%s.xml" % feed)
         except Exception:
-            pass
-    picked = []
-    seen = set()
-    for it in items:
-        def g(tag):
-            m = re.search(r"<" + tag + r">(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</" + tag + r">", it, re.S)
-            return html.unescape(m.group(1).strip()) if m else ""
-        title, link = g("title"), g("link")
-        im = re.search(r'<enclosure[^>]*url="([^"]+)"', it)
-        img = im.group(1) if im else ""
-        if title and link and img and link not in seen:
-            seen.add(link)
-            picked.append((title, link, img))
-        if len(picked) >= 10:
-            break
+            return
+        for it in re.findall(r"<item>(.*?)</item>", rss, re.S):
+            if n >= cap or len(picked) >= 10:
+                return
+            title, link = g_of(it, "title"), g_of(it, "link")
+            im = re.search(r'<enclosure[^>]*url="([^"]+)"', it)
+            img = im.group(1) if im else ""
+            if title and link and img and link not in seen:
+                seen.add(link)
+                picked.append((title, link, img))
+                n += 1
+
+    for f in FEEDS:
+        harvest(f, PER_FEED)
+    if len(picked) < 10:                 # 不足分は国内フィードから補充
+        harvest("nasional", 10)
+    if len(picked) < 10:
+        for f in FEEDS:
+            harvest(f, 10)
+            if len(picked) >= 10:
+                break
     if not picked:
         print("no items fetched; abort"); return
 
