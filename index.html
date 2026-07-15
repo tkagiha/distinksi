@@ -407,9 +407,17 @@
   .greet b{color:var(--ink);font-weight:600}
   .homecta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:12px 0 2px;padding:14px;border-radius:15px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;color:#fff;background:linear-gradient(160deg,#d02a31,#a01820);box-shadow:0 6px 18px rgba(193,39,45,.3);transition:transform .15s}
   .homecta:active{transform:scale(.98)}
-  .catpop{position:fixed;left:50%;top:40%;z-index:97;pointer-events:none;font-size:30px;font-weight:800;color:var(--hl);text-shadow:0 3px 14px rgba(0,0,0,.35);white-space:nowrap;animation:catpop 1.75s cubic-bezier(.2,.8,.2,1) forwards}
-  @keyframes catpop{0%{transform:translate(-50%,-50%) scale(.3) rotate(-12deg);opacity:0}18%{opacity:1;transform:translate(-50%,-50%) scale(1.25) rotate(6deg)}45%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}100%{transform:translate(-50%,-160%) scale(1.5) rotate(8deg);opacity:0}}
-  @media(prefers-reduced-motion:reduce){.catpop{animation-duration:.01s}}
+  .catov{position:fixed;inset:0;z-index:98;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.16);cursor:default;-webkit-tap-highlight-color:transparent}
+  .catemo{font-size:min(38vw,150px);line-height:1;animation:catpop 1.9s cubic-bezier(.2,.8,.2,1) forwards;will-change:transform,opacity}
+  @keyframes catpop{
+    0%{transform:scale(.15) rotate(0deg);opacity:0}
+    12%{transform:scale(1.55) rotate(-10deg);opacity:1}
+    26%{transform:scale(1.1) rotate(7deg);opacity:1}
+    48%{transform:scale(1.22) rotate(-5deg);opacity:1}
+    100%{transform:scale(.55) rotate(500deg) translateY(-46vh);opacity:0}}
+  .cattxt{font-size:min(6.5vw,24px);font-weight:800;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.6);white-space:nowrap;animation:cattxt 1.9s ease forwards}
+  @keyframes cattxt{0%{opacity:0;transform:scale(.6)}16%{opacity:1;transform:scale(1.12)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-24px)}}
+  @media(prefers-reduced-motion:reduce){.catov{display:none}}
   .sayin{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:15px}
   .sayload{font-size:13px;color:var(--sub);margin-top:12px;text-align:center}
   .saycard{margin-top:14px;padding-top:12px;border-top:1px solid var(--line2)}
@@ -757,6 +765,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=51"></script>
+<script src="app.js?v=52"></script>
 </body>
 </html>
