@@ -663,7 +663,7 @@ function jljReveal(c){
    +'<div class="jrv-sub">'+esc(c.regionId||"")+' ・ '+esc(c.region)+'</div><div class="jrv-rule"></div></div>';
   host.appendChild(el);
   requestAnimationFrame(function(){el.classList.add("on");});
-  setTimeout(function(){el.classList.add("out");setTimeout(function(){el.remove();},380);},rm?900:1450);}
+  setTimeout(function(){el.classList.add("out");setTimeout(function(){el.remove();},420);},rm?1800:2800);}
 function jljLand(target,btn){
   var d=jlj();d.lastDate=_d(0);
   if(d.visited.indexOf(target.city.id)<0)d.visited.push(target.city.id);
@@ -671,9 +671,9 @@ function jljLand(target,btn){
   var hop=$("jHop");if(hop)hop.style.opacity="0";
   jljFlag(target.city);
   jljReveal(target.city);
-  setTimeout(function(){jljCard(target.city,false,target.revisit);},900);
+  setTimeout(function(){jljCard(target.city,false,target.revisit);},1250);
   btn.disabled=false;btn.textContent="前回の街をもう一度見る";
-  var af=$("homeArchFull");if(af){var _c=target.city;setTimeout(function(){af.innerHTML="";renderArch(af);jljFlag(_c);},2100);}
+  var af=$("homeArchFull");if(af){var _c=target.city;setTimeout(function(){af.innerHTML="";renderArch(af);jljFlag(_c);},3600);}
   if(d.visited.length===JC.length&&!LS("dks_jelajah_done",0)){SV("dks_jelajah_done",1);
     setTimeout(function(){titleCelebrate({name:"Penjelajah Nusantara",ja:"32の街をすべて訪ねた人"});},700);}
   else if(typeof bumpActivity==="function")bumpActivity();}
