@@ -15,7 +15,7 @@ const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 /* 辞書 */
 const SUF=["nya","lah","kah","ku","mu","kan"];
 const norm=t=>t.toLowerCase().replace(/[.,!?;:"“”'()）（]/g,"").trim();
-function look(n){if(GLOSS[n])return GLOSS[n];for(const s of SUF){if(n.endsWith(s)&&GLOSS[n.slice(0,-s.length)])return GLOSS[n.slice(0,-s.length)];}return null;}
+function look(n){if(GLOSS[n])return GLOSS[n];for(const s of SUF){const st=n.slice(0,-s.length);if(n.endsWith(s)&&st.length>=3&&GLOSS[st])return GLOSS[st];}return null;}
 function wrapWords(t){return t.split(/(\s+)/).map(p=>{if(/^\s*$/.test(p))return p;const nn=norm(p),m=look(nn);return nn?(m?`<span class="tok known" data-m="${esc(m)}" data-w="${esc(nn)}">${esc(p)}</span>`:`<span class="tok tapable" data-w="${esc(nn)}">${esc(p)}</span>`):`<span class="tok">${esc(p)}</span>`;}).join("");}
 const spkBtn=(a,t)=>`<button class="spk" data-audio="${esc(a)}" data-text="${esc(t)}">${SPK}</button>`;
 
