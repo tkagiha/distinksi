@@ -476,7 +476,7 @@ $("searchIn").addEventListener("input",()=>{if(!SIDX)buildIndex();const q=$("sea
 function applyFont(fs){document.body.classList.remove("fs-s","fs-m","fs-l");document.body.classList.add(fs);[...$("setFont").children].forEach(b=>b.classList.toggle("active",b.dataset.fs===fs));SV("dks_font",fs);}
 function applyTheme(mode){var dark=mode==="dark"||(mode==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");SV("dks_theme",mode);var st=$("setTheme");if(st)[...st.children].forEach(function(b){b.classList.toggle("active",b.dataset.th===mode);});}
 try{if(window.matchMedia)matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){if(LS("dks_theme","auto")==="auto")applyTheme("auto");});}catch(e){}
-$("btnSettings").onclick=()=>$("setOv").classList.add("on");
+$("btnSettings").onclick=()=>{$("setOv").classList.add("on");if(typeof bkInfo==="function")bkInfo();};
 (function(){var nm=LS("dks_name","");var u=$("setUserName");if(u)u.textContent=nm||"ゲスト";var _nm=$("setName");if(_nm){_nm.value=nm;_nm.addEventListener("input",function(){var v=_nm.value.trim();SV("dks_name",v);if(u)u.textContent=v||"ゲスト";renderGreet();});}})();
 var _stEl=$("setTheme");if(_stEl)_stEl.addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b)applyTheme(b.dataset.th);});
 $("setFont").addEventListener("click",e=>{const b=e.target.closest("[data-fs]");if(b)applyFont(b.dataset.fs);});
@@ -570,6 +570,36 @@ async function prefetchAll(){const list=allAudio();const lbl=$("prefLbl"),btn=$(
   lbl.textContent="0 / "+N;await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
   lbl.textContent="完了！ "+(N-fail)+" / "+N+" 保存"+(fail?("（未取得 "+fail+"）"):"");btn.disabled=false;}
 if($("btnPrefetch"))$("btnPrefetch").onclick=prefetchAll;
+/* ===== 学習データのバックアップ / 復元 ===== */
+function bkInfo(){var el=$("bkLbl");if(!el)return;var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;var a=LS("dks_act",{});var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
+  el.textContent="覚えた "+known+"語 ・ 連続 "+(a.streak||0)+"日 ・ 保存項目 "+n+"件（この端末内のみ）";}
+function backupData(){try{
+    var data={};
+    for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)data[k]=localStorage.getItem(k);}
+    var payload={app:"Artikula",v:1,exported:new Date().toISOString(),data:data};
+    var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob),el=document.createElement("a");
+    el.href=url;el.download="artikula-backup-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(el);el.click();
+    setTimeout(function(){URL.revokeObjectURL(url);el.remove();},600);
+    var lbl=$("bkLbl");if(lbl)lbl.textContent="バックアップを書き出しました。安全な場所に保管してください。";
+  }catch(e){alert("書き出しに失敗しました。");}}
+function restoreData(file){var r=new FileReader();
+  r.onload=function(){try{
+      var p=JSON.parse(r.result);var d=(p&&p.data&&typeof p.data==="object")?p.data:p;
+      if(!d||typeof d!=="object")throw 0;
+      var keys=Object.keys(d).filter(function(k){return k.indexOf("dks_")===0;});
+      if(!keys.length)throw 0;
+      if(!confirm("この端末の学習データを、バックアップの内容で置き換えます（"+keys.length+"項目）。よろしいですか？"))return;
+      keys.forEach(function(k){localStorage.setItem(k,typeof d[k]==="string"?d[k]:JSON.stringify(d[k]));});
+      alert("復元しました。アプリを再読み込みします。");location.reload();
+    }catch(e){alert("このファイルは読み込めませんでした。Artikula のバックアップ(.json)を選んでください。");}};
+  r.onerror=function(){alert("ファイルを読めませんでした。");};
+  r.readAsText(file);}
+(function(){var b=$("btnBackup");if(b)b.onclick=backupData;
+  var rb=$("btnRestore"),rf=$("restoreFile");
+  if(rb&&rf){rb.onclick=function(){rf.click();};rf.onchange=function(e){var f=e.target.files&&e.target.files[0];if(f)restoreData(f);e.target.value="";};}
+  bkInfo();})();
 
 let nqScore=0,nqTotal=0,nqCur=null,nqVal="",nqDone=false;
 function buildNumQuiz(){$("a-listen").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">音声を聞いて数字を入力しよう</div>
