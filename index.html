@@ -69,6 +69,7 @@
   .proverb .pvja{font-size:13.5px;color:var(--sub);margin:6px 0 0 43px}
   .scanbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
   .scanbtn{display:inline-flex;padding:12px 20px;font-size:15px}
+  .scanprev[hidden]{display:none}
   .scanprev{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:14px;border:1px solid var(--line);margin:14px 0 6px;background:var(--line2)}
   .scanstatus{font-size:13px;color:var(--sub);margin:6px 0 12px;min-height:18px}
   .scanline{padding:14px 16px;margin-bottom:10px}
@@ -649,11 +650,11 @@
     <div class="pane" id="r-japan"><div class="jcard listcard" id="jCard"></div></div>
   </div>
 
-  <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>看板を読む</h2><p>写真の中のインドネシア語を読み取り、意味を表示。単語タップで発音・意味。</p></div>
+  <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>街を知る</h2><p>街の看板や表示を撮ると、インドネシア語を読み取って意味を表示。単語タップで発音・意味。</p></div>
     <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
     <input type="file" id="scanFileGal" accept="image/*" hidden>
     <div class="scanbtns"><button class="chip scanbtn" id="scanPick" aria-label="撮影"><svg class="icn"><use href="#i-camera"/></svg> 撮影</button><button class="chip scanbtn" id="scanPickGal" aria-label="画像を選ぶ"><svg class="icn"><use href="#i-image"/></svg> 画像を選ぶ</button></div>
-    <img id="scanPrev" class="scanprev" hidden alt="preview">
+    <img id="scanPrev" class="scanprev" hidden alt="">
     <div id="scanStatus" class="scanstatus"></div>
     <div id="scanResult"></div>
   </div>
@@ -698,6 +699,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=40"></script>
+<script src="app.js?v=41"></script>
 </body>
 </html>
