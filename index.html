@@ -476,6 +476,18 @@
   .jpin .jpr{fill:none;stroke:var(--gold);stroke-width:1.2;opacity:.55}
   .jpin .jpd{fill:var(--gold);filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
   .jhop{transition:transform .16s cubic-bezier(.2,1.6,.4,1)}
+  /* 着地: 紅白の国旗が立つ */
+  .jflag{transform-box:fill-box;transform-origin:0% 100%;opacity:0}
+  .jflag.on{animation:jflagUp .5s cubic-bezier(.2,1.6,.4,1) forwards}
+  @keyframes jflagUp{0%{opacity:0;transform:scale(.2) rotate(-24deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+  .jfpole{stroke:var(--ink);stroke-width:1.1;stroke-linecap:round;opacity:.8}
+  .jfcloth{stroke:rgba(0,0,0,.18);stroke-width:.4}
+  .jfr{fill:#ce1126}
+  .jfw{fill:#fff}
+  .jfbase{fill:var(--gold);filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+  .jfname{font-family:var(--head);font-size:8px;font-weight:700;fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:2.4}
+  .jcflag{width:18px;height:12px;border-radius:1px;flex:none}
+  @media(prefers-reduced-motion:reduce){.jflag.on{animation-duration:.01s}}
   .jhop .jhr{fill:none;stroke:var(--hl);stroke-width:1.6;opacity:.7}
   .jhop .jhd{fill:var(--gold);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
   .jhop.bounce .jhd{animation:jbounce .34s cubic-bezier(.2,1.6,.4,1)}
@@ -980,6 +992,6 @@
 <script src="packs.js?v=3"></script>
 <script src="cities.js?v=1"></script>
 <script src="news.js"></script>
-<script src="app.js?v=66"></script>
+<script src="app.js?v=67"></script>
 </body>
 </html>
