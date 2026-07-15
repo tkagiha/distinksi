@@ -637,15 +637,30 @@ function jljFlag(c){
   try{var pt=svg.createSVGPoint();pt.x=c.x;pt.y=c.y;
     var m=svg.getScreenCTM();if(m){var p=pt.matrixTransform(m);sparkAt(p.x,p.y,20);}}catch(e){}
   if(navigator.vibrate)try{navigator.vibrate([12,26,12]);}catch(e){}}
+/* 当たりの瞬間: 地図の上に街の名前を一閃 */
+function jljReveal(c){
+  var host=$("homeArchFull");if(!host)return;
+  var old=host.querySelector(".jreveal");if(old)old.remove();
+  var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  var el=document.createElement("div");el.className="jreveal";
+  el.innerHTML='<div class="jrv-flash"></div>'
+   +'<div class="jrv-rays"></div>'
+   +'<div class="jrv-box"><div class="jrv-rule"></div>'
+   +'<div class="jrv-name" data-t="'+esc(c.name)+'">'+esc(c.name)+'</div>'
+   +'<div class="jrv-sub">'+esc(c.region)+'</div><div class="jrv-rule"></div></div>';
+  host.appendChild(el);
+  requestAnimationFrame(function(){el.classList.add("on");});
+  setTimeout(function(){el.classList.add("out");setTimeout(function(){el.remove();},380);},rm?900:1450);}
 function jljLand(target,btn){
   var d=jlj();d.lastDate=_d(0);
   if(d.visited.indexOf(target.city.id)<0)d.visited.push(target.city.id);
   SV("dks_jelajah",d);
   var hop=$("jHop");if(hop)hop.style.opacity="0";
   jljFlag(target.city);
-  setTimeout(function(){jljCard(target.city,false,target.revisit);},260);
+  jljReveal(target.city);
+  setTimeout(function(){jljCard(target.city,false,target.revisit);},900);
   btn.disabled=false;btn.textContent="前回の街をもう一度見る";
-  var af=$("homeArchFull");if(af){var _c=target.city;setTimeout(function(){af.innerHTML="";renderArch(af);jljFlag(_c);},1600);}
+  var af=$("homeArchFull");if(af){var _c=target.city;setTimeout(function(){af.innerHTML="";renderArch(af);jljFlag(_c);},2100);}
   if(d.visited.length===JC.length&&!LS("dks_jelajah_done",0)){SV("dks_jelajah_done",1);
     setTimeout(function(){titleCelebrate({name:"Penjelajah Nusantara",ja:"32の街をすべて訪ねた人"});},700);}
   else if(typeof bumpActivity==="function")bumpActivity();}
