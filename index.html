@@ -465,16 +465,62 @@
   .nqmiss li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:13px}
   .nqmiss li span{color:var(--sub);font-size:12px;text-align:right}
   .nqperf{text-align:center;font-size:13px;color:var(--sub);padding:12px 0 16px}
+  /* 今日の一言 */
+  #homeKata{display:block;margin:14px 0 2px}
+  .katacard{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:14px;padding:14px 15px 13px}
+  .klbl{font-size:10.5px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+  .khead{display:flex;align-items:center;gap:10px;margin-top:7px}
+  .kword{font-family:var(--head);font-size:26px;font-weight:700;letter-spacing:.01em}
+  .kja{font-size:13.5px;color:var(--sub);margin:3px 0 0 42px}
+  .kex{margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--line2)}
+  .kex .id{display:flex;align-items:center;gap:10px;font-size:14px}
+  .kex .ja{font-size:12.5px;color:var(--sub);margin:4px 0 0 42px}
+  .kbtn{margin-top:12px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--gold);background:none;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .kbtn.done{border-color:var(--line);color:var(--sub);opacity:.75}
+  /* Bahasa Gaul */
+  .gaullist{display:flex;flex-direction:column;gap:11px}
+  .gaulrow{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+  .gtop{display:flex;align-items:center;gap:9px}
+  .gs{font-family:var(--head);font-size:19px;font-weight:700}
+  .gtone{margin-left:auto;font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--line2);color:var(--sub);white-space:nowrap}
+  .gt-chat{border-color:var(--hl);color:var(--hl)}
+  .gt-casual{border-color:var(--gold);color:var(--gold)}
+  .gf{font-size:12.5px;color:var(--sub);margin:5px 0 0 42px}
+  .gja{font-size:13.5px;margin:2px 0 0 42px}
+  .gchat{margin:10px 0 0 42px}
+  .gbub{display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line2);border-radius:14px 14px 14px 4px;padding:7px 11px;font-size:13.5px}
+  .gexja{font-size:12px;color:var(--sub);margin-top:4px}
+  .gnote{font-size:11.5px;color:var(--sub);line-height:1.65;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line2)}
+  /* サバイバル */
+  .survsec{margin-bottom:22px}
+  .survhead{display:flex;align-items:center;gap:10px;position:sticky;top:calc(100px + env(safe-area-inset-top,0px));z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--gold)}
+  .survhead .icn{width:19px;height:19px;color:var(--gold)}
+  .survhead b{font-family:var(--head);font-size:15px}
+  .survhead span{display:block;font-size:11px;color:var(--sub);margin-top:1px}
+  .survrow{display:flex;align-items:flex-start;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line2)}
+  .survrow .sbody{flex:1;min-width:0}
+  .survrow .id{font-size:14.5px;line-height:1.55}
+  .survrow .ja{font-size:12.5px;color:var(--sub);margin-top:3px}
+  .snote{font-size:11px;color:var(--sub);opacity:.85;margin-top:5px;border-left:2px solid var(--line2);padding-left:8px;line-height:1.6}
+  .sbook{background:none;border:none;color:var(--line2);font-size:16px;padding:2px 3px;cursor:pointer;line-height:1}
+  .sbook.on{color:var(--gold)}
+  /* 共通: 未解放の見せ方 */
+  .lockbox{position:relative;text-align:center;opacity:.82}
+  .lkkey{position:absolute;top:12px;right:12px;width:16px;height:16px;color:var(--gold);opacity:.85}
+  .lkttl{font-family:var(--head);font-size:15px;font-weight:700}
+  .lkmask{font-size:12px;color:var(--sub);letter-spacing:.14em;margin-top:2px}
+  .lkcond{font-size:11px;color:var(--sub);margin-top:7px;line-height:1.6}
+  .lkcond b{color:var(--hl);font-weight:700}
   /* 島パック */
   .packintro{font-size:12.5px;color:var(--sub);margin:2px 2px 12px;line-height:1.7}
   .packgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .packcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 12px 13px;text-align:center;font-family:inherit;color:var(--ink);display:block;width:100%}
   .packcard.on{border-color:var(--gold);box-shadow:0 2px 12px rgba(233,201,106,.16);cursor:pointer}
-  .packcard.lock{opacity:.82}
+  .packcard.lock{padding:0}
+  .packcard.lock .lockbox{padding:14px 12px 13px}
   .psil{display:block;width:100%;height:54px;margin-bottom:8px}
   .packcard.on .psil circle{fill:var(--gold)}
   .packcard.lock .psil circle{fill:var(--line2)}
-  .pklock{position:absolute;top:12px;right:12px;width:16px;height:16px;color:var(--sub);opacity:.8}
   .pkname{font-family:var(--head);font-size:15px;font-weight:700;letter-spacing:.02em}
   .pktheme{font-size:12px;color:var(--gold);margin-top:2px}
   .packcard.lock .pktheme{color:var(--sub);letter-spacing:.14em}
@@ -508,10 +554,8 @@
   .tnext{font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);margin-top:9px;padding-top:10px}
   .tnext b{color:var(--hl);font-weight:700}
   @media(prefers-reduced-motion:reduce){.titlewrap,.titlebox{transition-duration:.01s}}
-  .qlock{text-align:center;padding:22px 10px}
-  .qlockic{width:30px;height:30px;color:var(--gold);opacity:.7}
-  .qlockt{font-size:14px;font-weight:700;margin-top:10px}
-  .qlocks{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.7}
+  .qlock{padding:22px 10px}
+  .qlockic{width:30px;height:30px;color:var(--line2);margin-bottom:6px}
   .spcard{padding:20px 18px;text-align:center;margin-top:12px}
   .spword{font-family:Georgia,"Hiragino Mincho ProN",serif;font-size:28px;font-weight:700;line-height:1.3;word-break:break-word}
   .spja{font-size:13px;color:var(--sub);margin-top:6px;min-height:18px}
@@ -742,6 +786,7 @@
     </div>
     <div id="homeProverb"></div>
     <div id="homeArchFull"></div>
+    <div id="homeKata"></div>
     <div id="homeStats"></div>
     <div id="statsWrap" class="dash"></div>
     <button class="homecta" id="homeCta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
@@ -749,10 +794,11 @@
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-packs"></div>
+    <div class="pane" id="l-gaul"></div>
     <div class="pane" id="l-gram"></div>
     <div class="pane" id="l-prefix"></div>
     <div class="pane" id="l-suffix"></div>
@@ -789,11 +835,12 @@
     </div>
   </div>
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
-    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-say">言いたいこと</button><button data-pane="t-sim">なりきり会話</button></div>
+    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-surv">サバイバル</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-say">言いたいこと</button><button data-pane="t-sim">なりきり会話</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="pick"><select id="sSelect"></select></div>
       <div class="carousel"><div class="track" id="sTrack"></div><div class="cnav"><button class="arrow" data-nav="s:-1">←</button><span class="counter" id="sCount"></span><button class="arrow" data-nav="s:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
+    <div class="pane" id="t-surv"></div>
     <div class="pane" id="t-driver">
       <div class="subtabs" id="dTabs"></div>
       <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
@@ -891,8 +938,8 @@
 <nav class="botnav" id="botNav"></nav>
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
-<script src="packs.js?v=1"></script>
+<script src="packs.js?v=2"></script>
 <script src="news.js"></script>
-<script src="app.js?v=59"></script>
+<script src="app.js?v=60"></script>
 </body>
 </html>
