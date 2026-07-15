@@ -603,20 +603,56 @@ function jljSpin(){var btn=$("jGo"),hop=$("jHop");if(!hop||btn.disabled)return;
       if(navigator.vibrate&&i===seq.length-1)try{navigator.vibrate(18);}catch(e){}
     },t);});
   setTimeout(function(){jljLand(target,btn);},t+520);}
+/* 地図上の一点で火花を散らす（既存の演出クラスを流用） */
+function sparkAt(cx,cy,n){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  var g=document.createElement("div");g.className="cel-glow";g.style.left=cx+"px";g.style.top=cy+"px";
+  document.body.appendChild(g);setTimeout(function(){g.remove();},750);
+  var r=document.createElement("div");r.className="cel-ring";r.style.left=cx+"px";r.style.top=cy+"px";
+  document.body.appendChild(r);setTimeout(function(){r.remove();},850);
+  for(var i=0;i<(n||18);i++){var s=document.createElement("div");s.className="spark";
+    var gold=Math.random()<0.75;s.style.background=gold?"var(--gold)":"var(--hl)";
+    if(gold)s.style.boxShadow="0 0 6px rgba(233,201,106,.9)";
+    var sz=2.5+Math.random()*3.5;s.style.width=s.style.height=sz+"px";
+    var ang=Math.random()*Math.PI*2,dist=28+Math.random()*54;
+    s.style.left=cx+"px";s.style.top=cy+"px";
+    s.style.setProperty("--dx",(Math.cos(ang)*dist).toFixed(1)+"px");
+    s.style.setProperty("--dy",(Math.sin(ang)*dist).toFixed(1)+"px");
+    s.style.animationDelay=(Math.random()*.07).toFixed(3)+"s";
+    document.body.appendChild(s);setTimeout(function(e){return function(){e.remove();};}(s),1000);}}
+/* 選ばれた街に紅白の国旗を突き立てる */
+function jljFlag(c){
+  var svg=document.querySelector("#homeArchFull .archmap");if(!svg)return;
+  var old=svg.querySelector(".jflag");if(old)old.remove();
+  var g=document.createElementNS("http://www.w3.org/2000/svg","g");
+  g.setAttribute("class","jflag");g.setAttribute("transform","translate("+c.x+","+c.y+")");
+  g.innerHTML='<line class="jfpole" x1="0" y1="0" x2="0" y2="-17"/>'
+   +'<path class="jfcloth jfr" d="M0.7 -17 L13 -14.4 L13 -11.4 L0.7 -14"/>'
+   +'<path class="jfcloth jfw" d="M0.7 -14 L13 -11.4 L13 -8.4 L0.7 -11"/>'
+   +'<circle class="jfbase" cx="0" cy="0" r="2.6"/>'
+   +'<text class="jfname" x="0" y="9">'+esc(c.name)+'</text>';
+  svg.appendChild(g);
+  requestAnimationFrame(function(){g.classList.add("on");});
+  /* 画面座標に変換して、その一点で火花 */
+  try{var pt=svg.createSVGPoint();pt.x=c.x;pt.y=c.y;
+    var m=svg.getScreenCTM();if(m){var p=pt.matrixTransform(m);sparkAt(p.x,p.y,20);}}catch(e){}
+  if(navigator.vibrate)try{navigator.vibrate([12,26,12]);}catch(e){}}
 function jljLand(target,btn){
   var d=jlj();d.lastDate=_d(0);
   if(d.visited.indexOf(target.city.id)<0)d.visited.push(target.city.id);
   SV("dks_jelajah",d);
-  jljCard(target.city,false,target.revisit);
+  var hop=$("jHop");if(hop)hop.style.opacity="0";
+  jljFlag(target.city);
+  setTimeout(function(){jljCard(target.city,false,target.revisit);},260);
   btn.disabled=false;btn.textContent="前回の街をもう一度見る";
-  var af=$("homeArchFull");if(af){af.innerHTML="";renderArch(af);}
+  var af=$("homeArchFull");if(af){var _c=target.city;setTimeout(function(){af.innerHTML="";renderArch(af);jljFlag(_c);},1600);}
   if(d.visited.length===JC.length&&!LS("dks_jelajah_done",0)){SV("dks_jelajah_done",1);
     setTimeout(function(){titleCelebrate({name:"Penjelajah Nusantara",ja:"32の街をすべて訪ねた人"});},700);}
   else if(typeof bumpActivity==="function")bumpActivity();}
 function jljCard(c,quiet,revisit){if(!c)return;
   var d=jlj(),learned=!!d.learned[c.id];
   $("jResult").innerHTML='<div class="jcity">'
-   +'<div class="jcname">'+esc(c.name)+(revisit?'<span class="jre">再訪</span>':'')
+   +'<div class="jcname"><svg class="jcflag" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="0" width="18" height="6" fill="#ce1126"/><rect x="0" y="6" width="18" height="6" fill="#fff"/><rect x="0" y="0" width="18" height="12" fill="none" stroke="rgba(0,0,0,.14)" stroke-width="0.6"/></svg>'+esc(c.name)+(revisit?'<span class="jre">再訪</span>':'')
    +(learned?'<span class="jlearned">学習済</span>':'')+'<span class="jregion">'+esc(c.region)+'</span></div>'
    +'<div class="jsec"><div class="jslbl">挨拶</div><div class="jgreet">'+spkBtn("",c.greet.id)
    +'<div><b>'+esc(c.greet.id)+'</b><span class="jkana">'+esc(c.greet.kana)+'</span></div></div>'
