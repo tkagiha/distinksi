@@ -476,6 +476,35 @@
   .jpin .jpr{fill:none;stroke:var(--gold);stroke-width:1.2;opacity:.55}
   .jpin .jpd{fill:var(--gold);filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
   .jhop{transition:transform .16s cubic-bezier(.2,1.6,.4,1)}
+  /* 当たり演出: 地図の上に街名を一閃 */
+  .jreveal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:6}
+  .jrv-flash{position:absolute;width:40px;height:40px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.95),rgba(233,201,106,.55) 45%,transparent 72%);
+    opacity:0;transform:scale(.2)}
+  .jreveal.on .jrv-flash{animation:jrvFlash .55s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes jrvFlash{0%{opacity:.95;transform:scale(.2)}100%{opacity:0;transform:scale(9)}}
+  .jrv-rays{position:absolute;width:220px;height:220px;opacity:0;
+    background:conic-gradient(from 0deg,rgba(233,201,106,.32) 0 6deg,transparent 6deg 45deg,rgba(233,201,106,.32) 45deg 51deg,transparent 51deg 90deg,rgba(233,201,106,.32) 90deg 96deg,transparent 96deg 135deg,rgba(233,201,106,.32) 135deg 141deg,transparent 141deg 180deg,rgba(233,201,106,.32) 180deg 186deg,transparent 186deg 225deg,rgba(233,201,106,.32) 225deg 231deg,transparent 231deg 270deg,rgba(233,201,106,.32) 270deg 276deg,transparent 276deg 315deg,rgba(233,201,106,.32) 315deg 321deg,transparent 321deg 360deg);
+    -webkit-mask:radial-gradient(circle,transparent 26%,#000 42%,transparent 74%);
+    mask:radial-gradient(circle,transparent 26%,#000 42%,transparent 74%)}
+  .jreveal.on .jrv-rays{animation:jrvRays 1s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes jrvRays{0%{opacity:0;transform:scale(.4) rotate(-24deg)}30%{opacity:1}100%{opacity:0;transform:scale(1.25) rotate(16deg)}}
+  .jrv-box{position:relative;text-align:center;padding:9px 26px;
+    background:rgba(20,16,18,.5);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);border-radius:4px;
+    opacity:0;transform:scale(.62)}
+  .jreveal.on .jrv-box{animation:jrvBox .5s .1s cubic-bezier(.2,1.6,.4,1) forwards}
+  @keyframes jrvBox{to{opacity:1;transform:none}}
+  .jrv-rule{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.9}
+  .jrv-name{font-family:var(--head);font-size:30px;font-weight:700;line-height:1.25;padding:4px 0 2px;
+    background:linear-gradient(180deg,#fff7e2,#f7de99 46%,#d8ac4e);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+  .jreveal.on .jrv-name{animation:jrvName .5s .1s cubic-bezier(.16,1,.3,1) both}
+  @keyframes jrvName{from{letter-spacing:14px}to{letter-spacing:2px}}
+  .jrv-sub{font-size:10.5px;letter-spacing:.2em;color:rgba(255,239,208,.9);padding-bottom:5px}
+  .jreveal.out{opacity:0;transform:translateY(-6px);transition:opacity .36s ease,transform .36s ease}
+  @media(prefers-reduced-motion:reduce){
+    .jreveal.on .jrv-flash,.jreveal.on .jrv-rays{animation:none;opacity:0}
+    .jreveal.on .jrv-box,.jreveal.on .jrv-name{animation-duration:.01s;animation-delay:0s}}
   /* 着地: 紅白の国旗が立つ */
   .jflag{transform-box:fill-box;transform-origin:0% 100%;opacity:0}
   .jflag.on{animation:jflagUp .5s cubic-bezier(.2,1.6,.4,1) forwards}
@@ -667,7 +696,7 @@
   .homecta .icn{width:1em;height:1em}
   .moretools{display:flex;gap:9px;margin:8px 0 12px}
   .moretools .chip{display:inline-flex;align-items:center;gap:7px}
-  #homeArchFull{display:block;margin:14px 0 2px}
+  #homeArchFull{display:block;margin:14px 0 2px;position:relative;overflow:hidden}
   /* 群島（ホームのコンパクト版） */
   .archhome{background:linear-gradient(175deg,var(--card),var(--line2));border:1px solid var(--line);border-radius:18px;padding:14px 16px 12px;margin:12px 0 2px;cursor:pointer;box-shadow:0 6px 20px rgba(70,50,20,.06);transition:border-color .2s,transform .15s}
   .archhome:hover{border-color:var(--gold)}
@@ -992,6 +1021,6 @@
 <script src="packs.js?v=3"></script>
 <script src="cities.js?v=1"></script>
 <script src="news.js"></script>
-<script src="app.js?v=67"></script>
+<script src="app.js?v=68"></script>
 </body>
 </html>
