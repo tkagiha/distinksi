@@ -268,6 +268,7 @@
   .setuser .sun{font-family:"Hiragino Mincho ProN","Yu Mincho",YuMincho,Georgia,serif;font-size:19px;font-weight:700;line-height:1.3}
   .setuser .sus{font-size:11px;opacity:.82;margin-top:3px;letter-spacing:1.5px;text-transform:uppercase}
   .setbody{padding:14px 18px 24px;flex:1;overflow-y:auto}
+  .setsep{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:18px 0 4px;padding-top:12px;border-top:1px solid var(--line)}
   .searchin{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);color:var(--ink);margin-bottom:12px}
   .sres{padding:11px 0;border-bottom:1px solid var(--line2);display:flex;align-items:flex-start;gap:9px}
   .sres .t{flex:1}.sres .ja{font-size:12.5px;color:var(--sub);margin-top:2px}.sres .src{font-size:10px;color:var(--gold);letter-spacing:1px}
@@ -662,6 +663,11 @@
   <div class="setrow"><span>リピート再生</span><span class="switch" id="setRepeat"></span></div>
   <div class="setrow"><span>オフライン用に全音声を保存</span><button class="go" id="btnPrefetch" style="border:none">ダウンロード</button></div>
   <div id="prefLbl" style="font-size:12px;color:var(--sub);text-align:right"></div>
+  <div class="setsep">学習データ</div>
+  <div class="setrow"><span>バックアップを保存</span><button class="go" id="btnBackup" style="border:none">書き出す</button></div>
+  <div class="setrow"><span>バックアップから復元</span><button class="go" id="btnRestore" style="border:none">読み込む</button></div>
+  <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+  <div id="bkLbl" style="font-size:12px;color:var(--sub);text-align:right;line-height:1.6"></div>
 </div></div></div>
 <div class="overlay" id="bookOv"><div class="sheet"><h3>★ ブックマーク <button class="close" data-close>✕</button></h3><div id="bookWrap"></div></div></div>
 
@@ -671,6 +677,6 @@
 <script src="data.js?v=w3"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=37"></script>
+<script src="app.js?v=38"></script>
 </body>
 </html>
