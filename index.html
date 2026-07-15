@@ -69,8 +69,16 @@
   .proverb .pvja{font-size:13.5px;color:var(--sub);margin:6px 0 0 43px}
   .scanbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
   .scanbtn{display:inline-flex;padding:12px 20px;font-size:15px}
-  .scanprev[hidden]{display:none}
-  .scanprev{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:14px;border:1px solid var(--line);margin:14px 0 6px;background:var(--line2)}
+  .cropwrap{position:relative;display:block;width:100%;margin:14px 0 8px;line-height:0;touch-action:none}
+  .cropwrap[hidden]{display:none}
+  .scanprev{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:var(--line2)}
+  .cropbox{position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.45);border-radius:3px;cursor:move;touch-action:none}
+  .cropbox .ch{position:absolute;width:24px;height:24px;background:var(--gold);border:2px solid #fff;border-radius:50%;touch-action:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .cropbox .ch.tl{left:-12px;top:-12px}
+  .cropbox .ch.tr{right:-12px;top:-12px}
+  .cropbox .ch.bl{left:-12px;bottom:-12px}
+  .cropbox .ch.br{right:-12px;bottom:-12px}
+  #scanGo[hidden]{display:none}
   .scanhint{font-size:11.5px;color:var(--sub);margin:10px 0 0;line-height:1.6}
   .scanstatus{font-size:13px;color:var(--sub);margin:6px 0 12px;min-height:18px}
   .scanline{padding:14px 16px;margin-bottom:10px}
@@ -655,8 +663,12 @@
     <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
     <input type="file" id="scanFileGal" accept="image/*" hidden>
     <div class="scanbtns"><button class="chip scanbtn" id="scanPick" aria-label="撮影"><svg class="icn"><use href="#i-camera"/></svg> 撮影</button><button class="chip scanbtn" id="scanPickGal" aria-label="画像を選ぶ"><svg class="icn"><use href="#i-image"/></svg> 画像を選ぶ</button></div>
-    <div class="scanhint">コツ：看板が画面いっぱいになるよう近づき、正面から・明るい場所で撮ると精度が上がります。斜め・ブレ・遠すぎは苦手です。</div>
-    <img id="scanPrev" class="scanprev" hidden alt="">
+    <div class="scanhint">撮ったら<b>看板の文字部分だけ</b>を枠で囲って「この範囲を読む」。枠は角をドラッグで調整できます。正面から・明るい場所ほど正確です。</div>
+    <div class="cropwrap" id="cropWrap" hidden>
+      <img id="scanPrev" class="scanprev" alt="">
+      <div class="cropbox" id="cropBox"><span class="ch tl" data-h="tl"></span><span class="ch tr" data-h="tr"></span><span class="ch bl" data-h="bl"></span><span class="ch br" data-h="br"></span></div>
+    </div>
+    <div class="scanbtns" id="scanGo" hidden><button class="chip scanbtn" id="btnCropRead">この範囲を読む</button><button class="chip scanbtn" id="btnFullRead">全体を読む</button></div>
     <div id="scanStatus" class="scanstatus"></div>
     <div id="scanResult"></div>
   </div>
@@ -701,6 +713,6 @@
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w3"></script>
 <script src="news.js"></script>
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 </body>
 </html>
