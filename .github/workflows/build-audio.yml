@@ -1,0 +1,51 @@
+name: Build word audio
+
+# cards.js が変わったら、音声のない語の mp3 を作って cards.js に書き戻す
+on:
+  push:
+    paths:
+      - 'cards.js'
+      - 'scripts/build_audio.py'
+      - '.github/workflows/build-audio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: build-audio
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install gTTS
+      - name: Generate missing word audio
+        run: python scripts/build_audio.py
+      - name: Commit
+        id: commit
+        run: |
+          git config user.name "artikula-bot"
+          git config user.email "artikula-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes."; echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: build word audio"
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; exit 1; }
+            git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Trigger Pages deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
