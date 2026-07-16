@@ -2,8 +2,16 @@ name: Daily news update
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 07:00 WIB (00:00 UTC)
+    # GitHub Actions は毎時00分が最も混み合い、遅延・スキップが起きる。
+    # 定刻を外し、さらに午前中に予備をもう一度走らせる。
+    - cron: '11 0 * * *'   # 07:11 WIB
+    - cron: '25 2 * * *'   # 09:25 WIB（前者が流れた場合の保険）
   workflow_dispatch:
+    inputs:
+      force:
+        description: '同じ日でも強制的に更新する'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -18,15 +26,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Skip if already updated today (WIB)
+        id: guard
+        run: |
+          TODAY=$(TZ=Asia/Jakarta date +%F)
+          CUR=$(grep -o 'NEWS_UPDATED = "[0-9-]*"' news.js | grep -o '[0-9-]\{10\}' || echo "")
+          echo "today(WIB)=$TODAY  news.js=$CUR  force=${{ inputs.force }}"
+          if [ "$CUR" = "$TODAY" ] && [ "${{ inputs.force }}" != "true" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip != 'true'
         with:
           python-version: '3.11'
       - name: Install deps
+        if: steps.guard.outputs.skip != 'true'
         run: pip install gTTS
       - name: Fetch & build news
+        if: steps.guard.outputs.skip != 'true'
         run: python scripts/update_news.py
       - name: Commit if changed
         id: commit
+        if: steps.guard.outputs.skip != 'true'
         run: |
           git config user.name "artikula-bot"
           git config user.email "artikula-bot@users.noreply.github.com"
