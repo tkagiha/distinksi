@@ -487,6 +487,26 @@
   .nqmiss li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:13px}
   .nqmiss li span{color:var(--sub);font-size:12px;text-align:right}
   .nqperf{text-align:center;font-size:13px;color:var(--sub);padding:12px 0 16px}
+  /* 言い回し */
+  .patchip{display:inline-flex;align-items:center;gap:7px;margin:0 0 9px;padding:5px 10px;
+    border:1px solid var(--gold);border-radius:20px;background:none;font-family:inherit;cursor:pointer;max-width:100%}
+  .patp{font-family:var(--head);font-size:12.5px;font-weight:700;color:var(--gold);white-space:nowrap}
+  .patja{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .patn{font-size:10px;color:var(--gold);border-left:1px solid var(--line);padding-left:7px;white-space:nowrap}
+  .patcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:12px;transition:box-shadow .3s ease}
+  .patcard.hi{box-shadow:0 0 0 2px var(--gold)}
+  .pathead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .patp2{font-family:var(--head);font-size:19px;font-weight:700;color:var(--gold)}
+  .patja2{font-size:12.5px;margin-top:2px}
+  .patcount{font-family:var(--head);font-size:20px;font-weight:700;color:var(--hl);text-align:center;line-height:1;white-space:nowrap}
+  .patcount span{display:block;font-family:inherit;font-size:9.5px;color:var(--sub);font-weight:400;margin-top:2px}
+  .patnote{font-size:11.5px;color:var(--sub);line-height:1.7;margin:8px 0 10px;padding-bottom:9px;border-bottom:1px dashed var(--line2)}
+  .patln{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--line2)}
+  .patln:last-child{border-bottom:none}
+  .patln .t{font-size:14px;line-height:1.55}
+  .patln .ja{font-size:12px;color:var(--sub);margin-top:2px}
+  .patw{display:inline-block;font-size:10px;color:var(--gold);border:1px solid var(--line);border-radius:20px;padding:1px 7px;margin-top:5px}
+  .patmore{width:100%;margin-top:9px;padding:8px;border-radius:9px;border:1px dashed var(--line);background:none;color:var(--sub);font-family:inherit;font-size:12px;cursor:pointer}
   /* Jelajah */
   #homeJelajah{display:block;margin:4px 0 2px}
   .jcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px}
@@ -898,11 +918,12 @@
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-packs"></div>
     <div class="pane" id="l-gaul"></div>
+    <div class="pane" id="l-pat"></div>
     <div class="pane" id="l-gram"></div>
     <div class="pane" id="l-prefix"></div>
     <div class="pane" id="l-suffix"></div>
@@ -1045,6 +1066,6 @@
 <script src="packs.js?v=3"></script>
 <script src="cities.js?v=2"></script>
 <script src="news.js"></script>
-<script src="app.js?v=73"></script>
+<script src="app.js?v=74"></script>
 </body>
 </html>
