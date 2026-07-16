@@ -31,7 +31,7 @@ def parse_arr(src, name):
 
 def main():
     # インドネシア国内の出来事を扱うフィードのみ（dunia/international は使わない）
-    FEEDS = ["nasional", "megapolitan", "politik", "hukum"]
+    FEEDS = ["metro", "politik", "hukum", "ekonomi"]   # nasional/megapolitan は Antara 側で廃止
     PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
     # 人物プロフィール／経歴紹介系は除外（出来事のニュースだけにする）
     BLOCK = ("profil", "sosok", "riwayat", "biodata", "mengenal ", "siapa itu")
@@ -41,11 +41,15 @@ def main():
         m = re.search(r"<" + tag + r">(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</" + tag + r">", it, re.S)
         return html.unescape(m.group(1).strip()) if m else ""
 
+    dead = []
     def harvest(feed, cap):
         n = 0
         try:
             rss = fetch("https://www.antaranews.com/rss/%s.xml" % feed)
-        except Exception:
+        except Exception as e:
+            print("WARN: feed '%s' unavailable (%s)" % (feed, e))
+            if feed not in dead:
+                dead.append(feed)
             return
         for it in re.findall(r"<item>(.*?)</item>", rss, re.S):
             if n >= cap or len(picked) >= 10:
@@ -63,15 +67,17 @@ def main():
 
     for f in FEEDS:
         harvest(f, PER_FEED)
-    if len(picked) < 10:                 # 不足分は国内フィードから補充
-        harvest("nasional", 10)
-    if len(picked) < 10:
+    if len(picked) < 10:                 # 不足分は同じ国内フィードから補充
         for f in FEEDS:
             harvest(f, 10)
             if len(picked) >= 10:
                 break
+    if dead:
+        print("WARN: dead feeds:", ", ".join(dead))
+    if len(picked) < 10:
+        print("WARN: only %d/10 articles collected" % len(picked))
     if not picked:
-        print("no items fetched; abort"); return
+        raise SystemExit("ERROR: no items fetched — all feeds failed. Check RSS paths.")
 
     today = (datetime.datetime.utcnow()+datetime.timedelta(hours=7)).date().isoformat()  # WIB (GMT+7)
     REAL = []
