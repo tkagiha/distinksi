@@ -70,6 +70,12 @@ function showPop(el){const w=el.getAttribute("data-w");const m=el.getAttribute("
 /* 単一の委譲クリックハンドラ（音声・辞書・カルーセル・ホーム遷移・ブックマーク・意味表示） */
 document.addEventListener("click",e=>{
   const pb=e.target.closest("[data-audio]");if(pb){e.stopPropagation();play(pb.dataset.audio,pb.dataset.text||"",pb);return;}
+  const pc=e.target.closest("[data-pat]");
+  if(pc){e.stopPropagation();var pid=pc.dataset.pat;openTarget("learn:l-pat");
+    setTimeout(function(){var t=document.querySelector('[data-patcard="'+pid+'"]');
+      if(t){t.scrollIntoView({behavior:"smooth",block:"center"});t.classList.add("hi");
+        setTimeout(function(){t.classList.remove("hi");},1600);}},220);
+    return;}
   const bk=e.target.closest("[data-book]");if(bk){e.stopPropagation();try{toggleBook(JSON.parse(bk.getAttribute("data-book")));if($("bookOv").classList.contains("on"))renderBookmarks();}catch(_){}return;}
   const nav=e.target.closest("[data-nav]");if(nav){const[k,d]=nav.dataset.nav.split(":");if(CAR[k])CAR[k].step(+d);return;}
   const gt=e.target.closest("[data-goto]");if(gt){if(gt.dataset.qmode)_pendQ=gt.dataset.qmode;openTarget(gt.dataset.goto);return;}
@@ -153,6 +159,7 @@ function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
   if(id==="l-packs")ensureCards(function(){buildIslandPacks();});
   if(id==="l-gaul")buildGaul();
+  if(id==="l-pat")ensureCards(buildPat);
   if(id==="t-surv")buildSurv();
   if(id==="l-gram")ensureExtra(buildGrammar);
   if(id==="l-prefix")ensureExtra(buildPrefix);
@@ -548,7 +555,7 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
   const c=deck[fi];const stt=status[c.w];const stb=stt?`<span class="badge bst">${stt==='weak'?'苦手':'覚えた'}</span>`:"";
   ft.innerHTML=`<span class="badge lv${c.lv}">${({1:"初級",2:"中級",3:"上級"})[c.lv]}</span>`+c.src.map(s=>`<span class="badge bsrc">${esc(s)}</span>`).join("")+stb;
   const fk=$("fkata");
-  if(fFlip){fw.textContent=c.ja;fm.textContent=c.w;if(fk)fk.textContent="";fx.innerHTML=c.ex?`<div class="fexline">${spkBtn(c.ex[2],c.ex[0])}<span class="t">${wrapWords(c.ex[0])}</span></div><div class="fexja">${esc(c.ex[1])}</div>`:"";}
+  if(fFlip){fw.textContent=c.ja;fm.textContent=c.w;if(fk)fk.textContent="";fx.innerHTML=c.ex?`${patChip(c)}<div class="fexline">${spkBtn(c.ex[2],c.ex[0])}<span class="t">${wrapWords(c.ex[0])}</span></div><div class="fexja">${esc(c.ex[1])}</div>`:"";}
   else{fw.textContent=c.w;fm.textContent="";if(fk)fk.textContent=idKata(c.w);fx.innerHTML="";}
   fc.textContent=(fi+1)+" / "+deck.length;
   if($("fBook"))$("fBook").classList.toggle("on",isBooked(c.w));
@@ -573,6 +580,76 @@ const ARCH_CLUSTERS=[
 /* GEO と同順。地図(568x226)は正距円筒: x=2.4+(lon-95.2)*12.36, y=6.5+(5.9-lat)*12.15 */
 const GEOPT=[[23.4, 25.9], [50.6, 46.6], [69.1, 86.7], [81.5, 72.1], [116.7, 67.2], [93.9, 97.6], [113.6, 117.1], [137.1, 106.1], [90.2, 121.9], [124.8, 137.7], [146.4, 153.5], [155.7, 162.0], [137.1, 155.9], [187.8, 165.7], [189.9, 173.0], [217.5, 171.7], [249.0, 180.2], [275.6, 182.7], [327.5, 186.3], [185.3, 78.2], [228.6, 100.1], [249.6, 113.4], [265.7, 74.5], [266.9, 38.1], [365.8, 63.6], [339.8, 69.7], [316.3, 95.2], [299.0, 109.8], [308.9, 130.4], [337.4, 128.0], [423.9, 120.7], [406.6, 63.6], [541.3, 117.1], [472.1, 97.6], [551.2, 168.1], [510.4, 125.6], [542.5, 128.0], [448.6, 90.3], null, null, null, null, null, null, null, null, null, null, null, null];
 const CITIES=[[55,52],[108,128],[150,160],[166,168],[228,168],[278,182],[208,92],[288,98],[360,140],[376,60],[542,96]];
+/* ===== 言い回し（例文に繰り返し出る型） ===== */
+const PATTERNS=[
+ {id:"tolong",  rx:/\btolong\b/i,                 p:"tolong 〜",       ja:"〜してください",       note:"依頼の基本形。動詞の前に置くだけで丁寧になります。"},
+ {id:"jangan",  rx:/\bjangan\b/i,                 p:"jangan 〜",       ja:"〜しないで",           note:"禁止。jangan lupa（忘れないで）は頻出。"},
+ {id:"bisa",    rx:/\bbisa\b[^.!?]*\?/i,          p:"bisa 〜?",        ja:"〜できますか",         note:"可否をたずねる。Bisa tolong …? でより丁寧に。"},
+ {id:"boleh",   rx:/\bboleh\b/i,                  p:"boleh 〜",        ja:"〜してもいい",         note:"許可。Boleh minta …? で「〜をもらえますか」。"},
+ {id:"mau",     rx:/\bmau\b/i,                    p:"mau 〜",          ja:"〜したい・欲しい",     note:"願望。Saya mau … は注文でも使えます。"},
+ {id:"sudahblm",rx:/\b(sudah|belum)\b/i,          p:"sudah / belum",   ja:"もう〜／まだ〜ない",   note:"時制の代わり。返事も sudah / belum で返します。"},
+ {id:"sedang",  rx:/\b(sedang|lagi)\s+\w/i,       p:"sedang 〜",       ja:"〜している最中",       note:"進行。口語では lagi をよく使います。"},
+ {id:"harus",   rx:/\b(harus|mesti|perlu)\b/i,    p:"harus 〜",        ja:"〜しなければ",         note:"義務・必要。perlu は「必要がある」。"},
+ {id:"kalau",   rx:/\b(kalau|jika)\b/i,           p:"kalau 〜",        ja:"もし〜なら",           note:"条件。会話では kalau が圧倒的です。"},
+ {id:"supaya",  rx:/\b(supaya|agar|biar)\b/i,     p:"supaya 〜",       ja:"〜するように",         note:"目的。口語では biar。"},
+ {id:"karena",  rx:/\b(karena|sebab)\b/i,         p:"karena 〜",       ja:"〜なので",             note:"理由。遅刻の説明で毎日使います。"},
+ {id:"tapi",    rx:/\b(tapi|tetapi|namun)\b/i,    p:"tapi 〜",         ja:"でも〜",               note:"逆接。書き言葉は tetapi / namum ではなく namun。"},
+ {id:"dulu",    rx:/\bdulu\b/i,                   p:"〜 dulu",         ja:"まず〜して",           note:"順番を示す。Tunggu dulu.（ちょっと待って）"},
+ {id:"saja",    rx:/\b(saja|aja)\b/i,             p:"〜 saja",         ja:"〜だけ・〜でいい",     note:"限定・遠慮。口語は aja。"},
+ {id:"lagi",    rx:/\blagi\b\s*[.!?]|\blagi\b$/i,p:"〜 lagi",         ja:"もう一度・また",       note:"文末の lagi は「また」。sekali lagi で「もう一度」。"},
+ {id:"sekali",  rx:/\b(sekali|banget)\b/i,        p:"〜 sekali",       ja:"とても〜",             note:"強調は形容詞の後ろ。口語は banget。"},
+ {id:"terlalu", rx:/\bterlalu\b/i,                p:"terlalu 〜",      ja:"〜すぎる",             note:"過剰。値段や辛さの交渉で使います。"},
+ {id:"masih",   rx:/\bmasih\b/i,                  p:"masih 〜",        ja:"まだ〜",               note:"継続。Masih jauh?（まだ遠い？）"},
+ {id:"pernah",  rx:/\bpernah\b/i,                 p:"pernah 〜",       ja:"〜したことがある",     note:"経験。belum pernah で「まだない」。"},
+ {id:"akan",    rx:/\bakan\b/i,                   p:"akan 〜",         ja:"〜する予定",           note:"未来。会話では省くことも多い。"},
+ {id:"ada",     rx:/\bada\b/i,                    p:"ada 〜",          ja:"〜がある／いる",       note:"存在。Ada …?（〜ありますか）は買い物の基本。"},
+ {id:"berapa",  rx:/\bberapa\b/i,                 p:"berapa 〜?",      ja:"いくつ・いくら",       note:"数と値段。Berapa harganya? は最頻出。"},
+ {id:"dimana",  rx:/\b(di mana|ke mana)\b/i,      p:"di mana?",        ja:"どこ",                 note:"場所。ke mana は「どこへ」。"},
+ {id:"kapan",   rx:/\bkapan\b/i,                  p:"kapan?",          ja:"いつ",                 note:"時。Kapan berangkat?（いつ出発？）"},
+ {id:"gimana",  rx:/\b(bagaimana|gimana)\b/i,     p:"bagaimana?",      ja:"どう",                 note:"方法・様子。口語は gimana。"},
+ {id:"kena",    rx:/\bkena\b/i,                   p:"kena 〜",         ja:"〜を食らう・当たる",   note:"受け身的な口語。kena tilang（切符を切られる）。"},
+ {id:"bikin",   rx:/\b(bikin|membuat)\b/i,        p:"bikin 〜",        ja:"〜させる・作る",       note:"使役の口語。bikin capek（疲れさせる）。"},
+ {id:"pakai",   rx:/\b(pakai|pake)\b/i,           p:"pakai 〜",        ja:"〜入りで・〜を使って", note:"注文で頻出。pakai es（氷入りで）。"},
+ {id:"nya",     rx:/\w{3,}nya\b/i,                p:"〜nya",           ja:"その〜",               note:"既出のものを指す。Harganya berapa?（その値段は？）"}
+];
+var _patIdx=null;
+function patIndex(){if(_patIdx)return _patIdx;
+  _patIdx={};PATTERNS.forEach(function(p){_patIdx[p.id]=[];});
+  (CARDS||[]).forEach(function(c){if(!c.ex)return;
+    PATTERNS.forEach(function(p){if(p.rx.test(c.ex[0]))_patIdx[p.id].push(c);});});
+  return _patIdx;}
+function patsOf(c){if(!c||!c.ex)return [];
+  return PATTERNS.filter(function(p){return p.rx.test(c.ex[0]);});}
+function patMain(c){var ps=patsOf(c);if(!ps.length)return null;
+  var idx=patIndex();
+  /* 汎用すぎる型は後回しにして、学びがいのある型を優先 */
+  ps.sort(function(a,b){return idx[a.id].length-idx[b.id].length;});
+  return ps[0];}
+function patChip(c){var p=patMain(c);if(!p)return "";
+  var n=patIndex()[p.id].length;
+  return '<button class="patchip" data-pat="'+p.id+'" aria-label="この言い回しの例文をまとめて見る">'
+    +'<span class="patp">'+esc(p.p)+'</span><span class="patja">'+esc(p.ja)+'</span>'
+    +'<span class="patn">'+n+'例</span></button>';}
+function buildPat(){var el=$("l-pat");if(!el)return;
+  var idx=patIndex();
+  var list=PATTERNS.slice().sort(function(a,b){return idx[b.id].length-idx[a.id].length;})
+    .filter(function(p){return idx[p.id].length>0;});
+  el.innerHTML='<div class="packintro">例文のなかで何度も出てくる「型」です。同じ型に何度も出会うほど、言い方が身につきます。</div>'
+   +list.map(function(p){var cs=idx[p.id];
+     return '<div class="patcard" data-patcard="'+p.id+'">'
+      +'<div class="pathead"><div><div class="patp2">'+esc(p.p)+'</div><div class="patja2">'+esc(p.ja)+'</div></div>'
+      +'<div class="patcount">'+cs.length+'<span>例文</span></div></div>'
+      +'<div class="patnote">'+esc(p.note)+'</div>'
+      +'<div class="patex" id="patex-'+p.id+'">'+cs.slice(0,3).map(patLine).join("")+'</div>'
+      +(cs.length>3?'<button class="patmore" data-more="'+p.id+'">ほかの '+(cs.length-3)+' 例も見る</button>':'')
+      +'</div>';}).join("");
+  el.querySelectorAll("[data-more]").forEach(function(b){b.onclick=function(){
+    var id=b.dataset.more,cs=patIndex()[id];
+    $("patex-"+id).innerHTML=cs.map(patLine).join("");b.remove();};});}
+function patLine(c){
+  return '<div class="patln">'+spkBtn(c.ex[2]||c.audio||"",c.ex[0])
+    +'<div><div class="t">'+wrapWords(c.ex[0])+'</div><div class="ja">'+esc(c.ex[1])+'</div>'
+    +'<div class="patw">'+esc(c.w)+'</div></div></div>';}
 /* ===== Jelajah — 群島の旅 ===== */
 var JC=window.JCITIES||[];
 function jlj(){var d=LS("dks_jelajah",{lastDate:"",visited:[],learned:{}});
