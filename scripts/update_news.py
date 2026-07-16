@@ -34,13 +34,41 @@ def main():
     FEEDS = ["metro", "politik", "hukum", "ekonomi"]   # nasional/megapolitan は Antara 側で廃止
     PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
     # 人物プロフィール／経歴紹介系は除外（出来事のニュースだけにする）
-    BLOCK = ("profil", "sosok", "riwayat", "biodata", "mengenal ", "siapa itu")
+    BLOCK = ("profil", "sosok", "riwayat", "biodata", "mengenal ", "siapa itu",
+             "mengenang", "kilas balik", "deretan", "rekomendasi", "inilah",
+             "tips", "cara efektif", "cara mudah", "simak tips", "ketahui ",
+             "ingin coba", "jenis ", "daftar 1", "apa itu", "berikut 1",
+             "link live streaming", "jadwal dan link", "sinopsis", "zodiak", "ramalan")
     picked, seen = [], set()
+    # 過去7日ぶんで既に配信済みのリンク・見出しを読み込み、重複を除く
+    _old = open(NJS, encoding="utf-8").read() if os.path.exists(NJS) else ""
+    used_links, used_titles = set(), set()
+    for _d in parse_arr(_old, "REALNEWS_WEEK"):
+        for _it in _d.get("items", []):
+            if _it.get("url"): used_links.add(_it["url"])
+            if _it.get("id"): used_titles.add(_it["id"].strip().lower())
+    print("既配信の記事: %d 本（この分は除外する）" % len(used_titles))
 
     def g_of(it, tag):
         m = re.search(r"<" + tag + r">(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</" + tag + r">", it, re.S)
         return html.unescape(m.group(1).strip()) if m else ""
 
+    STOP = set(("yang","dan","di","ke","dari","untuk","dengan","pada","ini","itu",
+                "adalah","akan","bisa","dapat","tidak","ada","juga","atau","para",
+                "saat","usai","soal","jadi","agar","hingga","dalam","atas","bagi"))
+    def keys_of(title):
+        ws = re.findall(r"[a-z]{4,}", title.lower())
+        return set(w for w in ws if w not in STOP)
+    picked_keys = []
+    def too_similar(title):
+        k = keys_of(title)
+        if not k:
+            return False
+        for pk in picked_keys:
+            inter = len(k & pk)
+            if inter >= 3 or (pk and inter / max(1, min(len(k), len(pk))) >= 0.5):
+                return True          # 同じ話題の焼き直し
+        return False
     dead = []
     def harvest(feed, cap):
         n = 0
@@ -59,9 +87,14 @@ def main():
             img = im.group(1) if im else ""
             if not (title and link and img) or link in seen:
                 continue
+            if link in used_links or title.strip().lower() in used_titles:
+                continue                      # 昨日までに配信済み
             if any(b in title.lower() for b in BLOCK):
                 continue
+            if too_similar(title):
+                continue
             seen.add(link)
+            picked_keys.append(keys_of(title))
             picked.append((title, link, img))
             n += 1
 
@@ -69,7 +102,7 @@ def main():
         harvest(f, PER_FEED)
     if len(picked) < 10:                 # 不足分は同じ国内フィードから補充
         for f in FEEDS:
-            harvest(f, 10)
+            harvest(f, 20)
             if len(picked) >= 10:
                 break
     if dead:
