@@ -1340,13 +1340,14 @@ if($("btnPrefetch"))$("btnPrefetch").onclick=prefetchAll;
 function bkNudge(){var el=$("bkNudge");if(!el)return;
   var b=LS("dks_bkup",{}),known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length,mw=Object.keys(LS("dks_mywords",{})).length;
   if(known+mw<10){el.innerHTML="";return;}
+  if(gsEnabled()){el.innerHTML="";return;}
   if(b.snooze&&Date.now()<b.snooze){el.innerHTML="";return;}
   var days=b.last?Math.floor((Date.now()-b.last)/86400000):null;
   if(days!==null&&days<14){el.innerHTML="";return;}
-  var msg=(days===null)?"まだ一度もバックアップしていません。":("最後のバックアップから "+days+" 日たちました。");
-  el.innerHTML='<div class="bknudge"><div class="bkn-t">'+msg+'</div><div class="bkn-s">学習データはこの端末の中だけにあります。ブラウザのデータを消すと、覚えた '+known+'語・登録した '+mw+'語がすべて失われます。書き出してクラウドに置いておけば、機種変更でも戻せます。</div><div class="bkn-b"><button class="bkn-go" id="bknGo">今すぐ書き出す</button><button class="bkn-later" id="bknLater">あとで</button></div></div>';
-  var g=$("bknGo");if(g)g.onclick=function(){backupData();};
-  var l=$("bknLater");if(l)l.onclick=function(){var bb=LS("dks_bkup",{});bb.snooze=Date.now()+7*86400000;SV("dks_bkup",bb);el.innerHTML="";};}
+  el.innerHTML='<div class="bknudge"><div class="bkn-t">ここまでの記録、守りませんか？</div><div class="bkn-s">覚えた '+known+'語・登録した '+mw+'語は、いまこの端末の中だけにあります。Googleドライブと連携すると自動で保存され、機種変更やデータ消去のあともワンタップで戻せます。</div><div class="bkn-b"><button class="bkn-go" id="bknGo">Googleドライブと連携</button><button class="bkn-later" id="bknLater">あとで</button></div><div class="bkn-alt" id="bknFile">ファイルに書き出す場合はこちら</div></div>';
+  var g=$("bknGo");if(g)g.onclick=function(){gsConnect(function(){el.innerHTML="";});};
+  var l=$("bknLater");if(l)l.onclick=function(){var bb=LS("dks_bkup",{});bb.snooze=Date.now()+7*86400000;SV("dks_bkup",bb);el.innerHTML="";};
+  var f=$("bknFile");if(f)f.onclick=function(){backupData();};}
 function bkInfo(){var el=$("bkLbl");if(!el)return;
   var known=_knownOf(LS("dks_status",{})),act=LS("dks_act",{}),mw=Object.keys(LS("dks_mywords",{})).length,b=LS("dks_bkup",{});
   var n=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)n++;}}catch(e){}
@@ -1784,6 +1785,13 @@ function _gsRestore(interactive){
     }).catch(function(){if(interactive)alert("ドライブに接続できませんでした。");});
   },interactive);
 }
+function gsConnect(done){
+  _gsToken(function(){
+    SV("dks_gsync",1);_gsPaint();
+    if(localStorage.getItem("dks_status"))_gsUpload();else _gsRestore(false);
+    if(done)done();
+  },true);
+}
 (function(){
   var bt=$("btnGsync"),pl=$("btnGsyncPull");
   if(bt)bt.onclick=function(){
@@ -1791,12 +1799,7 @@ function _gsRestore(interactive){
       if(!confirm("Googleドライブとの同期を解除しますか？\n（ドライブ上の保存データは残ります。この端末の学習データも消えません）"))return;
       SV("dks_gsync",0);_gsPaint();return;
     }
-    _gsToken(function(){
-      SV("dks_gsync",1);_gsPaint();
-      var hasLocal=!!localStorage.getItem("dks_status");
-      if(hasLocal){_gsUpload();}
-      else{_gsRestore(false);}
-    },true);
+    gsConnect();
   };
   if(pl)pl.onclick=function(){_gsRestore(true);};
   var sb=$("btnSettings");if(sb)sb.addEventListener("click",_gsPaint);
