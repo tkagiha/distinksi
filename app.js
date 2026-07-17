@@ -161,6 +161,7 @@ function initPane(id){
   if(id==="l-gaul")buildGaul();
   if(id==="l-pat")ensureCards(buildPat);
   if(id==="t-surv")buildSurv();
+  if(id==="t-office")buildOffice();
   if(id==="l-gram")ensureExtra(buildGrammar);
   if(id==="l-prefix")ensureExtra(buildPrefix);
   if(id==="l-suffix")ensureExtra(buildSuffix);
@@ -214,6 +215,17 @@ function buildGaul(){var el=$("l-gaul");if(!el||el.dataset.done)return;el.datase
 function buildSurv(){var el=$("t-surv");if(!el||el.dataset.done)return;el.dataset.done=1;
   var S=window.SURVIVAL||[];
   el.innerHTML='<div class="packintro">現地で焦ったときに、上から順に読めるようにしています。文はすべて音声で再生できます（オフラインでも動作）。</div>'
+   +S.map(function(s){return '<div class="survsec"><div class="survhead"><svg class="icn"><use href="#'+s.icon+'"/></svg><div><b>'+esc(s.title)+'</b><span>'+esc(s.sub)+'</span></div></div>'
+    +s.items.map(function(it){return '<div class="survrow">'+spkBtn("",it.id)
+      +'<div class="sbody"><div class="id"><span class="t">'+wrapWords(it.id)+'</span></div><div class="ja">'+esc(it.ja)+'</div>'
+      +(it.note?'<div class="snote">'+esc(it.note)+'</div>':'')+'</div>'
+      +'<button class="sbook" data-book=\'{"id":'+JSON.stringify(it.id)+',"ja":'+JSON.stringify(it.ja)+',"audio":""}\' aria-label="この表現を覚えたリストに保存">★</button></div>';}).join("")
+    +'</div>';}).join("");
+  refreshBookBtns();}
+/* ===== オフィス ===== */
+function buildOffice(){var el=$("t-office");if(!el||el.dataset.done)return;el.dataset.done=1;
+  var S=window.OFFICE||[];
+  el.innerHTML='<div class="packintro">職場でそのまま使える短い言い方です。チャットの一行から会議・依頼・断りまで、上から順に読めます。</div>'
    +S.map(function(s){return '<div class="survsec"><div class="survhead"><svg class="icn"><use href="#'+s.icon+'"/></svg><div><b>'+esc(s.title)+'</b><span>'+esc(s.sub)+'</span></div></div>'
     +s.items.map(function(it){return '<div class="survrow">'+spkBtn("",it.id)
       +'<div class="sbody"><div class="id"><span class="t">'+wrapWords(it.id)+'</span></div><div class="ja">'+esc(it.ja)+'</div>'
@@ -1123,7 +1135,7 @@ function openTarget(g){const[v,pane]=g.split(":");showView(v);if(pane){const box
 
 /* ===== 検索 ===== */
 let SIDX=null;
-const SCAT=["辞書","自分の単語","単語","島パック","略語","サバイバル","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
+const SCAT=["辞書","自分の単語","単語","島パック","略語","サバイバル","オフィス","例文","文法","接辞","会話","ドライバー","旅行","テーマ別","ニュース","読み物","文化","歴史","地理","日常","日本","数字"];
 function buildIndex(){SIDX=[];
   const add=(id,ja,audio,src,go)=>{if(id&&ja)SIDX.push({id:String(id),ja:String(ja),audio:audio||"",src:src,go:go});};
   const wau=w=>"audio/w/"+String(w).replace(/\//g,"_")+".mp3";
@@ -1139,6 +1151,7 @@ function buildIndex(){SIDX=[];
   try{PACKS.forEach(g=>g.items.forEach(it=>add(it[0],it[1],it[2],"テーマ別","talk:t-pack")));}catch(e){}
   try{(window.GAUL||[]).forEach(g=>{add(g.s,g.ja+"（＝"+g.f+"）","","略語","learn:l-gaul");add(g.ex,g.exja,"","略語","learn:l-gaul");});}catch(e){}
   try{(window.SURVIVAL||[]).forEach(s=>s.items.forEach(it=>add(it.id,it.ja,"","サバイバル","talk:t-surv")));}catch(e){}
+  try{(window.OFFICE||[]).forEach(s=>s.items.forEach(it=>add(it.id,it.ja,"","オフィス","talk:t-office")));}catch(e){}
   try{(window.ISLANDPACKS||[]).forEach(p=>{if(!packOpen(p.id))return;
     p.words.forEach(w=>{add(w.word,w.meaning,w.audio,"島パック","learn:l-packs");
       (w.ex||[]).forEach(e=>add(e[0],e[1],e[2],"島パック","learn:l-packs"));});});}catch(e){}
