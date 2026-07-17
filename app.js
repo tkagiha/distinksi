@@ -1766,7 +1766,11 @@ function _gsUpload(){
       {method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},body:body});
   }).then(function(){SV("dks_gsync_last",Date.now());_gsPaint();}).catch(function(){});
 }
-function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){_gsToken(_gsUpload,false);},5000);}
+function _gsStale(){return (Date.now()-(LS("dks_gsync_last",0)||0))>20*3600*1000;}
+function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){
+  if(_gsTok&&Date.now()<_gsExp)_gsUpload();
+  else if(_gsStale())_gsToken(_gsUpload,false);
+},5000);}
 function _gsRestore(interactive){
   _gsToken(function(){
     _gsFind().then(function(f){
@@ -1803,9 +1807,8 @@ function gsConnect(done){
   };
   if(pl)pl.onclick=function(){_gsRestore(true);};
   var sb=$("btnSettings");if(sb)sb.addEventListener("click",_gsPaint);
-  if(gsEnabled()){
-    _gsToken(_gsUpload,false);
-    document.addEventListener("click",function _g1(){document.removeEventListener("click",_g1);if(!_gsTok)_gsToken(_gsUpload,false);},{once:true});
+  if(gsEnabled()&&_gsStale()){
+    document.addEventListener("click",function(){if(!_gsTok)_gsToken(_gsUpload,false);},{once:true});
   }
   _gsPaint();
 })();
