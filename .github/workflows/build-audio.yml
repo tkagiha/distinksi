@@ -6,6 +6,7 @@ on:
     paths:
       - 'cards.js'
       - 'scripts/build_audio.py'
+      - 'scripts/build_ex_audio.py'
       - '.github/workflows/build-audio.yml'
   workflow_dispatch:
 
@@ -29,6 +30,8 @@ jobs:
       - run: pip install gTTS
       - name: Generate missing word audio
         run: python scripts/build_audio.py
+      - name: Generate example-sentence audio
+        run: python scripts/build_ex_audio.py
       - name: Commit
         id: commit
         run: |
