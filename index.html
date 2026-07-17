@@ -49,16 +49,18 @@
   .shead h2::after{content:"";position:absolute;left:0;bottom:0;width:42px;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
   .shead p{color:var(--sub);font-size:13.5px;margin-top:4px}
   /* サブタブ＝行き先（下線タブ）。丸ピルの絞り込みとは別物に見せる */
-  .subtabs{position:relative;display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
-    margin:16px 0 10px;border-bottom:1px solid var(--line);
+  .subtabs{position:relative;display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+    margin:16px 0 12px;padding:2px 2px 8px;
     -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);
     mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
   .subtabs::-webkit-scrollbar{display:none}
-  .subtabs button{flex:none;background:none;border:none;border-bottom:2.5px solid transparent;border-radius:0;
-    color:var(--sub);padding:9px 11px;font-size:14px;font-family:inherit;cursor:pointer;transition:.15s;
+  .subtabs button{flex:none;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    color:var(--sub);padding:8px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;transition:.15s;
     line-height:1.25;white-space:nowrap}
-  .subtabs button.active{color:var(--hl);border-bottom-color:var(--hl);font-weight:700;background:none}
+  .subtabs button.active{color:var(--bg);background:var(--ink);border-color:var(--ink);font-weight:700}
   .subtabs button:active{transform:none;opacity:.6}
+  .subtabs button.grp.open{color:var(--hl);border-color:var(--hl);font-weight:700}
+  .subtabs.sub2{margin-top:-6px;padding-left:10px}
   /* 絞り込み＝丸ピル */
   .chip{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:9px 16px;border-radius:999px;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.25}
   .chip:active{transform:scale(.95)}
@@ -478,6 +480,10 @@
   .greet b{color:var(--ink);font-weight:600}
   .homecta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:12px 0 2px;padding:14px;border-radius:15px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;color:#fff;background:linear-gradient(160deg,#d02a31,#a01820);box-shadow:0 6px 18px rgba(193,39,45,.3);transition:transform .15s}
   .homecta:active{transform:scale(.98)}
+  .homecta{margin:16px 0 6px;padding:16px;font-size:15px}
+  .hero--compact{padding:26px 0 34px;border-top:1px solid var(--line);margin-top:26px}
+  .hero--compact h1{font-size:24px;margin:10px 0 8px}
+  .hero--compact p{font-size:13.5px}
   .catov{position:fixed;inset:0;z-index:98;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.16);cursor:default;-webkit-tap-highlight-color:transparent}
   .catemo{font-size:min(38vw,150px);line-height:1;animation:catpop 1.9s cubic-bezier(.2,.8,.2,1) forwards;will-change:transform,opacity}
   @keyframes catpop{
@@ -937,22 +943,22 @@
     <div id="homeGreet" class="greet"></div>
     <div id="skRisk"></div>
     <div id="bkNudge"></div>
-    <div class="hero"><div class="eyebrow">Bahasa Indonesia</div>
-      <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
-      <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。さあ、最初の一歩をここから。</p>
-    </div>
-    <div id="homeProverb"></div>
-    <div id="homeArchFull"></div>
-    <div id="homeJelajah"></div>
-    <div id="homeKata"></div>
+    <button class="homecta" id="homeCta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
     <div id="homeStats"></div>
     <div id="statsWrap" class="dash"></div>
-    <button class="homecta" id="homeCta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
+    <div id="homeArchFull"></div>
     <div id="homeCards"></div>
+    <div id="homeKata"></div>
+    <div id="homeJelajah"></div>
+    <div id="homeProverb"></div>
+    <div class="hero hero--compact"><div class="eyebrow">Bahasa Indonesia</div>
+      <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
+      <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。</p>
+    </div>
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>3,000語の単語カード、島パック、チャットの言葉、例文に出る言い回し、文法と接辞のしくみ。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-affix">接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語帳</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-affix">接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-packs"></div>
@@ -998,7 +1004,8 @@
     </div>
   </div>
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話、現地で焦らないサバイバル、職場のオフィス表現、ドライバー・旅行・テーマ別、なりきり会話。</p></div>
-    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-surv">サバイバル</button><button data-pane="t-office">オフィス</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-say">言いたいこと</button><button data-pane="t-sim">なりきり会話</button></div>
+    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-sim">なりきり会話</button><button data-pane="t-say">言いたいこと</button><button data-grouptoggle="1" class="grp">場面別 ▾</button></div>
+    <div class="subtabs sub2" data-sub="talk2" style="display:none"><button data-pane="t-surv">サバイバル</button><button data-pane="t-office">オフィス</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="pick"><select id="sSelect"></select></div>
@@ -1036,7 +1043,7 @@
     <div class="pane" id="r-japan"><div class="jcard listcard" id="jCard"></div></div>
   </div>
 
-  <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>街を知る</h2><p>街の看板や表示を撮ると、インドネシア語を読み取って意味を表示。単語タップで発音・意味。</p></div>
+  <div class="view" data-view="scan"><div class="shead"><div class="kick">Kamera</div><h2>カメラ</h2><p>街の看板や表示を撮ると、インドネシア語を読み取って意味を表示。単語タップで発音・意味。</p></div>
     <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
     <input type="file" id="scanFileGal" accept="image/*" hidden>
     <div class="scanbtns"><button class="chip scanbtn" id="scanPick" aria-label="撮影"><svg class="icn"><use href="#i-camera"/></svg> 撮影</button><button class="chip scanbtn" id="scanPickGal" aria-label="画像を選ぶ"><svg class="icn"><use href="#i-image"/></svg> 画像を選ぶ</button></div>
