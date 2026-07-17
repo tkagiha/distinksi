@@ -1006,7 +1006,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>実績バッジ</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}
   if(typeof buildJelajah==="function")buildJelajah();
-  if(typeof buildKata==="function")buildKata();}
+  if(typeof buildKata==="function")buildKata();if(typeof buildWarung==="function")buildWarung();}
 
 /* ===== 群島シェアカード ===== */
 function _cssv(n,f){try{var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||f;}catch(e){return f;}}
@@ -1265,11 +1265,50 @@ renderBookCount();
 
 let ACT=LS("dks_act",{date:"",streak:0,today:0,goal:10});
 const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
-function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);renderHomeStats();updBadge();}
+var WARUNG=[
+ {n:"Nasi Goreng",e:"🍛",b:"nasi＝ごはん、goreng＝炒める →「炒めごはん」。国民食の代表格"},
+ {n:"Mie Goreng",e:"🍜",b:"mie＝麺 →「インドネシア風焼きそば」"},
+ {n:"Sate Ayam",e:"🍢",b:"sate＝串焼き、ayam＝鶏 →「焼き鳥のピーナッツソースがけ」"},
+ {n:"Ayam Goreng",e:"🍗",b:"ayam＝鶏、goreng＝揚げる →「鶏の唐揚げ」"},
+ {n:"Nasi Uduk",e:"🍚",b:"nasi＝ごはん。ココナッツミルクで炊いた香りごはん。ジャカルタの朝食"},
+ {n:"Bakso",e:"🍲",b:"bakso＝肉団子 →「牛肉団子のスープ」。屋台の定番"},
+ {n:"Soto Ayam",e:"🥣",b:"soto＝スープ料理、ayam＝鶏 →「鶏のターメリックスープ」"},
+ {n:"Gado-Gado",e:"🥗",b:"gado-gado＝ごちゃまぜ →「ピーナッツソースの野菜サラダ」"},
+ {n:"Tempe Goreng",e:"🫘",b:"tempe＝大豆の発酵食品 →「テンペの素揚げ」。庶民のたんぱく源"},
+ {n:"Tahu Isi",e:"🥟",b:"tahu＝豆腐、isi＝中身 →「詰め物入り揚げ豆腐」"},
+ {n:"Pisang Goreng",e:"🍌",b:"pisang＝バナナ →「揚げバナナ」。おやつの王様"},
+ {n:"Kerupuk",e:"🍥",b:"kerupuk＝えびせんべい。食事のお供に必ず登場"},
+ {n:"Sambal",e:"🌶️",b:"sambal＝唐辛子ペースト。これがないと始まらない"},
+ {n:"Es Teh Manis",e:"🧊",b:"es＝氷、teh＝茶、manis＝甘い →「甘いアイスティー」"},
+ {n:"Es Jeruk",e:"🍊",b:"es＝氷、jeruk＝柑橘 →「オレンジのジュース」"},
+ {n:"Nasi Kuning",e:"🌕",b:"kuning＝黄色 →「ターメリックの黄色いごはん」。お祝いの定番"},
+ {n:"Rendang",e:"🥘",b:"merendang＝じっくり煮る →「牛肉のスパイス煮込み」。パダン料理の傑作"},
+ {n:"Ikan Bakar",e:"🐟",b:"ikan＝魚、bakar＝直火で焼く →「魚の炭火焼き」"},
+ {n:"Ayam Bakar",e:"🔥",b:"ayam＝鶏、bakar＝焼く →「鶏の炭火焼き」"},
+ {n:"Capcay",e:"🥬",b:"capcay＝野菜たっぷり中華風炒め。華人文化との融合"},
+ {n:"Nasi Campur",e:"🍱",b:"campur＝まぜる →「おかず盛り合わせごはん」"},
+ {n:"Bubur Ayam",e:"🥄",b:"bubur＝おかゆ、ayam＝鶏 →「鶏だしのおかゆ」。朝の味"},
+ {n:"Opor Ayam",e:"🥥",b:"opor＝ココナッツミルク煮 →「鶏のココナッツ煮」。断食明けのごちそう"},
+ {n:"Gulai",e:"🫕",b:"gulai＝スパイス煮込み →「カレー風の煮込み」"},
+ {n:"Pecel Lele",e:"🐠",b:"lele＝ナマズ →「ナマズの揚げ物＋サンバル」。夜屋台の定番"},
+ {n:"Martabak",e:"🥞",b:"martabak＝厚焼き。甘い版と卵入りおかず版がある屋台の人気者"},
+ {n:"Klepon",e:"🍡",b:"klepon＝ヤシ砂糖入り団子。噛むと黒蜜がじゅわっ"},
+ {n:"Kopi Tubruk",e:"☕",b:"kopi＝コーヒー、tubruk＝ぶつける →「粉ごと淹れる濃いコーヒー」"},
+ {n:"Nasi Timbel",e:"🍙",b:"timbel＝葉包み →「バナナの葉で包んだごはん」。スンダ料理"},
+ {n:"Es Cendol",e:"🍧",b:"cendol＝緑の米粉ゼリー →「ココナッツミルクと黒蜜の氷スイーツ」。完走おめでとう！"}
+];
+function buildWarung(){var el=$("homeWarung");if(!el)return;var wr=LS("dks_warung",{got:0}),g=Math.min(wr.got||0,WARUNG.length);
+  var tiles=WARUNG.map(function(d,i){return i<g?('<div class="wtile" data-wi="'+i+'"><span class="we">'+d.e+'</span><span class="wn">'+d.n+'</span></div>'):'<div class="wtile lock"><span class="we">?</span></div>';}).join("");
+  el.innerHTML='<div class="dashcard"><h4>ワルン（食堂の品書き） '+g+' / '+WARUNG.length+'品</h4><div class="wnote">1日の目標を達成すると、料理が1品ならびます。皿をタップすると ことばの意味。</div><div class="wgrid">'+tiles+'</div><div class="wdetail" id="wDetail">'+(g>=WARUNG.length?"🎉 全品制覇！ Selamat makan!（めしあがれ）":"")+'</div></div>';
+  el.querySelectorAll(".wtile[data-wi]").forEach(function(x){x.onclick=function(){var d=WARUNG[+x.dataset.wi];var dt=$("wDetail");if(dt)dt.innerHTML="<b>"+d.e+" "+d.n+"</b><br>"+d.b;};});}
+function warungAward(t){var g=ACT.goal||10;if((ACT.today||0)<g)return;var wr=LS("dks_warung",{got:0,day:""});if(wr.day===t)return;if((wr.got||0)>=WARUNG.length)return;
+  wr.got=(wr.got||0)+1;wr.day=t;SV("dks_warung",wr);var d=WARUNG[wr.got-1];
+  celebrate("🍽️ 目標達成！ ワルンに「"+d.n+"」が並びました");buildWarung();}
+function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);try{warungAward(t);}catch(e){}renderHomeStats();updBadge();}
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
-  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz"><svg class="ngic"><use href="#i-nasgor"/></svg>×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
+  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz"><svg class="ngic"><use href="#i-jimat"/></svg>×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
 function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
@@ -1305,8 +1344,8 @@ function checkIn(){const t=_d(0);const first=ACT.ci!==t;let frozen=0,earned=fals
   if(_ciN>=10){_ciN=0;catScream();return;}
   var msg;
   if(!first)msg="🎉 今日ももう一度！ その調子！";
-  else if(frozen)msg="ナシゴレンを"+frozen+"皿たべて、🔥"+ACT.streak+"日連続をキープしました！";
-  else if(earned)msg="🔥 "+ACT.streak+"日連続！ ごほうびにナシゴレンを1皿ゲット（お休みの日に食べて連続をキープ）";
+  else if(frozen)msg="お守りジマットが身代わりになって、🔥"+ACT.streak+"日連続を守りました！";
+  else if(earned)msg="🔥 "+ACT.streak+"日連続！ お守り「ジマット」を授かりました（お休みの日に身代わりになります）";
   else msg="🔥 "+ACT.streak+" 日連続！ チェックイン完了";
   celebrate(msg);}
 function celebrate(msg){
@@ -1458,7 +1497,7 @@ function streakRisk(){var el=$("skRisk");if(!el)return;
   var studiedYest=(ACT.hist&&ACT.hist[y]>0)||ACT.ci===y;
   if(st<2||studiedToday||!studiedYest){el.innerHTML="";return;}
   var frz=ACT.frz||0;
-  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx">'+(frz>0?('<b>今日サボると ナシゴレンを1皿たべます</b><span>5語やれば '+frz+'皿を温存できます。</span>'):('<b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span>'))+'</div><button class="skgo" id="skGo">5語やる</button></div>';
+  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx">'+(frz>0?('<b>今日サボると お守りジマットを1個つかいます</b><span>5語やれば '+frz+'個を温存。</span>'):('<b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span>'))+'</div><button class="skgo" id="skGo">5語やる</button></div>';
   var g=$("skGo");if(g)g.onclick=function(){openTarget("practice:p-daily");};}
 function bkBadge(){var el=$("btnSettings");if(!el)return;
   var b=LS("dks_bkup",{}),known=_knownOf(LS("dks_status",{}));
