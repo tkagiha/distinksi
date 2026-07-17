@@ -968,18 +968,17 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
   const bar=(x,y)=>`<div class="dbar"><span style="width:${y?Math.round(x/y*100):0}%"></span></div>`;
   const lvrow=(nm,i)=>`<div class="dashrow"><span class="dlab">${nm}</span>${bar(lv[i][0],lv[i][1])}<span class="dval">${lv[i][0]} / ${lv[i][1]}</span></div>`;
-  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${due}</b><span>復習待ち</span></div><div class="dstat"><b>🔥${streak}</b><span>連続</span></div></div></div>
-  <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>
-  <div class="dashcard"><h4>今日の学習</h4><div class="dashrow"><span class="dlab">目標</span>${bar(today,g)}<span class="dval">${today} / ${g}</span></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">苦手マーク ${weak}枚 ・ ${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>`;
+  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${due}</b><span>復習待ち</span></div><div class="dstat"><b>${weak}</b><span>苦手</span></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>
+  <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>`;
   var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
-  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div><div class="dashcard"><h4>\u5b9f\u7e3e\u30d0\u30c3\u30b8</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div>');
   var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
-  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');
   var _WD=["日","月","火","水","木","金","土"],_wk="",_wt=0;
   for(var wi=6;wi>=0;wi--){var _ds=_d(wi),_c=(ACT.hist||{})[_ds]||0;_wt+=_c;var _h=_c?Math.max(10,Math.min(100,_c*12)):3;
     _wk+='<div class="wkbar" title="'+_ds+'：'+_c+'回"><span class="wkn">'+(_c||"")+'</span><div class="wkcol"><div class="wkfill" style="height:'+_h+'%"></div></div><span class="wkd">'+_WD[(function(x){var p=x.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();})(_ds)]+'</span></div>';}
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>今週の学習（合計 '+_wt+' 回）</h4><div class="wkchart">'+_wk+'</div></div>');
+  if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');
   var _P=LS("dks_pron",{}),_pk=Object.keys(_P);
   if(_pk.length){var _sum=0;_pk.forEach(function(k){_sum+=(_P[k].best||0);});var _avg=Math.round(_sum/_pk.length);
     var _wkst=_pk.slice().sort(function(x,y){return (_P[x].best||0)-(_P[y].best||0);}).slice(0,3);
@@ -998,6 +997,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
     return '<div class="tstep'+(got?" got":"")+(cur?" cur":"")+'"><div class="tdot"></div><div class="tinfo"><b>'+esc(t.name)+'</b><span>'+esc(t.ja)+' ・ '+t.n+'語</span></div></div>';}).join("")+'</div>';
   _road+='<div class="tnext">'+(_tn?('次の称号 <b>'+esc(_tn.name)+'</b> まで あと <b>'+(_tn.n-_tk)+'</b> 語'):'すべての称号を授かりました。Nusantara はあなたのもの。')+'</div>';
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>称号の道のり</h4>'+_road+'</div>');
+  el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>実績バッジ</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}
   if(typeof buildJelajah==="function")buildJelajah();
   if(typeof buildKata==="function")buildKata();}
