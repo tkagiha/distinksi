@@ -601,6 +601,7 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
   if(auto&&!fFlip){play(c.audio,c.w,$("fSpk"));if(typeof bumpActivity==="function")bumpActivity();}
 }
 function srsUpdate(w,s){if(!w)return;status[w]=s;SV("dks_status",status);const tn=todayNum();
+  try{var _t=_d(0);if(ACT.jwd!==_t){ACT.jwd=_t;ACT.jw={};}ACT.jw[w]=1;SV("dks_act",ACT);warungAward(_t);}catch(e){}
   if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}
   else if(s==="seen"){const lvl=Math.min(4,((srs[w]&&srs[w].lvl)||1)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}
   else{srs[w]={lvl:1,due:tn+1};}
@@ -1082,7 +1083,7 @@ function comboFx(ok){if(!ok){_combo=0;return;}_combo++;if(_combo<2)return;
   document.body.appendChild(el);requestAnimationFrame(function(){el.classList.add("go");});setTimeout(function(){el.remove();},1150);}
 function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),tom=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn+1&&st[w]!=="known")tom++;});
-  var g=(ACT.goal||10),td=(ACT.date===_d(0))?(ACT.today||0):0,left=Math.max(0,g-td);
+  var g=(ACT.goal||10),jn=(ACT.jwd===_d(0)&&ACT.jw)?Object.keys(ACT.jw).length:0,left=Math.max(0,g-jn);
   var ov=$("recapOv");
   if(!ov){document.body.insertAdjacentHTML("beforeend",'<div class="overlay" id="recapOv"><div class="sheet recapsheet"></div></div>');ov=$("recapOv");}
   ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">🎉</div><h3 class="rctitle">ここまでの成果</h3><div class="rcstats"><div class="rcbox"><b>'+_sesOk+'</b><span>正解 / '+_sesN+'問</span></div><div class="rcbox"><b>'+tom+'</b><span>明日の復習予定</span></div></div><div class="rcmsg">'+(left>0?('ワルンの一皿まで あと <b>'+left+'</b> 語'):'今日の目標は達成ずみ。一皿ならびました 🍽️')+'</div><button class="rcgo" id="recapGo">つづける</button><button class="rcclose" id="recapHome">ホームへもどる</button>';
@@ -1322,9 +1323,9 @@ var WARUNG=[
 ];
 function buildWarung(){var el=$("homeWarung");if(!el)return;var wr=LS("dks_warung",{got:0}),g=Math.min(wr.got||0,WARUNG.length);
   var tiles=WARUNG.map(function(d,i){return i<g?('<div class="wtile" data-wi="'+i+'"><span class="we">'+d.e+'</span><span class="wn">'+d.n+'</span></div>'):'<div class="wtile lock"><span class="we">?</span></div>';}).join("");
-  el.innerHTML='<div class="dashcard"><h4>ワルン（食堂の品書き） '+g+' / '+WARUNG.length+'品</h4><div class="wnote">1日の目標を達成すると、料理が1品ならびます。皿をタップすると ことばの意味。</div><div class="wgrid">'+tiles+'</div><div class="wdetail" id="wDetail">'+(g>=WARUNG.length?"🎉 全品制覇！ Selamat makan!（めしあがれ）":"")+'</div></div>';
+  el.innerHTML='<div class="dashcard"><h4>ワルン（食堂の品書き） '+g+' / '+WARUNG.length+'品</h4><div class="wnote">1日に '+(ACT.goal||10)+' 語へ判定（知らない/見た/覚えた）をつけると、料理が1品ならびます。皿をタップすると ことばの意味。</div><div class="wgrid">'+tiles+'</div><div class="wdetail" id="wDetail">'+(g>=WARUNG.length?"🎉 全品制覇！ Selamat makan!（めしあがれ）":"")+'</div></div>';
   el.querySelectorAll(".wtile[data-wi]").forEach(function(x){x.onclick=function(){var d=WARUNG[+x.dataset.wi];var dt=$("wDetail");if(dt)dt.innerHTML="<b>"+d.e+" "+d.n+"</b><br>"+d.b;};});}
-function warungAward(t){var g=ACT.goal||10;if((ACT.today||0)<g)return;var wr=LS("dks_warung",{got:0,day:""});if(wr.day===t)return;if((wr.got||0)>=WARUNG.length)return;
+function warungAward(t){var g=ACT.goal||10;var jn=(ACT.jwd===t&&ACT.jw)?Object.keys(ACT.jw).length:0;if(jn<g)return;var wr=LS("dks_warung",{got:0,day:""});if(wr.day===t)return;if((wr.got||0)>=WARUNG.length)return;
   wr.got=(wr.got||0)+1;wr.day=t;SV("dks_warung",wr);var d=WARUNG[wr.got-1];
   celebrate("🍽️ 目標達成！ ワルンに「"+d.n+"」が並びました");buildWarung();}
 function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);try{warungAward(t);}catch(e){}try{islandStrip();}catch(e){}renderHomeStats();updBadge();}
