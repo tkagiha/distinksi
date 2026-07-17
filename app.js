@@ -10,6 +10,7 @@ const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
 const LS=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const APP_VER="v94";
 const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));_mirrorSoon();if(k!=="dks_gsync_last")_gsSoon()}catch(e){}};
 
 /* 辞書 */
@@ -1873,7 +1874,8 @@ var GSYNC_CID="386522339437-ehrj0ubctons92o0d8npk5emfar49kme.apps.googleusercont
 var GSYNC_FILE="artikula-sync.json";
 var _gsTok=null,_gsExp=0,_gsClient=null,_gsCb=null,_gsTmr=null;
 function gsEnabled(){return !!LS("dks_gsync",0);}
-function _gsPaint(){
+function _appVerPaint(){var el=$("appVer");if(el)el.textContent="Artikula "+APP_VER;}
+function _gsPaint(){_appVerPaint();
   var st=$("gsyncStat"),bt=$("btnGsync");if(!st||!bt)return;
   if(!gsEnabled()){bt.textContent="連携する";st.textContent="未連携。連携すると、学習データがあなたのGoogleドライブに自動保存され、機種変更やデータ消去後も復元できます。";return;}
   bt.textContent="連携を解除";
