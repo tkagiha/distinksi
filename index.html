@@ -513,6 +513,14 @@
   .nqmiss li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:13px}
   .nqmiss li span{color:var(--sub);font-size:12px;text-align:right}
   .nqperf{text-align:center;font-size:13px;color:var(--sub);padding:12px 0 16px}
+  /* タブの中の切り替え（セグメント） */
+  .subseg{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:2px 0 10px;background:var(--card)}
+  .subseg button{background:none;border:none;border-right:1px solid var(--line);padding:8px 15px;font-family:inherit;
+    font-size:13px;color:var(--sub);cursor:pointer;display:flex;align-items:center;gap:6px}
+  .subseg button:last-child{border-right:none}
+  .subseg button.on{background:var(--ink);color:var(--bg)}
+  .subseg button span{font-size:10px;opacity:.65}
+  .affixnote{font-size:12px;color:var(--sub);line-height:1.7;margin:0 2px 12px}
   /* 言い回し */
   .patchip{display:inline-flex;align-items:center;gap:7px;margin:0 0 9px;padding:5px 10px;
     border:1px solid var(--gold);border-radius:20px;background:none;font-family:inherit;cursor:pointer;max-width:100%}
@@ -944,16 +952,14 @@
   </div>
 
   <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>3,000語の単語カード、島パック、チャットの言葉、例文に出る言い回し、文法と接辞のしくみ。</p></div>
-    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
+    <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-affix">接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="l-packs"></div>
     <div class="pane" id="l-gaul"></div>
     <div class="pane" id="l-pat"></div>
     <div class="pane" id="l-gram"></div>
-    <div class="pane" id="l-prefix"></div>
-    <div class="pane" id="l-suffix"></div>
-    <div class="pane" id="l-confix"></div>
+    <div class="pane" id="l-affix"></div>
     <div class="pane" id="l-reg"></div>
   </div>
 
@@ -1099,6 +1105,6 @@
 <script src="packs.js?v=4"></script>
 <script src="cities.js?v=2"></script>
 <script src="news.js"></script>
-<script src="app.js?v=80"></script>
+<script src="app.js?v=81"></script>
 </body>
 </html>
