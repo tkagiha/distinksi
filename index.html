@@ -1088,6 +1088,9 @@
   <div class="setrow"><span>試聴</span><button class="go" id="setVoiceTest" style="border:none">Selamat pagi</button></div>
   <div class="setnote" id="voiceNote"></div>
   <div class="setsep">学習データ</div>
+  <div class="setrow"><span>Googleドライブ同期</span><button class="go" id="btnGsync" style="border:none">連携する</button></div>
+  <div class="setnote" id="gsyncStat">未連携。連携すると、学習データがあなたのGoogleドライブに自動保存され、機種変更やデータ消去後も復元できます。</div>
+  <div class="setrow"><span>ドライブから復元</span><button class="go" id="btnGsyncPull" style="border:none">復元する</button></div>
   <div class="setrow"><span>バックアップを保存</span><button class="go" id="btnBackup" style="border:none">書き出す</button></div>
   <div class="setrow"><span>バックアップから復元</span><button class="go" id="btnRestore" style="border:none">読み込む</button></div>
   <div class="setnote">リマインダーは、アプリを開いた時とアイコンのバッジでお知らせします。</div>
@@ -1107,6 +1110,7 @@
 <footer class="wrap">Made with <b>♥</b> for Japanese learners of Indonesian ・ Selamat belajar!</footer>
 
 <nav class="botnav" id="botNav"></nav>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="data.js?v=w4"></script>
 <script src="gloss.js?v=w5"></script>
 <script src="packs.js?v=4"></script>

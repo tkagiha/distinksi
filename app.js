@@ -10,7 +10,7 @@ const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
 const LS=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
-const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));_mirrorSoon()}catch(e){}};
+const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));_mirrorSoon();if(k!=="dks_gsync_last")_gsSoon()}catch(e){}};
 
 /* 辞書 */
 const SUF=["nya","lah","kah","ku","mu","kan"];
@@ -1719,3 +1719,91 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
         location.reload();
       }};}).catch(function(){});}catch(e){}
 })();
+
+/* ===== Googleドライブ同期 (appDataFolder / drive.appdata) ===== */
+var GSYNC_CID="386522339437-ehrj0ubctons92o0d8npk5emfar49kme.apps.googleusercontent.com";
+var GSYNC_FILE="artikula-sync.json";
+var _gsTok=null,_gsExp=0,_gsClient=null,_gsCb=null,_gsTmr=null;
+function gsEnabled(){return !!LS("dks_gsync",0);}
+function _gsPaint(){
+  var st=$("gsyncStat"),bt=$("btnGsync");if(!st||!bt)return;
+  if(!gsEnabled()){bt.textContent="連携する";st.textContent="未連携。連携すると、学習データがあなたのGoogleドライブに自動保存され、機種変更やデータ消去後も復元できます。";return;}
+  bt.textContent="連携を解除";
+  var last=LS("dks_gsync_last",0);
+  st.textContent=last?("同期中 ・ 最終同期: "+new Date(last).toLocaleString("ja-JP")):(_gsTok?"同期中 ・ まだ同期していません":"接続待ち。次に学習データが変わったとき自動で再接続します。");
+}
+function _gsToken(cb,interactive){
+  if(_gsTok&&Date.now()<_gsExp){if(cb)cb();return;}
+  if(!(window.google&&google.accounts&&google.accounts.oauth2)){if(interactive)alert("Googleの読み込みが完了していません。数秒後にもう一度お試しください。");return;}
+  if(!_gsClient){
+    _gsClient=google.accounts.oauth2.initTokenClient({
+      client_id:GSYNC_CID,
+      scope:"https://www.googleapis.com/auth/drive.appdata",
+      callback:function(r){if(r&&r.access_token){_gsTok=r.access_token;_gsExp=Date.now()+((r.expires_in||3600)-60)*1000;var f=_gsCb;_gsCb=null;_gsPaint();if(f)f();}},
+      error_callback:function(){_gsCb=null;_gsPaint();}
+    });
+  }
+  _gsCb=cb;
+  try{_gsClient.requestAccessToken(interactive?{}:{prompt:""});}catch(e){_gsCb=null;}
+}
+function _gsFetch(url,opt){opt=opt||{};opt.headers=Object.assign({},opt.headers||{},{"Authorization":"Bearer "+_gsTok});
+  return fetch(url,opt).then(function(r){if(r.status===401){_gsTok=null;throw new Error("auth");}if(!r.ok)throw new Error("http"+r.status);return r;});}
+function _gsFind(){return _gsFetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27"+GSYNC_FILE+"%27&fields=files(id,modifiedTime)")
+  .then(function(r){return r.json();}).then(function(j){return (j.files&&j.files[0])||null;});}
+function _gsUpload(){
+  if(!gsEnabled()||!_gsTok)return;
+  var d=_dksSnapshot();if(!d.dks_status)return;
+  var payload=JSON.stringify({version:1,app:"Artikula",exportedAt:new Date().toISOString(),data:d});
+  _gsFind().then(function(f){
+    if(f)return _gsFetch("https://www.googleapis.com/upload/drive/v3/files/"+f.id+"?uploadType=media",
+      {method:"PATCH",headers:{"Content-Type":"application/json"},body:payload});
+    var b="artk"+Date.now();
+    var body="--"+b+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+      JSON.stringify({name:GSYNC_FILE,parents:["appDataFolder"]})+
+      "\r\n--"+b+"\r\nContent-Type: application/json\r\n\r\n"+payload+"\r\n--"+b+"--";
+    return _gsFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+      {method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},body:body});
+  }).then(function(){SV("dks_gsync_last",Date.now());_gsPaint();}).catch(function(){});
+}
+function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){_gsToken(_gsUpload,false);},5000);}
+function _gsRestore(interactive){
+  _gsToken(function(){
+    _gsFind().then(function(f){
+      if(!f){if(interactive)alert("Googleドライブに保存された学習データが見つかりませんでした。");return;}
+      _gsFetch("https://www.googleapis.com/drive/v3/files/"+f.id+"?alt=media").then(function(r){return r.json();}).then(function(p){
+        var d=p&&p.data;if(!d||!d.dks_status){if(interactive)alert("ドライブのデータが空でした。");return;}
+        var bk=0;try{var s=d.dks_status;bk=_knownOf(typeof s==="string"?JSON.parse(s):s);}catch(e){}
+        var cur=_knownOf(LS("dks_status",{}));
+        var msg=cur>0
+          ?("現在の記録 "+cur+"語 を、ドライブの "+bk+"語（"+new Date(f.modifiedTime).toLocaleString("ja-JP")+"）で上書きします。よろしいですか？")
+          :("Googleドライブに学習データが見つかりました（覚えた "+bk+" 語）。復元しますか？");
+        if(!confirm(msg))return;
+        Object.keys(d).forEach(function(k){if(k.indexOf("dks_")===0){try{localStorage.setItem(k,typeof d[k]==="string"?d[k]:JSON.stringify(d[k]));}catch(e){}}});
+        alert("復元しました。アプリを再読み込みします。");location.reload();
+      }).catch(function(){if(interactive)alert("ドライブからの読み込みに失敗しました。");});
+    }).catch(function(){if(interactive)alert("ドライブに接続できませんでした。");});
+  },interactive);
+}
+(function(){
+  var bt=$("btnGsync"),pl=$("btnGsyncPull");
+  if(bt)bt.onclick=function(){
+    if(gsEnabled()){
+      if(!confirm("Googleドライブとの同期を解除しますか？\n（ドライブ上の保存データは残ります。この端末の学習データも消えません）"))return;
+      SV("dks_gsync",0);_gsPaint();return;
+    }
+    _gsToken(function(){
+      SV("dks_gsync",1);_gsPaint();
+      var hasLocal=!!localStorage.getItem("dks_status");
+      if(hasLocal){_gsUpload();}
+      else{_gsRestore(false);}
+    },true);
+  };
+  if(pl)pl.onclick=function(){_gsRestore(true);};
+  var sb=$("btnSettings");if(sb)sb.addEventListener("click",_gsPaint);
+  if(gsEnabled()){
+    _gsToken(_gsUpload,false);
+    document.addEventListener("click",function _g1(){document.removeEventListener("click",_g1);if(!_gsTok)_gsToken(_gsUpload,false);},{once:true});
+  }
+  _gsPaint();
+})();
+window.addEventListener("pagehide",function(){if(gsEnabled()&&_gsTok)_gsUpload();});
