@@ -1269,7 +1269,7 @@ function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}A
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
-  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz">🛡×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
+  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz"><svg class="ngic"><use href="#i-nasgor"/></svg>×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
 function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
@@ -1305,8 +1305,8 @@ function checkIn(){const t=_d(0);const first=ACT.ci!==t;let frozen=0,earned=fals
   if(_ciN>=10){_ciN=0;catScream();return;}
   var msg;
   if(!first)msg="🎉 今日ももう一度！ その調子！";
-  else if(frozen)msg="🛡 連続まもりが"+frozen+"個はたらいて、🔥"+ACT.streak+"日連続を守りました！";
-  else if(earned)msg="🔥 "+ACT.streak+"日連続！ 🛡 連続まもりを1個獲得（お休みの日に自動で守ります）";
+  else if(frozen)msg="ナシゴレンを"+frozen+"皿たべて、🔥"+ACT.streak+"日連続をキープしました！";
+  else if(earned)msg="🔥 "+ACT.streak+"日連続！ ごほうびにナシゴレンを1皿ゲット（お休みの日に食べて連続をキープ）";
   else msg="🔥 "+ACT.streak+" 日連続！ チェックイン完了";
   celebrate(msg);}
 function celebrate(msg){
@@ -1458,7 +1458,7 @@ function streakRisk(){var el=$("skRisk");if(!el)return;
   var studiedYest=(ACT.hist&&ACT.hist[y]>0)||ACT.ci===y;
   if(st<2||studiedToday||!studiedYest){el.innerHTML="";return;}
   var frz=ACT.frz||0;
-  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx">'+(frz>0?('<b>今日サボると 🛡まもりを1個消費します</b><span>5語やれば まもり'+frz+'個を温存。</span>'):('<b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span>'))+'</div><button class="skgo" id="skGo">5語やる</button></div>';
+  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx">'+(frz>0?('<b>今日サボると ナシゴレンを1皿たべます</b><span>5語やれば '+frz+'皿を温存できます。</span>'):('<b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span>'))+'</div><button class="skgo" id="skGo">5語やる</button></div>';
   var g=$("skGo");if(g)g.onclick=function(){openTarget("practice:p-daily");};}
 function bkBadge(){var el=$("btnSettings");if(!el)return;
   var b=LS("dks_bkup",{}),known=_knownOf(LS("dks_status",{}));
