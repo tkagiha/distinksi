@@ -1740,8 +1740,8 @@ function _gsToken(cb,interactive){
     _gsClient=google.accounts.oauth2.initTokenClient({
       client_id:GSYNC_CID,
       scope:"https://www.googleapis.com/auth/drive.appdata",
-      callback:function(r){if(r&&r.access_token){_gsTok=r.access_token;_gsExp=Date.now()+((r.expires_in||3600)-60)*1000;var f=_gsCb;_gsCb=null;_gsPaint();if(f)f();}},
-      error_callback:function(){_gsCb=null;_gsPaint();}
+      callback:function(r){if(r&&r.access_token){_gsTok=r.access_token;_gsExp=Date.now()+((r.expires_in||3600)-60)*1000;SV("dks_gsync_snz",0);var f=_gsCb;_gsCb=null;_gsPaint();if(f)f();}},
+      error_callback:function(){_gsCb=null;SV("dks_gsync_snz",Date.now()+24*3600*1000);_gsPaint();}
     });
   }
   _gsCb=cb;
@@ -1766,10 +1766,11 @@ function _gsUpload(){
       {method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},body:body});
   }).then(function(){SV("dks_gsync_last",Date.now());_gsPaint();}).catch(function(){});
 }
+function _gsSnoozed(){return (LS("dks_gsync_snz",0)||0)>Date.now();}
 function _gsStale(){return (Date.now()-(LS("dks_gsync_last",0)||0))>7*86400*1000;}
 function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){
   if(_gsTok&&Date.now()<_gsExp)_gsUpload();
-  else if(_gsStale())_gsToken(_gsUpload,false);
+  else if(_gsStale()&&!_gsSnoozed())_gsToken(_gsUpload,false);
 },5000);}
 function _gsRestore(interactive){
   _gsToken(function(){
@@ -1807,8 +1808,10 @@ function gsConnect(done){
   };
   if(pl)pl.onclick=function(){_gsRestore(true);};
   var sb=$("btnSettings");if(sb)sb.addEventListener("click",_gsPaint);
-  if(gsEnabled()&&_gsStale()){
-    document.addEventListener("click",function(){if(!_gsTok)_gsToken(_gsUpload,false);},{once:true});
+  if(gsEnabled()){
+    document.addEventListener("click",function(){
+      if(!_gsTok&&!_gsSnoozed())_gsToken(function(){if(_gsStale())_gsUpload();},false);
+    },{once:true});
   }
   _gsPaint();
 })();
