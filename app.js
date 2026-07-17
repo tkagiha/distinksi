@@ -462,7 +462,7 @@ function newsWordsOf(day){var seen={},out=[];
   return out.slice(0,14);}
 function newsWordsCard(day){var ws=newsWordsOf(day);
   if(!ws.length)return '<div class="nwcard panelcard"><h4>今日のニュースの新出語</h4><div class="nwempty">この日の語はすべて「覚えた」になっています。お見事！</div></div>';
-  return '<div class="nwcard panelcard"><h4>ニュースの新出語（'+ws.length+'語）</h4><div class="nwhint">タップで発音・意味／「＋復習」で苦手リストに入れて練習できます</div><div class="nwlist">'+
+  return '<div class="nwcard panelcard"><h4>ニュースの新出語（'+ws.length+'語）</h4><div class="nwhint">タップで発音・意味／「＋復習」で復習リストに入れて練習できます</div><div class="nwlist">'+
     ws.map(function(x){return '<div class="nwrow"><span class="nww" data-audio="" data-text="'+esc(x[0])+'">'+esc(x[0])+'</span><span class="nwm">'+esc(x[1])+'</span><button class="nwadd" data-nw="'+esc(x[0])+'">＋復習</button></div>';}).join("")+
     '</div><button class="nwall" id="nwAll">すべて復習に追加</button></div>';}
 (function(){document.addEventListener("click",function(e){
@@ -979,7 +979,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>\u7d99\u7d9a\u306e\u8a18\u9332\uff08\u76f4\u8fd113\u9031\uff09</h4><div class="heatmap">'+_cells+'</div></div>');
-  var _qm={mean:"意味4択",listen:"聞き取り",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
+  var _qm={mean:"意味4択",listen:"聞き取り",weak:"知らない語",arrange:"並べ替え",type:"書き取り",number:"数字",fill:"穴埋め"},_qr="";Object.keys(_qm).forEach(function(k){var s=quizStats[k];if(s&&s.t){var pct=Math.round(s.c/s.t*100);_qr+='<div class="dashrow"><span class="dlab" style="min-width:66px">'+_qm[k]+'</span><div class="dbar"><span style="width:'+pct+'%"></span></div><span class="dval">'+pct+'% ('+s.c+'/'+s.t+')</span></div>';}});
   var _WD=["日","月","火","水","木","金","土"],_wk="",_wt=0;
   for(var wi=6;wi>=0;wi--){var _ds=_d(wi),_c=(ACT.hist||{})[_ds]||0;_wt+=_c;var _h=_c?Math.max(10,Math.min(100,_c*12)):3;
     _wk+='<div class="wkbar" title="'+_ds+'：'+_c+'回"><span class="wkn">'+(_c||"")+'</span><div class="wkcol"><div class="wkfill" style="height:'+_h+'%"></div></div><span class="wkd">'+_WD[(function(x){var p=x.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();})(_ds)]+'</span></div>';}
@@ -1092,7 +1092,7 @@ function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}
   $("recapHome").onclick=function(){ov.classList.remove("on");showView("home");};}
 function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);
   comboFx(ok);_sesN++;if(ok)_sesOk++;if(_sesN%10===0)setTimeout(showRecap,650);}
-function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">苦手撲滅</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
+function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">知らない語</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
   nextQ();
@@ -1105,20 +1105,20 @@ function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode=
   const full=CARDS.filter(c=>c.ja);let src=full;
   const tn=(typeof todayNum==="function")?todayNum():0;
   if(weak){const wp=full.filter(x=>status[x.w]==="unknown");
-    if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard">'+lockCard({cls:"qlock",title:"苦手撲滅",
+    if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard">'+lockCard({cls:"qlock",title:"知らない語",
       sil:'<svg class="icn qlockic" aria-hidden="true"><use href="#i-target"/></svg>',
       cond:'知らない語が5語たまったら解放 ・ 現在 <b>'+wp.length+'</b> 語<br>カードの「✗ 知らない」やクイズの誤答でここに集まります'})+'</div>';return;}
     src=wp;}
   else if(review){const rp=full.filter(x=>(srs[x.w]&&srs[x.w].due<=tn&&status[x.w]!=="known")||((status[x.w]==="unknown"||status[x.w]==="seen")&&!srs[x.w]));if(rp.length)src=rp;}
   else if(listen){const lp=full.filter(x=>status[x.w]==="known"||(srs[x.w]&&srs[x.w].due<=tn));if(lp.length>=4)src=lp;}
   const c=rnd(src);const opts=shuf([c].concat(shuf(full.filter(x=>x.ja!==c.ja)).slice(0,3)));
-  $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう（文字は答えたら出ます）":weak?"苦手撲滅：この語の意味は？":review?"復習：この語の意味は？":"この単語の意味は？"}</div>
+  $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう（文字は答えたら出ます）":weak?"知らない語：この語の意味は？":review?"復習：この語の意味は？":"この単語の意味は？"}</div>
    <div class="qword">${listen?spkBtn(c.audio,c.w).replace('class="spk"','class="spk" style="width:52px;height:52px"'):esc(c.w)+" "+spkBtn(c.audio,c.w)}</div>
    <div class="qopts">${opts.map(o=>`<button data-ok="${o.ja===c.ja?1:0}" data-w="${esc(o.w)}" data-au="${esc(o.audio||"")}">${esc(o.ja)}</button>`).join("")}</div>
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   setTimeout(()=>play(c.audio,c.w,null),200);
   const opt=$("qBody").querySelectorAll(".qopts button");
-  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent=weak?"Benar! 苦手をひとつ克服 🎉":"Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";if(weak&&typeof celebrate==="function"){const left=CARDS.filter(x=>status[x.w]==="unknown").length;if(left===0)celebrate("🎉 苦手をすべて克服！ Hebat!");}}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":(weak?"weak":"mean"),ok);if(typeof srsUpdate==="function")srsUpdate(c.w,ok?"known":"unknown");if(typeof bumpActivity==="function")bumpActivity();if(typeof updBadge==="function")updBadge();}));
+  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent=weak?"Benar! ひとつ克服 🎉":"Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";if(weak&&typeof celebrate==="function"){const left=CARDS.filter(x=>status[x.w]==="unknown").length;if(left===0)celebrate("🎉 知らない語をすべて克服！ Hebat!");}}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":(weak?"weak":"mean"),ok);if(typeof srsUpdate==="function")srsUpdate(c.w,ok?"known":"unknown");if(typeof bumpActivity==="function")bumpActivity();if(typeof updBadge==="function")updBadge();}));
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").length;return n>=3&&n<=6;});const c=rnd(pool);const words=c.ex[0].replace(/[.?!,]/g,"").split(" ");const jum=shuf(words.slice());
