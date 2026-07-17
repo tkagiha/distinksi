@@ -492,6 +492,21 @@
   .wnote{font-size:11.5px;color:var(--sub);margin-top:4px}
   .wdetail{font-size:12.5px;margin-top:10px;line-height:1.55;min-height:1em}
   .wdetail b{color:var(--hl)}
+  .combofx{position:fixed;top:17%;left:50%;transform:translate(-50%,8px) scale(.8);z-index:80;font-weight:800;color:var(--gold);text-shadow:0 1px 8px rgba(0,0,0,.35);opacity:0;transition:transform .18s ease-out,opacity .18s;pointer-events:none;letter-spacing:1px}
+  .combofx.go{opacity:1;transform:translate(-50%,0) scale(1)}
+  .recapsheet{background:var(--bg);border-radius:18px;max-width:340px;width:100%;padding:26px 22px;text-align:center}
+  .rcemo{font-size:34px}
+  .rctitle{margin:8px 0 14px;font-size:18px}
+  .rcstats{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
+  .rcbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:110px}
+  .rcbox b{display:block;font-size:24px;color:var(--hl)}
+  .rcbox span{font-size:11px;color:var(--sub)}
+  .rcmsg{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:16px}
+  .rcmsg b{color:var(--hl)}
+  .rcgo{display:block;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(160deg,#d02a31,#a01820);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .rcclose{display:block;width:100%;margin-top:8px;padding:10px;border:none;background:none;color:var(--sub);font-family:inherit;font-size:12.5px;cursor:pointer;text-decoration:underline}
+  .islstrip{margin:12px 0 -2px;padding:9px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);font-size:12.5px;color:var(--sub)}
+  .islstrip b{color:var(--hl)}
   .homecta{margin:16px 0 6px;padding:16px;font-size:15px}
   .hero--compact{padding:26px 0 34px;border-top:1px solid var(--line);margin-top:26px}
   .hero--compact h1{font-size:24px;margin:10px 0 8px}
@@ -988,6 +1003,7 @@
   </div>
 
   <div class="view" data-view="practice"><div class="shead"><div class="kick">Latihan</div><h2>練習</h2><p>カードをめくる、意味・聞き取り・苦手撲滅のクイズ、今日の5語、穴埋め。</p></div>
+    <div class="islstrip" id="islandStrip"></div>
     <div class="subtabs" data-sub="practice"><button data-pane="p-flash" class="active">カード</button><button data-pane="p-quiz">クイズ</button><button data-pane="p-daily">今日の5語</button><button data-pane="p-fill">穴埋め</button></div>
     <div class="pane active" id="p-flash">
       <div class="fbox" id="fBox">

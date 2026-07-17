@@ -1074,7 +1074,23 @@ function shareArch(){
 /* ===== クイズ ===== */
 let qMode="mean",qScore=0,qTotal=0;
 let quizStats=LS("dks_quizstats",{}),_pendQ=null;
-function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);}
+var _combo=0,_sesN=0,_sesOk=0;
+function comboFx(ok){if(!ok){_combo=0;return;}_combo++;if(_combo<2)return;
+  var say=_combo>=15?"Dahsyat!!":_combo>=10?"Luar biasa!":_combo>=7?"Keren!":_combo>=5?"Hebat!":_combo>=3?"Bagus!":"";
+  var el=document.createElement("div");el.className="combofx";el.style.fontSize=Math.min(26,15+_combo)+"px";
+  el.textContent=_combo+"連続"+(say?"　"+say:"")+"！";
+  document.body.appendChild(el);requestAnimationFrame(function(){el.classList.add("go");});setTimeout(function(){el.remove();},1150);}
+function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),tom=0;
+  Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn+1&&st[w]!=="known")tom++;});
+  var g=(ACT.goal||10),td=(ACT.date===_d(0))?(ACT.today||0):0,left=Math.max(0,g-td);
+  var ov=$("recapOv");
+  if(!ov){document.body.insertAdjacentHTML("beforeend",'<div class="overlay" id="recapOv"><div class="sheet recapsheet"></div></div>');ov=$("recapOv");}
+  ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">🎉</div><h3 class="rctitle">ここまでの成果</h3><div class="rcstats"><div class="rcbox"><b>'+_sesOk+'</b><span>正解 / '+_sesN+'問</span></div><div class="rcbox"><b>'+tom+'</b><span>明日の復習予定</span></div></div><div class="rcmsg">'+(left>0?('ワルンの一皿まで あと <b>'+left+'</b> 語'):'今日の目標は達成ずみ。一皿ならびました 🍽️')+'</div><button class="rcgo" id="recapGo">つづける</button><button class="rcclose" id="recapHome">ホームへもどる</button>';
+  ov.classList.add("on");
+  $("recapGo").onclick=function(){ov.classList.remove("on");};
+  $("recapHome").onclick=function(){ov.classList.remove("on");showView("home");};}
+function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);
+  comboFx(ok);_sesN++;if(ok)_sesOk++;if(_sesN%10===0)setTimeout(showRecap,650);}
 function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">苦手撲滅</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
@@ -1265,6 +1281,13 @@ renderBookCount();
 
 let ACT=LS("dks_act",{date:"",streak:0,today:0,goal:10});
 const _d=x=>{const d=new Date(Date.now()-x*86400000);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
+function _nextIsland(){try{var dots=_archBuild();var known=Object.values(LS("dks_status",{})).filter(function(v){return v==="known";}).length;
+  var lit=Math.min(dots.length,known);var maxRank={};dots.forEach(function(d){if(maxRank[d.ci]==null||d.rank>maxRank[d.ci])maxRank[d.ci]=d.rank;});
+  var inc=ARCH_CLUSTERS.map(function(c,ci){return ci;}).filter(function(ci){return !(maxRank[ci]<lit);});
+  if(!inc.length)return null;var best=inc[0],rem=1e9;inc.forEach(function(ci){var r=(maxRank[ci]+1)-known;if(r<rem){rem=r;best=ci;}});
+  return{name:ARCH_CLUSTERS[best].name,rem:Math.max(1,rem)};}catch(e){return null;}}
+function islandStrip(){var el=$("islandStrip");if(!el)return;var ni=_nextIsland();
+  el.innerHTML=ni?('🏝️ 次の島 <b>'+esc(ni.name)+'</b> 全点灯まで あと <b>'+ni.rem+'</b> 語'):'🏝️ 全群島点灯ずみ — Nusantara はあなたのもの';}
 var WARUNG=[
  {n:"Nasi Goreng",e:"🍛",b:"nasi＝ごはん、goreng＝炒める →「炒めごはん」。国民食の代表格"},
  {n:"Mie Goreng",e:"🍜",b:"mie＝麺 →「インドネシア風焼きそば」"},
@@ -1304,7 +1327,7 @@ function buildWarung(){var el=$("homeWarung");if(!el)return;var wr=LS("dks_warun
 function warungAward(t){var g=ACT.goal||10;if((ACT.today||0)<g)return;var wr=LS("dks_warung",{got:0,day:""});if(wr.day===t)return;if((wr.got||0)>=WARUNG.length)return;
   wr.got=(wr.got||0)+1;wr.day=t;SV("dks_warung",wr);var d=WARUNG[wr.got-1];
   celebrate("🍽️ 目標達成！ ワルンに「"+d.n+"」が並びました");buildWarung();}
-function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);try{warungAward(t);}catch(e){}renderHomeStats();updBadge();}
+function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);try{warungAward(t);}catch(e){}try{islandStrip();}catch(e){}renderHomeStats();updBadge();}
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
@@ -1879,3 +1902,13 @@ function gsConnect(done){
   _gsPaint();
 })();
 window.addEventListener("pagehide",function(){if(gsEnabled()&&_gsTok)_gsUpload();});
+
+try{islandStrip();}catch(e){}
+/* ===== おかえりフロー: 3日以上あいたら軽い復帰導線 ===== */
+(function(){try{
+  if(!ACT.ci)return;var gap=0;for(var k=1;k<=60;k++){if(ACT.ci===_d(k)){gap=k;break;}}
+  if(gap<3)return;if(LS("dks_wb","")===_d(0))return;SV("dks_wb",_d(0));
+  document.body.insertAdjacentHTML("beforeend",'<div class="overlay on" id="wbOv"><div class="sheet recapsheet"><div class="rcemo">🌅</div><h3 class="rctitle">おかえりなさい！</h3><div class="rcmsg">'+gap+'日ぶりですね。ぜんぶ取り返そうとしなくて大丈夫。<br>まずは <b>今日の5語</b> だけ、軽くいきましょう。</div><button class="rcgo" id="wbGo">5語だけやる</button><button class="rcclose" id="wbLater">あとで</button></div></div>');
+  $("wbGo").onclick=function(){$("wbOv").classList.remove("on");openTarget("practice:p-daily");};
+  $("wbLater").onclick=function(){$("wbOv").classList.remove("on");};
+}catch(e){}})();
