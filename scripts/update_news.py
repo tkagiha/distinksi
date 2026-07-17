@@ -148,7 +148,7 @@ def main():
                     time.sleep(2)
         # 生成できなければ音声パスを空に（アプリ側の読み上げにフォールバックし、文とズレない）
         au = ("audio/" + fn) if os.path.exists(path) else ""
-        REAL.append({"title": ja[:24], "id": title, "ja": ja, "emoji": EMO[i % len(EMO)],
+        REAL.append({"title": ja, "id": title, "ja": ja, "emoji": EMO[i % len(EMO)],
                      "img": img, "svg": "", "url": link, "audio": au})
 
     et = open(NJS, encoding="utf-8").read() if os.path.exists(NJS) else ""
