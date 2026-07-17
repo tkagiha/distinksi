@@ -167,9 +167,7 @@ function initPane(id){
   if(id==="t-surv")buildSurv();
   if(id==="t-office")buildOffice();
   if(id==="l-gram")ensureExtra(buildGrammar);
-  if(id==="l-prefix")ensureExtra(buildPrefix);
-  if(id==="l-suffix")ensureExtra(buildSuffix);
-  if(id==="l-confix")ensureExtra(buildConfix);
+  if(id==="l-affix")ensureExtra(buildAffixTab);
   if(id==="l-reg")ensureExtra(buildRegister);
   if(id==="t-driver")buildDriver();
   if(id==="t-travel")buildTravel();
@@ -280,9 +278,19 @@ function renderPackDetail(id){var p=packOf(id),el=$("l-packs");if(!p||!el)return
 function buildAffix(arr,id){$(id).innerHTML=arr.map(p=>`<div class="lesson panelcard"><div class="lp">${esc(p.p)}</div><div class="lt2">${esc(p.t)}</div><div class="ln">${esc(p.note)}</div>
   ${p.ex.map(e=>`<div class="lex">${spkBtn(e[2],e[0])}<span class="w">${esc(e[0])}</span><span class="m">${esc(e[1])}</span></div>`).join("")}</div>`).join("");}
 function buildGrammar(){buildAffix(GRAMMAR,"l-gram");}
-function buildPrefix(){buildAffix(PREFIX,"l-prefix");}
-function buildSuffix(){buildAffix(SUFFIX,"l-suffix");}
-function buildConfix(){buildAffix(CONFIX,"l-confix");}
+var _afx="prefix";
+function buildAffixTab(){var el=$("l-affix");if(!el)return;
+  var SET={prefix:{arr:PREFIX,t:"接頭辞",note:"語の前に付いて意味と品詞を変える。me-／ber-／di- が三本柱。"},
+           suffix:{arr:SUFFIX,t:"接尾辞",note:"語の後ろに付く。-kan／-i／-an で他動詞や名詞をつくる。"},
+           confix:{arr:CONFIX,t:"共接辞",note:"前と後ろで挟む形。ke-an／pe-an が代表。"}};
+  if(!el.dataset.init){el.dataset.init=1;
+    el.innerHTML='<div class="subseg" id="afxSeg"></div><div class="affixnote" id="afxNote"></div><div id="afxBody"></div>';
+    $("afxSeg").addEventListener("click",function(e){var b=e.target.closest("[data-afx]");if(!b)return;
+      _afx=b.dataset.afx;buildAffixTab();});}
+  $("afxSeg").innerHTML=["prefix","suffix","confix"].map(function(k){
+    return '<button data-afx="'+k+'"'+(k===_afx?' class="on"':'')+'>'+SET[k].t+'<span>'+SET[k].arr.length+'</span></button>';}).join("");
+  $("afxNote").textContent=SET[_afx].note;
+  buildAffix(SET[_afx].arr,"afxBody");}
 
 /* 敬語⇔口語 */
 function buildRegister(){$("l-reg").innerHTML=`<div class="listcard panelcard"><div style="display:flex;font-size:10px;color:var(--sub);letter-spacing:1px;padding:8px 0 4px"><div style="flex:1">丁寧</div><div style="width:24px"></div><div style="flex:1">くだけた</div><div style="min-width:70px"></div></div>`+
@@ -966,7 +974,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   if(_qr)el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>クイズ正答率</h4>'+_qr+'</div>');
   var _WD=["日","月","火","水","木","金","土"],_wk="",_wt=0;
   for(var wi=6;wi>=0;wi--){var _ds=_d(wi),_c=(ACT.hist||{})[_ds]||0;_wt+=_c;var _h=_c?Math.max(10,Math.min(100,_c*12)):3;
-    _wk+='<div class="wkbar" title="'+_ds+'：'+_c+'回"><span class="wkn">'+(_c||"")+'</span><div class="wkcol"><div class="wkfill" style="height:'+_h+'%"></div></div><span class="wkd">'+_WD[new Date(_ds+"T00:00:00").getDay()]+'</span></div>';}
+    _wk+='<div class="wkbar" title="'+_ds+'：'+_c+'回"><span class="wkn">'+(_c||"")+'</span><div class="wkcol"><div class="wkfill" style="height:'+_h+'%"></div></div><span class="wkd">'+_WD[(function(x){var p=x.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();})(_ds)]+'</span></div>';}
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>今週の学習（合計 '+_wt+' 回）</h4><div class="wkchart">'+_wk+'</div></div>');
   var _P=LS("dks_pron",{}),_pk=Object.keys(_P);
   if(_pk.length){var _sum=0;_pk.forEach(function(k){_sum+=(_P[k].best||0);});var _avg=Math.round(_sum/_pk.length);
@@ -1154,7 +1162,7 @@ function buildIndex(){SIDX=[];
   try{Object.keys(MYWORDS).forEach(w=>add(w,MYWORDS[w],wau(w),"自分の単語","more:dict"));}catch(e){}
   try{WORDS.forEach(w=>{add(w.word,w.meaning,w.audio,"単語","learn:l-words");(w.ex||[]).forEach(e=>add(e[0],e[1],e[2],"例文","learn:l-words"));});}catch(e){}
   try{GRAMMAR.forEach(g=>(g.ex||[]).forEach(e=>add(e[0],e[1],e[2],"文法","learn:l-gram")));}catch(e){}
-  try{[[PREFIX,"learn:l-prefix"],[SUFFIX,"learn:l-suffix"],[CONFIX,"learn:l-confix"]].forEach(pair=>{
+  try{[[PREFIX,"learn:l-affix"],[SUFFIX,"learn:l-affix"],[CONFIX,"learn:l-affix"]].forEach(pair=>{
     (pair[0]||[]).forEach(g=>(g.ex||[]).forEach(e=>add(e[0],e[1],e[2],"接辞",pair[1])));});}catch(e){}
   try{SCENES.forEach(s=>s.lines.forEach(l=>add(l[2],l[3],l[4],"会話","talk:t-scene")));}catch(e){}
   try{DRIVER.forEach(g=>g.items.forEach(it=>{add(it[0],it[1],it[2],"ドライバー","talk:t-driver");(it[3]||[]).forEach(x=>add(x[0],x[1],x[2],"ドライバー","talk:t-driver"));}));}catch(e){}
