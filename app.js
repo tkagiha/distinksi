@@ -1087,7 +1087,7 @@ function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}
   var g=(ACT.goal||10),jn=(ACT.jwd===_d(0)&&ACT.jw)?Object.keys(ACT.jw).length:0,left=Math.max(0,g-jn);
   var ov=$("recapOv");
   if(!ov){document.body.insertAdjacentHTML("beforeend",'<div class="overlay" id="recapOv"><div class="sheet recapsheet"></div></div>');ov=$("recapOv");}
-  var doneToday=left<=0;
+  var doneToday=left<=0;try{if(flowState().step==="done")doneToday=true;}catch(e){}
   ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">'+(doneToday?"🍽️":"🎉")+'</div><h3 class="rctitle">'+(doneToday?"今日はここまで":"ここまでの成果")+'</h3><div class="rcstats"><div class="rcbox"><b>'+_sesOk+'</b><span>正解 / '+_sesN+'問</span></div><div class="rcbox"><b>'+tom+'</b><span>明日の復習予定</span></div></div><div class="rcmsg">'+(doneToday?'今日の目標は達成ずみ。一皿ならびました。<br>あとは行ってらっしゃい。どこかで ひとこと 使ってみてください。':('ワルンの一皿まで あと <b>'+left+'</b> 語'))+'</div>'+(doneToday
     ?'<button class="rcgo" id="recapHome">閉じる</button><button class="rcclose" id="recapGo">もう少しつづける</button>'
     :'<button class="rcgo" id="recapGo">あと'+left+'語つづける</button><button class="rcclose" id="recapHome">今日はここまでにする</button>');
@@ -1095,7 +1095,12 @@ function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}
   $("recapGo").onclick=function(){ov.classList.remove("on");};
   $("recapHome").onclick=function(){ov.classList.remove("on");showView("home");};}
 function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);
-  comboFx(ok);_sesN++;if(ok)_sesOk++;if(_sesN%10===0&&_sesN<=30)setTimeout(showRecap,650);}
+  comboFx(ok);_sesN++;if(ok)_sesOk++;
+  try{var _f=flowState();
+    if(_f.step==="review"&&qMode==="review"){_f.rev++;flowSave(_f);if(_f.rev>=Math.max(1,_f.revT)||_dueCount()===0)flowStepDone("review");}
+    else if(_f.step==="quiz"&&mode!=="number"){_f.qz++;flowSave(_f);if(_f.qz>=10)flowStepDone("quiz");}
+    else if(_f.step!=="done"&&_sesN%10===0&&_sesN<=30)setTimeout(showRecap,650);
+  }catch(e){}}
 function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">知らない語</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
@@ -1147,9 +1152,20 @@ function typeQ(){const pool=CARDS.filter(c=>c.w&&c.ja);const c=rnd(pool);
 /* ===== 今日の5語 ===== */
 function buildDaily(){const seed=new Date();const key=seed.getFullYear()+"-"+(seed.getMonth()+1)+"-"+seed.getDate();let h=0;for(const ch of key)h=(h*31+ch.charCodeAt(0))>>>0;
   const pool=CARDS.filter(c=>c.lv<=2&&c.ex);const pick=[];const used={};for(let i=0;i<5&&pool.length;i++){h=(h*1103515245+12345)>>>0;let idx=h%pool.length;while(used[idx]){idx=(idx+1)%pool.length;}used[idx]=1;pick.push(pool[idx]);}
-  $("p-daily").innerHTML=`<div style="font-size:13px;color:var(--sub);margin:6px 0 12px">📅 ${key} の5語 — 毎日入れ替わります</div>`+
+  var dd=LS("dks_daily",{});if(dd.day!==key){dd={day:key,jd:{}};}
+  const jbtns=(w)=>dd.jd[w]?`<div class="djdone">判定ずみ: ${dd.jd[w]==="known"?"✓ 覚えた":dd.jd[w]==="seen"?"△ 見たことある":"✗ 知らない"}</div>`:`<div class="srsrow djrow" data-dw="${esc(w)}"><button class="weak" data-j="unknown">✗ 知らない</button><button class="seen" data-j="seen">△ 見たことある</button><button class="known" data-j="known">✓ 覚えた</button></div>`;
+  $("p-daily").innerHTML=`<div style="font-size:13px;color:var(--sub);margin:6px 0 12px">📅 ${key} の5語 — それぞれ判定すると完了です（${Object.keys(dd.jd).length} / 5）</div>`+
    pick.map((c,i)=>`<div class="lesson panelcard" data-reveal><div style="display:flex;align-items:center;gap:10px"><span class="amark" style="background:var(--hl)">${i+1}</span>${spkBtn(c.audio,c.w)}<span class="lp" style="font-size:20px">${esc(c.w)}</span></div>
-     <div class="lt2" style="margin-top:6px">${esc(c.ja)}</div>${c.ex?`<div class="lex" style="margin-top:6px">${spkBtn(c.ex[2],c.ex[0])}<span class="m">${wrapWords(c.ex[0])}｜${esc(c.ex[1])}</span></div>`:""}</div>`).join("");
+     <div class="lt2" style="margin-top:6px">${esc(c.ja)}</div>${c.ex?`<div class="lex" style="margin-top:6px">${spkBtn(c.ex[2],c.ex[0])}<span class="m">${wrapWords(c.ex[0])}｜${esc(c.ex[1])}</span></div>`:""}${jbtns(c.w)}</div>`).join("");
+  SV("dks_daily",dd);
+  $("p-daily").querySelectorAll(".djrow button").forEach(function(b){b.onclick=function(){
+    var row=b.closest(".djrow"),w=row.dataset.dw,s=b.dataset.j;
+    srsUpdate(w,s);bumpActivity();
+    var d2=LS("dks_daily",{day:key,jd:{}});if(d2.day!==key)d2={day:key,jd:{}};d2.jd[w]=s;SV("dks_daily",d2);
+    row.outerHTML='<div class="djdone">判定ずみ: '+(s==="known"?"✓ 覚えた":s==="seen"?"△ 見たことある":"✗ 知らない")+'</div>';
+    var hd=$("p-daily").querySelector("div");if(hd)hd.textContent="📅 "+key+" の5語 — それぞれ判定すると完了です（"+Object.keys(d2.jd).length+" / 5）";
+    if(Object.keys(d2.jd).length>=5)setTimeout(function(){flowStepDone("daily");},450);
+  };});
 }
 
 /* ===== 穴埋め ===== */
@@ -1335,15 +1351,38 @@ function warungAward(t){var g=ACT.goal||10;var jn=(ACT.jwd===t&&ACT.jw)?Object.k
 function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}ACT.today=(ACT.today||0)+1;ACT.hist=ACT.hist||{};ACT.hist[t]=(ACT.hist[t]||0)+1;SV("dks_act",ACT);try{warungAward(t);}catch(e){}try{islandStrip();}catch(e){}renderHomeStats();updBadge();}
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
+/* ===== きょうのレッスン: 一本道フロー ===== */
+function _dueCount(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),n=0;
+  Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")n++;});
+  Object.keys(st).forEach(function(w){if((st[w]==="unknown"||st[w]==="seen")&&!sr[w])n++;});return n;}
+function flowState(){var t=_d(0),f=LS("dks_flow",{});
+  if(f.day!==t){var due=_dueCount();f={day:t,step:due>0?"review":"daily",rev:0,revT:Math.min(10,due),qz:0};SV("dks_flow",f);}
+  return f;}
+function flowSave(f){SV("dks_flow",f);}
+var FLOW_STEPS={review:["①","忘れかけの復習"],daily:["②","新しい5語"],quiz:["③","定着クイズ 10問"]};
+function flowTarget(step){return step==="review"?["practice:p-quiz","review"]:step==="daily"?["practice:p-daily",null]:["practice:p-quiz","mean"];}
+function flowStepDone(step){var f=flowState();if(f.step!==step)return;
+  var next=step==="review"?"daily":step==="daily"?"quiz":"done";
+  f.step=next;flowSave(f);homeCTA();
+  if(next==="done"){setTimeout(showRecap,600);return;}
+  var fin=FLOW_STEPS[step],nx=FLOW_STEPS[next];
+  var ov=$("flowOv");
+  if(!ov){document.body.insertAdjacentHTML("beforeend",'<div class="overlay" id="flowOv"><div class="sheet recapsheet"></div></div>');ov=$("flowOv");}
+  ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">✅</div><h3 class="rctitle">'+fin[0]+' '+fin[1]+' おわり！</h3><div class="rcmsg">つぎは '+nx[0]+' <b>'+nx[1]+'</b></div><button class="rcgo" id="flowGo">'+nx[1]+' へ</button><button class="rcclose" id="flowLater">いったん休む</button>';
+  ov.classList.add("on");
+  $("flowGo").onclick=function(){ov.classList.remove("on");var tg=flowTarget(next);if(tg[1])_pendQ=tg[1];openTarget(tg[0]);};
+  $("flowLater").onclick=function(){ov.classList.remove("on");showView("home");};}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz"><svg class="ngic"><use href="#i-jimat"/></svg>×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
-function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0;
-  Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
-  Object.keys(st).forEach(function(w){if((st[w]==="unknown"||st[w]==="seen")&&!sr[w])due++;});
-  var n=due;
-  if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 忘れかけの '+n+'語を復習する';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
-  else{el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる';el.dataset.goto="practice:p-daily";delete el.dataset.qmode;}}
+function homeCTA(){var el=$("homeCta");if(!el)return;var f=flowState();
+  var order=["review","daily","quiz"],idx=order.indexOf(f.step);
+  var dots=order.map(function(s,i){var on=(f.step==="done")||i<idx||(i===idx);return '<span class="fdot'+(((f.step==="done")||i<idx)?" fin":(i===idx?" now":""))+'">'+FLOW_STEPS[s][0]+'</span>';}).join("");
+  if(f.step==="done"){el.innerHTML='🎉 きょうのレッスン 完了 — 自由練習へ';el.classList.add("ctadone");el.dataset.goto="practice:p-flash";delete el.dataset.qmode;return;}
+  el.classList.remove("ctadone");
+  var s=FLOW_STEPS[f.step],extra=f.step==="review"?('（'+Math.max(1,f.revT)+'語）'):"";
+  el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> きょうのレッスン '+s[0]+' '+s[1]+extra+'<span class="fdots">'+dots+'</span>';
+  var tg=flowTarget(f.step);el.dataset.goto=tg[0];if(tg[1])el.dataset.qmode=tg[1];else delete el.dataset.qmode;}
 var _ciN=0,_ciT=null;
 var _catBusy=false;
 function catScream(){if(_catBusy)return;_catBusy=true;
