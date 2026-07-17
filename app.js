@@ -110,7 +110,7 @@ const SECTIONS=[
   {id:"speaksec",label:"話す",icon:"i-mic",tabs:[["speak","発音"],["talk","会話"]]},
   {id:"home",label:"ホーム",icon:"i-home",tabs:[["home","ホーム"]]},
   {id:"read",label:"読む",icon:"i-read",tabs:[["news","ニュース"],["reads","読み物"]]},
-  {id:"more",label:"調べる",icon:"i-search",tabs:[["dict","辞書"],["scan","カメラ"],["num","数字"]]}
+  {id:"more",label:"調べる",icon:"i-search",tabs:[["dict","辞書"],["say","言いたいこと"],["scan","カメラ"],["num","数字"]]}
 ];
 const TABS=SECTIONS.flatMap(s=>s.tabs);
 function sectionOf(v){return SECTIONS.find(s=>s.tabs.some(t=>t[0]===v));}
@@ -157,6 +157,7 @@ function initView(v){
   if(v==="num"){buildNumbers();initPane("a-list");}
   if(v==="reads"){ensureExtra(function(){buildNews();initPane("r-info");});}
   if(v==="scan"){buildScan();}
+  if(v==="say"){buildSay();}
 }
 const PANEI={};
 function _tabIntoView(btn){try{if(!btn||!btn.parentElement)return;
@@ -177,7 +178,6 @@ function initPane(id){
   if(id==="t-travel")buildTravel();
   if(id==="t-pack")buildPacks();
   if(id==="t-sim")buildSim();
-  if(id==="t-say")buildSay();
   if(id==="p-quiz")buildQuiz();
   if(id==="p-daily")buildDaily();
   if(id==="p-fill")buildFill();

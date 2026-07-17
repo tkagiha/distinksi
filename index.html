@@ -1038,7 +1038,7 @@
     </div>
   </div>
   <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話、現地で焦らないサバイバル、職場のオフィス表現、ドライバー・旅行・テーマ別、なりきり会話。</p></div>
-    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-sim">なりきり会話</button><button data-pane="t-say">言いたいこと</button><button data-grouptoggle="1" class="grp">場面別 ▾</button></div>
+    <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-sim">なりきり会話</button><button data-grouptoggle="1" class="grp">場面別 ▾</button></div>
     <div class="subtabs sub2" data-sub="talk2" style="display:none"><button data-pane="t-surv">サバイバル</button><button data-pane="t-office">オフィス</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
@@ -1051,7 +1051,6 @@
       <div class="toolbar" style="margin-top:2px"><button class="chip" id="dShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
       <div class="carousel"><div class="track" id="dTrack"></div><div class="cnav"><button class="arrow" data-nav="d:-1">←</button><span class="counter" id="dCount"></span><button class="arrow" data-nav="d:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
     <div class="pane" id="t-travel"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">旅行で使えるフレーズ集。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="travelWrap"></div></div>
-    <div class="pane" id="t-say"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">日本語を入れるとインドネシア語にして、その表現が出てくる場面の会話へ案内します。</div><div id="sayWrap"></div></div>
     <div class="pane" id="t-sim"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">場面を選ぶと相手が話しかけてきます。あなたのセリフは<b>声で</b>答えてください（音声認識で判定）。</div><div id="simWrap"></div></div>
     <div class="pane" id="t-pack"><div style="font-size:12px;color:var(--sub);margin:10px 0 6px">場面別の表現パック。単語タップで意味・<svg class="icn"><use href="#i-sound"/></svg>で発音。</div><div id="packWrap"></div></div>
   </div>
@@ -1099,6 +1098,10 @@
     <div class="pane" id="a-listen"></div>
   </div>
 
+
+  <div class="view" data-view="say"><div class="shead"><div class="kick">Terjemah</div><h2>言いたいこと</h2><p>日本語を入れるとインドネシア語に変換。その表現が出てくる場面の会話へも案内します。</p></div>
+    <div id="sayWrap"></div>
+  </div>
 
   <div class="view" data-view="dict"><div class="shead"><div class="kick">Kamus</div><h2>辞書</h2><p>アプリ内の全単語を検索。日本語・インドネシア語どちらでも。<svg class="icn"><use href="#i-sound"/></svg>で発音。</p></div>
     <input class="searchin" id="dictIn" placeholder="単語を検索（例: makan / 食べる）" style="margin:10px 0 6px">
