@@ -323,11 +323,11 @@ function buildDriver(){if(CAR.d)return;const dTabs=$("dTabs");dTabs.innerHTML=DR
 /* ニュース */
 function buildTravel(){if($("travelWrap").dataset.done)return;$("travelWrap").dataset.done=1;$("travelWrap").innerHTML=TRAVEL.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
 /* ===== 話す（発音チェック・録音） ===== */
-var spDeck=[],spI=0,spFilter="weak",_spInit=false;
+var spDeck=[],spI=0,spFilter="rev",_spInit=false;
 function spCur(){return spDeck.length?spDeck[spI]:null;}
 function spBuild(){var st=LS("dks_status",{}),tn=todayNum(),sr=LS("dks_srs",{});
   var pool=CARDS.filter(function(c){return c.w&&c.ja;});
-  if(spFilter==="weak")spDeck=pool.filter(function(c){return st[c.w]==="weak";});
+  if(spFilter==="rev")spDeck=pool.filter(function(c){return st[c.w]==="unknown"||st[c.w]==="seen";});
   else if(spFilter==="due")spDeck=pool.filter(function(c){return sr[c.w]&&sr[c.w].due<=tn&&st[c.w]!=="known";});
   else if(spFilter==="known")spDeck=pool.filter(function(c){return st[c.w]==="known";});
   else spDeck=pool.slice();
@@ -345,7 +345,7 @@ function spDraw(){var c=spCur(),out=$("fCheckOut");
 function buildSpeak(){
   if(!_spInit){_spInit=true;
     var f=$("spFil");
-    f.innerHTML=[["weak","苦手"],["due","復習"],["known","覚えた"],["all","すべて"]].map(function(x){
+    f.innerHTML=[["rev","未習得"],["due","復習"],["known","覚えた"],["all","すべて"]].map(function(x){
       return '<button data-spf="'+x[0]+'"'+(x[0]===spFilter?' class="active"':'')+'>'+x[1]+'</button>';}).join("");
     f.addEventListener("click",function(e){var b=e.target.closest("[data-spf]");if(!b)return;
       [].forEach.call(f.children,function(x){x.classList.toggle("active",x===b);});spFilter=b.dataset.spf;spBuild();});
@@ -467,8 +467,8 @@ function newsWordsCard(day){var ws=newsWordsOf(day);
     '</div><button class="nwall" id="nwAll">すべて復習に追加</button></div>';}
 (function(){document.addEventListener("click",function(e){
   var b=e.target.closest("[data-nw]");
-  if(b){var w=b.dataset.nw;status[w]="weak";SV("dks_status",status);b.textContent="追加済み";b.classList.add("done");b.disabled=true;if(typeof renderHomeStats==="function")renderHomeStats();return;}
-  if(e.target.closest("#nwAll")){var btns=document.querySelectorAll("[data-nw]");btns.forEach(function(x){if(!x.disabled){status[x.dataset.nw]="weak";x.textContent="追加済み";x.classList.add("done");x.disabled=true;}});SV("dks_status",status);if(typeof renderHomeStats==="function")renderHomeStats();var ab=$("nwAll");if(ab){ab.textContent="復習リストに追加しました";ab.disabled=true;}}
+  if(b){var w=b.dataset.nw;srsUpdate(w,"unknown");b.textContent="追加済み";b.classList.add("done");b.disabled=true;if(typeof renderHomeStats==="function")renderHomeStats();return;}
+  if(e.target.closest("#nwAll")){var btns=document.querySelectorAll("[data-nw]");btns.forEach(function(x){if(!x.disabled){srsUpdate(x.dataset.nw,"unknown");x.textContent="追加済み";x.classList.add("done");x.disabled=true;}});if(typeof renderHomeStats==="function")renderHomeStats();var ab=$("nwAll");if(ab){ab.textContent="復習リストに追加しました";ab.disabled=true;}}
 });})();
 function buildRealNews(){if($("rnWrap").dataset.done)return;$("rnWrap").dataset.done=1;
   const week=(window.REALNEWS_WEEK&&window.REALNEWS_WEEK.length)?window.REALNEWS_WEEK:[{date:NEWS_UPDATED,real:true,items:REALNEWS}];
@@ -551,9 +551,13 @@ function buildDate(){const dp=$("dPick");if(dp.dataset.done)return;dp.dataset.do
 let status=LS("dks_status",{}),srs=LS("dks_srs",{}),fLevel="all",fSrc="all",fSt="all",deck=[],fi=0,fFlip=false;
 const SRSIV={1:1,2:2,3:4,4:8,5:16,6:35};
 function todayNum(){var d=new Date();d.setHours(0,0,0,0);return Math.floor(d.getTime()/86400000);}
+(function(){var tn=todayNum(),ch=false,ch2=false;
+  Object.keys(status).forEach(function(w){if(status[w]==="weak"){status[w]="unknown";ch=true;}});
+  Object.keys(status).forEach(function(w){if(status[w]!=="known"&&!srs[w]){srs[w]={lvl:1,due:tn};ch2=true;}});
+  if(ch)SV("dks_status",status);if(ch2)SV("dks_srs",srs);})();
 function srsDue(w){return !!(srs[w]&&srs[w].due<=todayNum());}
 function fSummary(){var el=$("fSum");if(!el)return;
-  var L={all:"",1:"初級",2:"中級",3:"上級"},S={all:"",weak:"苦手",known:"覚えた",new:"未学習",due:"復習"};
+  var L={all:"",1:"初級",2:"中級",3:"上級"},S={all:"",unknown:"知らない",seen:"見たことある",known:"覚えた",new:"未学習",due:"復習"};
   var p=[L[fLevel]||"",(fSrc==="all"?"":fSrc),S[fSt]||""].filter(Boolean);
   el.textContent=(p.length?p.join(" ・ "):"すべての単語")+"（"+deck.length+"枚）";}
 (function(){var b=$("fHead");if(!b)return;
@@ -564,16 +568,16 @@ function buildFlash(){let _cardSwiped=false,_cx0=null,_cy0=null;
   const mk=(box,arr,cb)=>{box.innerHTML="";arr.forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;if(v==="all")b.classList.add("active");b.dataset.v=v;b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");cb(v);};box.appendChild(b);});};
   mk(lv,[["all","すべて"],["1","初級"],["2","中級"],["3","上級"]],v=>{fLevel=v;rebuild();});
   mk(sc,[["all","すべて"],["自分","自分の単語"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"],["語彙","語彙"],["島パック","島パック"],["旅","旅"]],v=>{fSrc=v;rebuild();});
-  mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
+  mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["unknown","知らない"],["seen","見たことある"],["known","覚えた"]],v=>{fSt=v;rebuild();});
   $("fSpk").innerHTML=SPK;
   $("fcard").addEventListener("click",e=>{if(_cardSwiped){_cardSwiped=false;return;}if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
   $("fcard").addEventListener("touchstart",e=>{if(e.touches.length!==1){_cx0=null;return;}_cx0=e.touches[0].clientX;_cy0=e.touches[0].clientY;},{passive:true});
-  $("fcard").addEventListener("touchend",e=>{if(_cx0==null||!deck.length)return;const t=e.changedTouches[0],dx=t.clientX-_cx0,dy=t.clientY-_cy0;_cx0=null;const ax=Math.abs(dx),ay=Math.abs(dy);if(ax<45&&ay<45)return;_cardSwiped=true;setTimeout(function(){_cardSwiped=false;},450);if(ax>ay){fi=((dx<0?fi+1:fi-1)+deck.length)%deck.length;fFlip=false;draw(true);}else{mark(dy<0?"known":"weak");}},{passive:true});
+  $("fcard").addEventListener("touchend",e=>{if(_cx0==null||!deck.length)return;const t=e.changedTouches[0],dx=t.clientX-_cx0,dy=t.clientY-_cy0;_cx0=null;const ax=Math.abs(dx),ay=Math.abs(dy);if(ax<45&&ay<45)return;_cardSwiped=true;setTimeout(function(){_cardSwiped=false;},450);if(ax>ay){fi=((dx<0?fi+1:fi-1)+deck.length)%deck.length;fFlip=false;draw(true);}else{mark(dy<0?"known":"unknown");}},{passive:true});
   $("fPrev").onclick=()=>{if(deck.length){fi=(fi-1+deck.length)%deck.length;fFlip=false;draw(true);}};
   $("fNext").onclick=()=>{if(deck.length){fi=(fi+1)%deck.length;fFlip=false;draw(true);}};
   $("fShuffle").onclick=()=>{for(let i=deck.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[deck[i],deck[j]]=[deck[j],deck[i]];}fi=0;fFlip=false;draw(true);};
   $("fSpk").onclick=e=>{e.stopPropagation();if(deck.length)play(deck[fi].audio,deck[fi].w,$("fSpk"));};
-  $("srsWeak").onclick=()=>mark("weak");$("srsKnown").onclick=()=>mark("known");
+  $("srsWeak").onclick=()=>mark("unknown");$("srsSeen").onclick=()=>mark("seen");$("srsKnown").onclick=()=>mark("known");
   rebuild();
 }
 function myCards(){var out=[],seen={};
@@ -587,7 +591,7 @@ function rebuild(){if(typeof fSummary==="function")setTimeout(fSummary,0);var po
   deck=pool.filter(c=>(fLevel==="all"||c.lv===+fLevel)&&(fSrc==="all"||fSrc==="自分"||c.src.includes(fSrc))&&(fSt==="all"||(fSt==="due"?srsDue(c.w):fSt==="new"?!status[c.w]:status[c.w]===fSt)));fi=0;fFlip=false;draw(false);}
 function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),fc=$("fCount");
   if(!deck.length){ft.innerHTML="";fw.textContent="該当なし";fm.textContent="";fx.innerHTML="";fc.textContent="0 / 0";return;}
-  const c=deck[fi];const stt=status[c.w];const stb=stt?`<span class="badge bst">${stt==='weak'?'苦手':'覚えた'}</span>`:"";
+  const c=deck[fi];const stt=status[c.w];const stb=stt?`<span class="badge bst">${stt==='known'?'覚えた':stt==='seen'?'見たことある':'知らない'}</span>`:"";
   ft.innerHTML=`<span class="badge lv${c.lv}">${({1:"初級",2:"中級",3:"上級"})[c.lv]}</span>`+c.src.map(s=>`<span class="badge bsrc">${esc(s)}</span>`).join("")+stb;
   const fk=$("fkata");
   if(fFlip){fw.textContent=c.ja;fm.textContent=c.w;if(fk)fk.textContent="";fx.innerHTML=c.ex?`${patChip(c)}<div class="fexline">${spkBtn(c.ex[2],c.ex[0])}<span class="t">${wrapWords(c.ex[0])}</span></div><div class="fexja">${esc(c.ex[1])}</div>`:"";}
@@ -598,6 +602,7 @@ function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),
 }
 function srsUpdate(w,s){if(!w)return;status[w]=s;SV("dks_status",status);const tn=todayNum();
   if(s==="known"){const lvl=Math.min(6,((srs[w]&&srs[w].lvl)||0)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}
+  else if(s==="seen"){const lvl=Math.min(4,((srs[w]&&srs[w].lvl)||1)+1);srs[w]={lvl:lvl,due:tn+SRSIV[lvl]};}
   else{srs[w]={lvl:1,due:tn+1};}
   SV("dks_srs",srs);}
 function mark(s){if(!deck.length)return;const w=deck[fi].w;srsUpdate(w,s);const wasFiltered=fSt!=="all";fi=(fi+1)%deck.length;fFlip=false;if(wasFiltered)rebuild();else draw(true);}
@@ -963,12 +968,12 @@ function renderArchHome(){var el=$("homeArch");if(!el)return;var dots=_archBuild
     foot='\u6b21\u306e\u5cf6 <b>'+ARCH_CLUSTERS[best].name+'</b> \u307e\u3067 \u3042\u3068 <b>'+Math.max(0,rem)+'</b> \u8a9e';}
   el.innerHTML='<div class="archhome" data-goto="practice:p-stats"><div class="ahhd"><span class="aht">Nusantara \u2014 \u3042\u306a\u305f\u306e\u7fa4\u5cf6</span><span class="ahc"><b>'+known+'</b>\u8a9e</span></div><svg class="archmap" viewBox="0 0 568 213" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+circ+'</svg><div class="ahft">'+foot+'</div></div>';
   _archHomeLit=lit;}
-function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,weak=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
-  CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="weak")weak++;if(srs[c.w]&&srs[c.w].due<=tn)due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
+function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();const total=CARDS.length;let known=0,seen=0,unk=0,due=0;const lv={1:[0,0],2:[0,0],3:[0,0]};
+  CARDS.forEach(c=>{const s=status[c.w];if(s==="known")known++;if(s==="seen")seen++;if(s==="unknown")unk++;if(srs[c.w]&&srs[c.w].due<=tn&&s!=="known")due++;const L=lv[c.lv];if(L){L[1]++;if(s==="known")L[0]++;}});
   const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
   const bar=(x,y)=>`<div class="dbar"><span style="width:${y?Math.round(x/y*100):0}%"></span></div>`;
   const lvrow=(nm,i)=>`<div class="dashrow"><span class="dlab">${nm}</span>${bar(lv[i][0],lv[i][1])}<span class="dval">${lv[i][0]} / ${lv[i][1]}</span></div>`;
-  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${due}</b><span>復習待ち</span></div><div class="dstat"><b>${weak}</b><span>苦手</span></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>
+  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${seen}</b><span>見たことある</span></div><div class="dstat"><b>${unk}</b><span>知らない</span></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>
   <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>`;
   var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
@@ -1081,12 +1086,12 @@ function nextQ(){if(qMode==="arrange")return arrangeQ();if(qMode==="type")return
 function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode==="weak";
   const full=CARDS.filter(c=>c.ja);let src=full;
   const tn=(typeof todayNum==="function")?todayNum():0;
-  if(weak){const wp=full.filter(x=>status[x.w]==="weak");
+  if(weak){const wp=full.filter(x=>status[x.w]==="unknown");
     if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard">'+lockCard({cls:"qlock",title:"苦手撲滅",
       sil:'<svg class="icn qlockic" aria-hidden="true"><use href="#i-target"/></svg>',
-      cond:'苦手が5語たまったら解放 ・ 現在 <b>'+wp.length+'</b> 語<br>カードの「✗ 苦手」やクイズの誤答でここに集まります'})+'</div>';return;}
+      cond:'知らない語が5語たまったら解放 ・ 現在 <b>'+wp.length+'</b> 語<br>カードの「✗ 知らない」やクイズの誤答でここに集まります'})+'</div>';return;}
     src=wp;}
-  else if(review){const rp=full.filter(x=>status[x.w]==="weak"||(srs[x.w]&&srs[x.w].due<=tn&&status[x.w]!=="known"));if(rp.length)src=rp;}
+  else if(review){const rp=full.filter(x=>(srs[x.w]&&srs[x.w].due<=tn&&status[x.w]!=="known")||((status[x.w]==="unknown"||status[x.w]==="seen")&&!srs[x.w]));if(rp.length)src=rp;}
   else if(listen){const lp=full.filter(x=>status[x.w]==="known"||(srs[x.w]&&srs[x.w].due<=tn));if(lp.length>=4)src=lp;}
   const c=rnd(src);const opts=shuf([c].concat(shuf(full.filter(x=>x.ja!==c.ja)).slice(0,3)));
   $("qBody").innerHTML=`<div class="quizbox panelcard"><div class="qprompt">${listen?"音声を聞いて意味を選ぼう（文字は答えたら出ます）":weak?"苦手撲滅：この語の意味は？":review?"復習：この語の意味は？":"この単語の意味は？"}</div>
@@ -1095,7 +1100,7 @@ function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode=
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   if(listen)setTimeout(()=>play(c.audio,c.w,null),200);
   const opt=$("qBody").querySelectorAll(".qopts button");
-  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent=weak?"Benar! 苦手をひとつ克服 🎉":"Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";if(weak&&typeof celebrate==="function"){const left=CARDS.filter(x=>status[x.w]==="weak").length;if(left===0)celebrate("🎉 苦手をすべて克服！ Hebat!");}}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":(weak?"weak":"mean"),ok);if(typeof srsUpdate==="function")srsUpdate(c.w,ok?"known":"weak");if(typeof bumpActivity==="function")bumpActivity();if(typeof updBadge==="function")updBadge();}));
+  opt.forEach(b=>b.addEventListener("click",()=>{if($("qBody").dataset.done)return;$("qBody").dataset.done=1;qTotal++;const ok=b.dataset.ok==="1";if(ok){qScore++;b.classList.add("correct");$("qfb").textContent=weak?"Benar! 苦手をひとつ克服 🎉":"Benar! 正解 🎉";$("qfb").style.color="#2e7d3c";if(weak&&typeof celebrate==="function"){const left=CARDS.filter(x=>status[x.w]==="unknown").length;if(left===0)celebrate("🎉 苦手をすべて克服！ Hebat!");}}else{b.classList.add("wrong");opt.forEach(x=>{if(x.dataset.ok==="1")x.classList.add("correct");});$("qfb").textContent="Salah… 正解は「"+c.ja+"」";$("qfb").style.color="var(--hl)";}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;opt.forEach(x=>{x.classList.add("answered");x.insertAdjacentHTML("beforeend",'<span class="optword" data-audio="'+esc(x.dataset.au||"")+'" data-text="'+esc(x.dataset.w)+'">'+esc(x.dataset.w)+'</span>');});qStat(listen?"listen":(weak?"weak":"mean"),ok);if(typeof srsUpdate==="function")srsUpdate(c.w,ok?"known":"unknown");if(typeof bumpActivity==="function")bumpActivity();if(typeof updBadge==="function")updBadge();}));
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
 function arrangeQ(){const pool=withEx().filter(c=>{const n=c.ex[0].split(" ").length;return n>=3&&n<=6;});const c=rnd(pool);const words=c.ex[0].replace(/[.?!,]/g,"").split(" ");const jum=shuf(words.slice());
@@ -1112,7 +1117,7 @@ function typeQ(){const pool=CARDS.filter(c=>c.w&&c.ja);const c=rnd(pool);
    <input class="searchin" id="qtype" placeholder="インドネシア語を入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:6px 0 12px"><button class="qnext nqcheck" id="qtchk">確認する</button>
    <div class="qfb" id="qfb"></div><div class="qfoot"><span class="qscore">スコア ${qScore} / ${qTotal}</span><button class="qnext" id="qnext">次へ →</button></div></div>`;
   const inp=$("qtype");try{inp.focus();}catch(e){}let done=false;
-  function chk(){if(done||!inp.value.trim())return;done=true;qTotal++;const ok=norm(inp.value)===norm(c.w);if(ok){qScore++;$("qfb").innerHTML="Benar! 🎉 <b>"+esc(c.w)+"</b>";$("qfb").style.color="#2e7d3c";}else{$("qfb").innerHTML="正解: <b>"+esc(c.w)+"</b>（"+esc(c.ja)+"）";$("qfb").style.color="var(--hl)";try{status[c.w]="weak";SV("dks_status",status);}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;play(c.audio,c.w,null);qStat("type",ok);if(typeof bumpActivity==="function")bumpActivity();}
+  function chk(){if(done||!inp.value.trim())return;done=true;qTotal++;const ok=norm(inp.value)===norm(c.w);if(ok){qScore++;$("qfb").innerHTML="Benar! 🎉 <b>"+esc(c.w)+"</b>";$("qfb").style.color="#2e7d3c";}else{$("qfb").innerHTML="正解: <b>"+esc(c.w)+"</b>（"+esc(c.ja)+"）";$("qfb").style.color="var(--hl)";try{srsUpdate(c.w,"unknown");}catch(_){}}$("qBody").querySelector(".qscore").textContent="スコア "+qScore+" / "+qTotal;play(c.audio,c.w,null);qStat("type",ok);if(typeof bumpActivity==="function")bumpActivity();}
   $("qtchk").onclick=chk;inp.addEventListener("keydown",e=>{if(e.key==="Enter")chk();});
   $("qnext").onclick=()=>{$("qBody").dataset.done="";nextQ();};
 }
@@ -1265,10 +1270,10 @@ function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name",
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
   el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
-function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0,weak=0;
+function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
-  Object.keys(st).forEach(function(w){if(st[w]==="weak")weak++;});
-  var n=due+weak;
+  Object.keys(st).forEach(function(w){if((st[w]==="unknown"||st[w]==="seen")&&!sr[w])due++;});
+  var n=due;
   if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 復習する（'+n+'語）';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
   else{el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる';el.dataset.goto="practice:p-daily";delete el.dataset.qmode;}}
 var _ciN=0,_ciT=null;

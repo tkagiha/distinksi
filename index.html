@@ -270,7 +270,8 @@
   .fctrl{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px}
   .srsrow{display:flex;gap:10px;justify-content:center;margin-top:14px}
   .srsrow button{flex:1;max-width:180px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-  .srsrow .weak{border-color:#d98a80;color:#c0392b}.srsrow .known{border-color:#8fc79f;color:#2e7d3c}
+  .srsrow .weak{border-color:#d98a80;color:#c0392b}.srsrow .seen{border-color:#dcb96a;color:#9c7318}.srsrow .known{border-color:#8fc79f;color:#2e7d3c}
+  .srsrow button{font-size:13px;padding:12px 6px}
 
   /* quiz */
   .quizbox{padding:24px;border-radius:16px}
@@ -987,7 +988,7 @@
         </div></div>
       <div class="fcard panelcard" id="fcard"><div class="ftags" id="ftags"></div><div style="width:100%"><div class="fword" id="fword"></div><div class="fkata" id="fkata"></div><div class="fmean" id="fmean"></div><div class="fex" id="fex"></div></div><div class="fhint">タップで裏返す</div></div>
       <div class="fctrl"><button class="arrow" id="fPrev">←</button><button class="spk" id="fSpk"></button><span class="counter" id="fCount"></span><button class="arrow" id="fShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg></button><button class="arrow" id="fNext">→</button></div>
-      <div class="srsrow"><button class="weak" id="srsWeak">✗ 苦手</button><button class="known" id="srsKnown">✓ 覚えた</button></div>
+      <div class="srsrow"><button class="weak" id="srsWeak">✗ 知らない</button><button class="seen" id="srsSeen">△ 見たことある</button><button class="known" id="srsKnown">✓ 覚えた</button></div>
       <div class="fextra"><button id="fBook" aria-label="ブックマーク">★ 保存</button><button id="fShare" aria-label="共有"><svg class="icn"><use href="#i-share"/></svg> 共有</button></div>
     </div>
     <div class="pane" id="p-quiz"></div>
