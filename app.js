@@ -418,7 +418,7 @@ function simAdvance(skip){var l=simLine();if(!l)return;
   _simS.li++;$("simFb").textContent="";setTimeout(simStep,700);}
 function simSpeak(){var l=simLine();if(!l||_simS.busy)return;
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){$("simFb").textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。スキップで進めます。";return;}
+  if(!SR){$("simFb").textContent=_srUnsupportedMsg()+" スキップで進められます。";return;}
   var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;
   var btn=$("simMic");btn.classList.add("rec");_simS.busy=true;$("simFb").textContent="🎤 どうぞ話してください…";
   rec.onresult=function(e){var best=0,heard="";
@@ -427,7 +427,7 @@ function simSpeak(){var l=simLine();if(!l||_simS.busy)return;
     if(pct>=60){$("simFb").innerHTML='<span class="pscore good">'+pct+'%</span> Bagus! 通じました';simPush(l,true);_simS.li++;setTimeout(simStep,900);}
     else{$("simFb").innerHTML='<span class="pscore low">'+pct+'%</span> 認識: '+esc(heard||"—")+' — もう一度どうぞ';}
   };
-  rec.onerror=function(e){$("simFb").textContent=(e.error==="not-allowed")?"マイクの許可が必要です。":"認識できませんでした。もう一度どうぞ。";};
+  rec.onerror=function(e){$("simFb").textContent=_srErrMsg(e.error);};
   rec.onend=function(){btn.classList.remove("rec");_simS.busy=false;};
   try{rec.start();}catch(_){btn.classList.remove("rec");_simS.busy=false;}}
 function buildPacks(){if($("packWrap").dataset.done)return;$("packWrap").dataset.done=1;$("packWrap").innerHTML=PACKS.map(function(g){return '<div class="dcard" style="margin-bottom:14px"><div class="dtitle">'+g.emoji+' '+esc(g.cat)+'</div><div class="dsub">'+esc(g.en)+'</div>'+g.items.map(function(it){return '<div class="dline"><div class="id">'+spkBtn(it[2],it[0])+'<span class="t">'+wrapWords(it[0])+'</span></div><div class="ja" style="margin:3px 0 0 42px;font-size:13px;color:var(--sub)">'+esc(it[1])+'</div></div>';}).join("")+'</div>';}).join("");}
@@ -1393,11 +1393,24 @@ async function toggleRec(){const btn=$("fRec");if(recState){try{mediaRec.stop();
 }
 function playRec(){if(recURL){new Audio(recURL).play();}}
 function _sim(a,b){a=(a||"").toLowerCase().replace(/[^a-z ]/g,"").trim();b=(b||"").toLowerCase().replace(/[^a-z ]/g,"").trim();if(!a||!b)return 0;var m=a.length,n=b.length,dp=[];for(var i=0;i<=m;i++){dp[i]=[i];for(var j=1;j<=n;j++)dp[i][j]=i===0?j:0;}for(var i2=1;i2<=m;i2++)for(var j2=1;j2<=n;j2++)dp[i2][j2]=Math.min(dp[i2-1][j2]+1,dp[i2][j2-1]+1,dp[i2-1][j2-1]+(a[i2-1]===b[j2-1]?0:1));return Math.max(0,1-dp[m][n]/Math.max(m,n));}
-function checkPron(){var c=spCur();if(!c)return;var out=$("fCheckOut");var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){out.textContent="この端末では音声認識に非対応です（Chrome/Edge推奨）。";return;}var target=c.w;var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;var btn=$("fCheck");btn.classList.add("rec");out.textContent="🎤 発音してください…";
-  rec.onresult=function(e){var best=0,heard="";for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var s=_sim(alt,target);if(s>best){best=s;heard=alt;}}var pct=Math.round(best*100);try{var _P=LS("dks_pron",{});var _e=_P[target]||{best:0,tries:0};_e.tries++;_e.last=pct;if(pct>(_e.best||0))_e.best=pct;_P[target]=_e;SV("dks_pron",_P);}catch(_){}var msg,cls;if(pct>=80){msg="Bagus! よくできました";cls="good";if(pct>=92)celebrate("🎉 発音バッチリ！ Sempurna!");}else if(pct>=55){msg="惜しい！もう一度";cls="mid";}else{msg="もう一度ゆっくり言ってみましょう";cls="low";}out.innerHTML='<span class="pscore '+cls+'">'+pct+'%</span> '+msg+'<div class="pheard">認識: '+esc(heard||"—")+' ／ お手本: '+esc(target)+'</div>';};
-  rec.onerror=function(e){out.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"マイクの許可が必要です。":"認識できませんでした。もう一度お試しください。";btn.classList.remove("rec");};
-  rec.onend=function(){btn.classList.remove("rec");};
-  try{rec.start();}catch(e){out.textContent="開始できませんでした。";btn.classList.remove("rec");}}
+function _simBest(alt,target){var s=_sim(alt,target);
+  (alt||"").split(/\s+/).forEach(function(tok){var ts=_sim(tok,target);if(ts>s)s=ts;});
+  return s;}
+function _srErrMsg(err){
+  if(err==="not-allowed"||err==="service-not-allowed")return "マイクの許可が必要です。ブラウザの設定（サイトの権限）からマイクを許可してください。";
+  if(err==="no-speech")return "声が検出できませんでした。マイクに近づいて、もう少しはっきり話してみてください。";
+  if(err==="audio-capture")return "マイクが見つかりません。端末のマイク設定をご確認ください。";
+  if(err==="network")return "音声認識サービスに接続できませんでした。通信環境をご確認ください。";
+  return "認識できませんでした。もう一度お試しください。";}
+function _srUnsupportedMsg(){
+  var ios=/iP(hone|ad|od)/.test(navigator.userAgent),standalone=(navigator.standalone===true)||matchMedia("(display-mode: standalone)").matches;
+  if(ios&&standalone)return "ホーム画面から起動したアプリ版では、iOSの制約で音声認識が使えない場合があります。Safariで tkagiha.github.io/distinksi を直接開くか、下の「録音」→「自分の声」でお手本と聞き比べてください。";
+  return "この端末では音声認識に非対応です（Chrome/Edge推奨）。下の「録音」→「自分の声」でお手本と聞き比べる練習ができます。";}
+function checkPron(){var c=spCur();if(!c)return;var out=$("fCheckOut");var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){out.textContent=_srUnsupportedMsg();return;}var target=c.w;var rec=new SR();rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=4;var btn=$("fCheck");btn.classList.add("rec");out.textContent="🎤 発音してください…";var _got=false;
+  rec.onresult=function(e){_got=true;var best=0,heard="";for(var i=0;i<e.results[0].length;i++){var alt=e.results[0][i].transcript;var s=_simBest(alt,target);if(s>best){best=s;heard=alt;}}var pct=Math.round(best*100);try{var _P=LS("dks_pron",{});var _e=_P[target]||{best:0,tries:0};_e.tries++;_e.last=pct;if(pct>(_e.best||0))_e.best=pct;_P[target]=_e;SV("dks_pron",_P);}catch(_){}var msg,cls;if(pct>=80){msg="Bagus! よくできました";cls="good";if(pct>=92)celebrate("🎉 発音バッチリ！ Sempurna!");}else if(pct>=55){msg="惜しい！もう一度";cls="mid";}else{msg="もう一度ゆっくり言ってみましょう";cls="low";}out.innerHTML='<span class="pscore '+cls+'">'+pct+'%</span> '+msg+'<div class="pheard">認識: '+esc(heard||"—")+' ／ お手本: '+esc(target)+'</div>';};
+  rec.onerror=function(e){_got=true;out.textContent=_srErrMsg(e.error);btn.classList.remove("rec");};
+  rec.onend=function(){btn.classList.remove("rec");if(!_got)out.textContent="聞き取れませんでした。静かな場所で、もう一度お試しください。";};
+  try{rec.start();}catch(e){out.textContent=_srUnsupportedMsg();btn.classList.remove("rec");}}
 function _wrapText(ctx,text,cx,y,maxW,lh){var words=(text||"").split(" "),line="",lines=[];for(var i=0;i<words.length;i++){var t=line?line+" "+words[i]:words[i];if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=words[i];}else line=t;}if(line)lines.push(line);var yy=y-(lines.length-1)*lh/2;for(var j=0;j<lines.length;j++)ctx.fillText(lines[j],cx,yy+j*lh);}
 function shareCard(){if(!deck.length)return;const c=deck[fi];const W=800,H=800;const cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
   const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#d5384a");g.addColorStop(0.55,"#c1272d");g.addColorStop(1,"#9c1622");x.fillStyle=g;x.fillRect(0,0,W,H);
