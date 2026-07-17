@@ -1076,8 +1076,9 @@ function shareArch(){
 let qMode="mean",qScore=0,qTotal=0;
 let quizStats=LS("dks_quizstats",{}),_pendQ=null;
 var _combo=0,_sesN=0,_sesOk=0;
-function comboFx(ok){if(!ok){_combo=0;return;}_combo++;if(_combo<2)return;
-  var say=_combo>=15?"Dahsyat!!":_combo>=10?"Luar biasa!":_combo>=7?"Keren!":_combo>=5?"Hebat!":_combo>=3?"Bagus!":"";
+function comboFx(ok){if(!ok){_combo=0;return;}_combo++;
+  if(_combo!==5&&_combo!==10&&_combo!==20)return;
+  var say=_combo>=20?"Luar biasa!":_combo>=10?"Keren!":"Hebat!";
   var el=document.createElement("div");el.className="combofx";el.style.fontSize=Math.min(26,15+_combo)+"px";
   el.textContent=_combo+"連続"+(say?"　"+say:"")+"！";
   document.body.appendChild(el);requestAnimationFrame(function(){el.classList.add("go");});setTimeout(function(){el.remove();},1150);}
@@ -1086,12 +1087,15 @@ function showRecap(){var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}
   var g=(ACT.goal||10),jn=(ACT.jwd===_d(0)&&ACT.jw)?Object.keys(ACT.jw).length:0,left=Math.max(0,g-jn);
   var ov=$("recapOv");
   if(!ov){document.body.insertAdjacentHTML("beforeend",'<div class="overlay" id="recapOv"><div class="sheet recapsheet"></div></div>');ov=$("recapOv");}
-  ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">🎉</div><h3 class="rctitle">ここまでの成果</h3><div class="rcstats"><div class="rcbox"><b>'+_sesOk+'</b><span>正解 / '+_sesN+'問</span></div><div class="rcbox"><b>'+tom+'</b><span>明日の復習予定</span></div></div><div class="rcmsg">'+(left>0?('ワルンの一皿まで あと <b>'+left+'</b> 語'):'今日の目標は達成ずみ。一皿ならびました 🍽️')+'</div><button class="rcgo" id="recapGo">つづける</button><button class="rcclose" id="recapHome">ホームへもどる</button>';
+  var doneToday=left<=0;
+  ov.querySelector(".recapsheet").innerHTML='<div class="rcemo">'+(doneToday?"🍽️":"🎉")+'</div><h3 class="rctitle">'+(doneToday?"今日はここまで":"ここまでの成果")+'</h3><div class="rcstats"><div class="rcbox"><b>'+_sesOk+'</b><span>正解 / '+_sesN+'問</span></div><div class="rcbox"><b>'+tom+'</b><span>明日の復習予定</span></div></div><div class="rcmsg">'+(doneToday?'今日の目標は達成ずみ。一皿ならびました。<br>あとは行ってらっしゃい。どこかで ひとこと 使ってみてください。':('ワルンの一皿まで あと <b>'+left+'</b> 語'))+'</div>'+(doneToday
+    ?'<button class="rcgo" id="recapHome">閉じる</button><button class="rcclose" id="recapGo">もう少しつづける</button>'
+    :'<button class="rcgo" id="recapGo">あと'+left+'語つづける</button><button class="rcclose" id="recapHome">今日はここまでにする</button>');
   ov.classList.add("on");
   $("recapGo").onclick=function(){ov.classList.remove("on");};
   $("recapHome").onclick=function(){ov.classList.remove("on");showView("home");};}
 function qStat(mode,ok){quizStats[mode]=quizStats[mode]||{c:0,t:0};quizStats[mode].t++;if(ok)quizStats[mode].c++;SV("dks_quizstats",quizStats);
-  comboFx(ok);_sesN++;if(ok)_sesOk++;if(_sesN%10===0)setTimeout(showRecap,650);}
+  comboFx(ok);_sesN++;if(ok)_sesOk++;if(_sesN%10===0&&_sesN<=30)setTimeout(showRecap,650);}
 function buildQuiz(){$("p-quiz").innerHTML=`<div class="subtabs" id="qModes"><button data-q="mean" class="active">意味4択</button><button data-q="listen">聞き取り</button><button data-q="weak">知らない語</button><button data-q="review">復習</button><button data-q="arrange">並べ替え</button><button data-q="type">書き取り</button></div><div id="qBody"></div>`;
   $("qModes").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x===b));qMode=b.dataset.q;qScore=0;qTotal=0;nextQ();});
   if(_pendQ){qMode=_pendQ;_pendQ=null;qScore=0;qTotal=0;[...$("qModes").children].forEach(x=>x.classList.toggle("active",x.dataset.q===qMode));}
@@ -1922,6 +1926,10 @@ function gsConnect(done){
 window.addEventListener("pagehide",function(){if(gsEnabled()&&_gsTok)_gsUpload();});
 
 try{islandStrip();}catch(e){}
+(function(){var b=$("moreTog"),m=$("homeMore");if(!b||!m)return;
+  function paint(on){m.hidden=!on;b.setAttribute("aria-expanded",on?"true":"false");b.textContent=on?"くわしい記録・そのほか ▴":"くわしい記録・そのほか ▾";}
+  paint(!!LS("dks_homemore",0));
+  b.onclick=function(){var on=m.hidden;SV("dks_homemore",on?1:0);paint(on);};})();
 /* ===== おかえりフロー: 3日以上あいたら軽い復帰導線 ===== */
 (function(){try{
   if(!ACT.ci)return;var gap=0;for(var k=1;k<=60;k++){if(ACT.ci===_d(k)){gap=k;break;}}

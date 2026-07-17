@@ -507,6 +507,9 @@
   .rcclose{display:block;width:100%;margin-top:8px;padding:10px;border:none;background:none;color:var(--sub);font-family:inherit;font-size:12.5px;cursor:pointer;text-decoration:underline}
   .islstrip{margin:12px 0 -2px;padding:9px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);font-size:12.5px;color:var(--sub)}
   .islstrip b{color:var(--hl)}
+  .moretog{display:block;width:100%;margin:30px 0 0;padding:12px;border:1px dashed var(--line);border-radius:12px;background:none;color:var(--sub);font-family:inherit;font-size:12.5px;cursor:pointer}
+  .moretog:active{opacity:.6}
+  .homemore[hidden]{display:none}
   .homecta{margin:16px 0 6px;padding:16px;font-size:15px}
   .hero--compact{padding:26px 0 34px;border-top:1px solid var(--line);margin-top:26px}
   .hero--compact h1{font-size:24px;margin:10px 0 8px}
@@ -975,18 +978,21 @@
     <button class="homecta" id="homeCta" data-goto="practice:p-daily"><svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる</button>
     <div id="homeStats"></div>
     <div id="homeKata"></div>
-    <div class="homesep">Kemajuan ・ あなたの進捗</div>
+    <div class="homesep">Nusantara ・ 群島</div>
     <div id="homeArchFull"></div>
     <div id="homeJelajah"></div>
     <div id="homeVisited" class="dash"></div>
+    <div class="homesep">Warung ・ 食堂</div>
     <div id="homeWarung" class="dash"></div>
+    <button class="moretog" id="moreTog" aria-expanded="false">くわしい記録・そのほか ▾</button>
+    <div id="homeMore" class="homemore" hidden>
     <div id="statsWrap" class="dash"></div>
-    <div class="homesep">Lainnya ・ そのほか</div>
     <div id="homeProverb"></div>
     <div id="homeCards"></div>
     <div class="hero hero--compact"><div class="eyebrow">Bahasa Indonesia</div>
       <h1>ネイティブが<br>日常的に使う<br>インドネシア語を。</h1>
       <p>1万7千の島と長い歴史をもつインドネシア。その言葉は世界で2億人以上に話され、発音がやさしく日本人にもいちばん学びやすい外国語のひとつです。</p>
+    </div>
     </div>
   </div>
 
