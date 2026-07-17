@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # 毎朝実行：Antaraの実ニュースを取得し、出典リンク＋画像＋日本語訳＋音声で
 # extra.js の REALNEWS / REALNEWS_WEEK を更新（過去7日分を保持）。
-import json, re, os, html, time, datetime, urllib.request, urllib.parse
+import json, re, os, html, time, datetime, email.utils, urllib.request, urllib.parse
 from gtts import gTTS
 import hashlib
 
@@ -31,13 +31,25 @@ def parse_arr(src, name):
 
 def main():
     # インドネシア国内の出来事を扱うフィードのみ（dunia/international は使わない）
-    FEEDS = ["metro", "politik", "hukum", "ekonomi"]   # nasional/megapolitan は Antara 側で廃止
-    PER_FEED = 3          # 1フィードあたり上限（同じ話題の連続を防ぐ）
+    # 2026-07 時点: nasional/megapolitan は廃止、metro/politik/hukum/ekonomi は更新が止まっている。
+    # 実際に毎時更新されているのは terkini / top-news の2本だけ。
+    FEEDS = ["terkini", "top-news"]
+    MAX_AGE_H = 24            # 24時間以内に出た記事だけを扱う（＝その日の出来事）
+    # 国内の出来事だけにする: 以下のいずれかが見出しにあることを条件にする
+    INDO = ("indonesia", "jakarta", " ri ", "prabowo", "kpk", "dpr", "dpd", "mpr", "polri", "polda",
+            "polres", "tni", "dki", "bali", "jawa", "sumatra", "sumatera", "sulawesi", "papua",
+            "kalimantan", "maluku", "aceh", "medan", "surabaya", "bandung", "yogyakarta", "solo",
+            "semarang", "makassar", "palembang", "padang", "lampung", "bekasi", "depok", "bogor",
+            "tangerang", "banten", "riau", "jambi", "kemenhut", "kemenkeu", "kemendag", "kemkomdigi",
+            "kementerian", "pemprov", "pemkot", "pemkab", "gubernur", "bupati", "wali kota",
+            "rupiah", "bmkg", "bumn", "pertamina", "garuda", "nusantara", "ntt", "ntb", "karhutla")
+    PER_FEED = 8          # 1フィードあたり上限（同じ話題の連続を防ぐ）
     # 人物プロフィール／経歴紹介系は除外（出来事のニュースだけにする）
     BLOCK = ("profil", "sosok", "riwayat", "biodata", "mengenal ", "siapa itu",
              "mengenang", "kilas balik", "deretan", "rekomendasi", "inilah",
-             "tips", "cara efektif", "cara mudah", "simak tips", "ketahui ",
-             "ingin coba", "jenis ", "daftar 1", "apa itu", "berikut 1",
+             "tips", "cara ", "panduan", "simak", "ketahui", "ingin coba", "jenis ",
+             "daftar ", "apa itu", "apakah ", "bolehkah", "bisakah", "benarkah",
+             "apa alasan", "ini alasan", "ini fakta", "hikmah", "berikut ",
              "link live streaming", "jadwal dan link", "sinopsis", "zodiak", "ramalan")
     picked, seen = [], set()
     # 過去7日ぶんで既に配信済みのリンク・見出しを読み込み、重複を除く
@@ -87,6 +99,15 @@ def main():
             img = im.group(1) if im else ""
             if not (title and link and img) or link in seen:
                 continue
+            try:                                  # 24時間以内の記事だけ
+                age = (datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7)))
+                       - email.utils.parsedate_to_datetime(g_of(it, "pubDate"))).total_seconds() / 3600
+            except Exception:
+                continue
+            if age > MAX_AGE_H:
+                continue
+            if not any(k in (" " + title.lower() + " ") for k in INDO):
+                continue                          # 国内の手がかりがない＝海外ニュース
             if link in used_links or title.strip().lower() in used_titles:
                 continue                      # 昨日までに配信済み
             if any(b in title.lower() for b in BLOCK):
@@ -100,9 +121,9 @@ def main():
 
     for f in FEEDS:
         harvest(f, PER_FEED)
-    if len(picked) < 10:                 # 不足分は同じ国内フィードから補充
+    if len(picked) < 10:                 # 不足分は同じフィードから補充
         for f in FEEDS:
-            harvest(f, 20)
+            harvest(f, 50)
             if len(picked) >= 10:
                 break
     if dead:
