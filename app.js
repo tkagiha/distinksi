@@ -10,7 +10,7 @@ const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const esc=s=>(s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const $=id=>document.getElementById(id);
 const LS=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
-const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));_mirrorSoon()}catch(e){}};
 
 /* 辞書 */
 const SUF=["nya","lah","kah","ku","mu","kan"];
@@ -1693,3 +1693,29 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPro
 if(btnInstall)btnInstall.addEventListener("click",async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;btnInstall.hidden=true;});
 window.addEventListener("appinstalled",()=>{if(btnInstall)btnInstall.hidden=true;});
 /* build: tabs+practice+tools v2 */
+
+/* ===== データ保全: 永続ストレージ申請 + IndexedDB自動ミラー ===== */
+(function(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}})();
+function _idb(){return new Promise(function(res,rej){var q=indexedDB.open("artikula-safe",1);
+  q.onupgradeneeded=function(){q.result.createObjectStore("kv");};
+  q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});}
+function _dksSnapshot(){var d={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("dks_")===0)d[k]=localStorage.getItem(k);}return d;}
+var _mtmr=null;
+function _mirrorNow(){try{var d=_dksSnapshot();if(!Object.keys(d).length)return;
+  _idb().then(function(db){try{var tx=db.transaction("kv","readwrite");tx.objectStore("kv").put({ts:Date.now(),data:d},"snapshot");}catch(e){}}).catch(function(){});}catch(e){}}
+function _mirrorSoon(){clearTimeout(_mtmr);_mtmr=setTimeout(_mirrorNow,1500);}
+window.addEventListener("pagehide",_mirrorNow);
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")_mirrorNow();});
+(function(){
+  var has=!!localStorage.getItem("dks_status");
+  if(has){_mirrorSoon();return;}
+  try{_idb().then(function(db){
+    var tx=db.transaction("kv","readonly"),rq=tx.objectStore("kv").get("snapshot");
+    rq.onsuccess=function(){var s=rq.result;if(!s||!s.data||!s.data.dks_status)return;
+      var n=0;try{var st=s.data.dks_status;n=_knownOf(typeof st==="string"?JSON.parse(st):st);}catch(e){}
+      var when="";try{when=new Date(s.ts).toLocaleDateString("ja-JP");}catch(e){}
+      if(confirm("この端末に保護された学習データが見つかりました（覚えた "+n+" 語・"+when+" 時点）。\n復元しますか？")){
+        Object.keys(s.data).forEach(function(k){try{localStorage.setItem(k,s.data[k]);}catch(e){}});
+        location.reload();
+      }};}).catch(function(){});}catch(e){}
+})();
