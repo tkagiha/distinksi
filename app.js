@@ -992,7 +992,8 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
     el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>発音チェック</h4>'+_pr+'</div>');}
   var _jv=jlj().visited.length,_jt=(window.JCITIES||[]).length;
   if(_jt){var _jp=Math.round(_jv/_jt*100);
-    el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>訪れた街</h4>'
+    var _vTarget=$("homeVisited")||el;if(_vTarget!==el)_vTarget.innerHTML="";
+    _vTarget.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>訪れた街</h4>'
       +'<div class="dashbig"><div class="dstat"><b>'+_jv+' / '+_jt+'</b><span>Jelajah</span></div></div>'
       +'<div class="jbar"><span style="width:'+_jp+'%"></span></div>'
       +'<div class="jbarl">'+(_jv===_jt?"32の街をすべて訪ねました — <b>Penjelajah Nusantara</b>":"残り <b>"+(_jt-_jv)+"</b> の街")+'</div></div>');}
