@@ -973,7 +973,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;
   const bar=(x,y)=>`<div class="dbar"><span style="width:${y?Math.round(x/y*100):0}%"></span></div>`;
   const lvrow=(nm,i)=>`<div class="dashrow"><span class="dlab">${nm}</span>${bar(lv[i][0],lv[i][1])}<span class="dval">${lv[i][0]} / ${lv[i][1]}</span></div>`;
-  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${seen}</b><span>見たことある</span></div><div class="dstat"><b>${unk}</b><span>知らない</span></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">${due>0?("復習が"+due+"枚たまっています → カードの「復習」で消化"):"復習待ちはありません 🎉"}</div></div>
+  el.innerHTML=`<div class="dashcard"><div class="dashbig"><div class="dstat"><b>${known}</b><span>覚えた</span></div><div class="dstat"><b>${seen}</b><span>見たことある</span></div><div class="dstat"><b>${unk}</b><span>知らない</span></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px">${due>0?("⏳ "+due+"語が忘却曲線の危険域 — 今日復習すれば記憶が定着します"):"忘れかけの語はありません 🎉"}</div></div>
   <div class="dashcard"><h4>単語の習得 ${known} / ${total}</h4><div class="dashrow"><span class="dlab">全体</span>${bar(known,total)}<span class="dval">${total?Math.round(known/total*100):0}%</span></div>${lvrow("初級",1)}${lvrow("中級",2)}${lvrow("上級",3)}</div>`;
   var _hm=ACT.hist||{},_cells="";for(var k=90;k>=0;k--){var ds=_d(k),cc=_hm[ds]||0,col=(!cc?"var(--line2)":cc<3?"rgba(201,155,52,.5)":cc<6?"rgba(201,155,52,.9)":"var(--hl)");_cells+='<div class="hmcell" title="'+ds+'\uff1a'+cc+'\u56de" style="background:'+col+'"></div>';}
   var _bd=[["\ud83d\udd25","7\u65e5\u9023\u7d9a",streak>=7],["\u26a1","30\u65e5\u9023\u7d9a",streak>=30],["\ud83d\udcda","50\u8a9e",known>=50],["\ud83c\udfc6","100\u8a9e",known>=100],["\ud83d\udcaf","200\u8a9e",known>=200],["\ud83c\udfaf","\u5fa9\u7fd2\u30bc\u30ed",due===0&&known>0],["\ud83c\udf05","\u521d\u6765\u5e97",!!ACT.ci],["\ud83d\uddfa\ufe0f","\u4e0a\u7d1a10",lv[3][0]>=10]];
@@ -1269,13 +1269,13 @@ function bumpActivity(){const t=_d(0);if(ACT.date!==t){ACT.date=t;ACT.today=0;}A
 function _salam(){var hh=new Date().getHours();return hh<11?"Selamat pagi":hh<15?"Selamat siang":hh<19?"Selamat sore":"Selamat malam";}
 function renderGreet(){var el=$("homeGreet");if(!el)return;var nm=LS("dks_name","");el.innerHTML=_salam()+(nm?", <b>"+esc(nm)+"</b>":"")+" \u2014 \u4eca\u65e5\u3082\u4e00\u5cf6\u305a\u3064\u3002";}
 function renderHomeStats(){const el=$("homeStats");if(!el)return;const t=_d(0);const today=(ACT.date===t)?(ACT.today||0):0;const g=ACT.goal||10;const pct=Math.min(100,Math.round(today/g*100));const streak=(ACT.ci===t||ACT.ci===_d(1))?(ACT.streak||0):0;const done=ACT.ci===t;
-  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
+  el.innerHTML=`<div class="statcard"><div class="stfire">🔥 <b>${streak}</b> 日連続${(ACT.frz||0)>0?`<span class="stfrz">🛡×${ACT.frz}</span>`:""}</div><div class="stgoal"><div class="stbar"><span style="width:${pct}%"></span></div><div class="stlbl">今日の学習 ${today} / ${g}${today>=g?" 🎉達成!":""}</div></div><button class="cibtn ${done?"done":""}" id="ciBtn" aria-label="${done?"チェックイン済み":"チェックイン"}">${done?'<svg class="cichk" viewBox="0 0 24 24"><path d="M4 12.5 L10 18 L20 6"/></svg>':"チェックイン"}</button></div>`;
   const cb=$("ciBtn");if(cb)cb.onclick=checkIn;renderArchHome();renderGreet();homeCTA();bkNudge();streakRisk();updBadge();}
 function homeCTA(){var el=$("homeCta");if(!el)return;var tn=todayNum(),st=LS("dks_status",{}),sr=LS("dks_srs",{}),due=0;
   Object.keys(sr).forEach(function(w){if(sr[w]&&sr[w].due<=tn&&st[w]!=="known")due++;});
   Object.keys(st).forEach(function(w){if((st[w]==="unknown"||st[w]==="seen")&&!sr[w])due++;});
   var n=due;
-  if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 復習する（'+n+'語）';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
+  if(n>0){el.innerHTML='<svg class="icn"><use href="#i-target"/></svg> 忘れかけの '+n+'語を復習する';el.dataset.goto="practice:p-quiz";el.dataset.qmode="review";}
   else{el.innerHTML='<svg class="icn"><use href="#i-play"/></svg> 今日の5語をはじめる';el.dataset.goto="practice:p-daily";delete el.dataset.qmode;}}
 var _ciN=0,_ciT=null;
 var _catBusy=false;
@@ -1288,10 +1288,27 @@ function catScream(){if(_catBusy)return;_catBusy=true;
   celebrate("🐱 ﾐ゛ｬｧｧｧﾖ゛ｫｫｫｫｰ");
   if(navigator.vibrate)try{navigator.vibrate([30,40,30,40,140]);}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();_catBusy=false;},1950);}
-function checkIn(){const t=_d(0);const first=ACT.ci!==t;if(first){ACT.streak=(ACT.ci===_d(1))?((ACT.streak||0)+1):1;ACT.ci=t;SV("dks_act",ACT);}renderHomeStats();
+function checkIn(){const t=_d(0);const first=ACT.ci!==t;let frozen=0,earned=false;
+  if(first){
+    if(ACT.ci===_d(1)){ACT.streak=(ACT.streak||0)+1;}
+    else if(ACT.ci){
+      var gap=0;for(var k=2;k<=30;k++){if(ACT.ci===_d(k)){gap=k-1;break;}}
+      if(gap>0&&(ACT.frz||0)>=gap){ACT.frz-=gap;frozen=gap;ACT.streak=(ACT.streak||0)+1;}
+      else{ACT.streak=1;}
+    }else{ACT.streak=1;}
+    ACT.ci=t;
+    if(ACT.streak>0&&ACT.streak%7===0&&ACT.frzM!==ACT.streak){ACT.frzM=ACT.streak;if((ACT.frz||0)<3){ACT.frz=(ACT.frz||0)+1;earned=true;}}
+    SV("dks_act",ACT);
+  }
+  renderHomeStats();
   _ciN++;clearTimeout(_ciT);_ciT=setTimeout(function(){_ciN=0;},2500);
   if(_ciN>=10){_ciN=0;catScream();return;}
-  celebrate(first?("🔥 "+ACT.streak+" 日連続！ チェックイン完了"):"🎉 今日ももう一度！ その調子！");}
+  var msg;
+  if(!first)msg="🎉 今日ももう一度！ その調子！";
+  else if(frozen)msg="🛡 連続まもりが"+frozen+"個はたらいて、🔥"+ACT.streak+"日連続を守りました！";
+  else if(earned)msg="🔥 "+ACT.streak+"日連続！ 🛡 連続まもりを1個獲得（お休みの日に自動で守ります）";
+  else msg="🔥 "+ACT.streak+" 日連続！ チェックイン完了";
+  celebrate(msg);}
 function celebrate(msg){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
   if(!rm){const cx=window.innerWidth/2,cy=Math.min(window.innerHeight*0.32,260);
@@ -1440,7 +1457,8 @@ function streakRisk(){var el=$("skRisk");if(!el)return;
   var studiedToday=(ACT.date===t&&(ACT.today||0)>0)||ACT.ci===t;
   var studiedYest=(ACT.hist&&ACT.hist[y]>0)||ACT.ci===y;
   if(st<2||studiedToday||!studiedYest){el.innerHTML="";return;}
-  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx"><b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span></div><button class="skgo" id="skGo">5語やる</button></div>';
+  var frz=ACT.frz||0;
+  el.innerHTML='<div class="skrisk"><svg class="icn skic"><use href="#i-target"/></svg><div class="sktx">'+(frz>0?('<b>今日サボると 🛡まもりを1個消費します</b><span>5語やれば まもり'+frz+'個を温存。</span>'):('<b>連続'+st+'日が今日で途切れます</b><span>5語だけでも大丈夫です。</span>'))+'</div><button class="skgo" id="skGo">5語やる</button></div>';
   var g=$("skGo");if(g)g.onclick=function(){openTarget("practice:p-daily");};}
 function bkBadge(){var el=$("btnSettings");if(!el)return;
   var b=LS("dks_bkup",{}),known=_knownOf(LS("dks_status",{}));
