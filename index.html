@@ -48,9 +48,34 @@
   .shead h2{font-size:25px;font-weight:800;margin-top:6px;position:relative;display:inline-block;padding-bottom:9px}
   .shead h2::after{content:"";position:absolute;left:0;bottom:0;width:42px;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
   .shead p{color:var(--sub);font-size:13.5px;margin-top:4px}
-  .subtabs{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 6px}
-  .subtabs button,.chip{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:9px 16px;border-radius:999px;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.25}
-  .subtabs button:active,.chip:active{transform:scale(.95)}
+  /* サブタブ＝行き先（下線タブ）。丸ピルの絞り込みとは別物に見せる */
+  .subtabs{position:relative;display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+    margin:16px 0 10px;border-bottom:1px solid var(--line);
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);
+    mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
+  .subtabs::-webkit-scrollbar{display:none}
+  .subtabs button{flex:none;background:none;border:none;border-bottom:2.5px solid transparent;border-radius:0;
+    color:var(--sub);padding:9px 11px;font-size:14px;font-family:inherit;cursor:pointer;transition:.15s;
+    line-height:1.25;white-space:nowrap}
+  .subtabs button.active{color:var(--hl);border-bottom-color:var(--hl);font-weight:700;background:none}
+  .subtabs button:active{transform:none;opacity:.6}
+  /* 絞り込み＝丸ピル */
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:9px 16px;border-radius:999px;font-size:14px;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.25}
+  .chip:active{transform:scale(.95)}
+  .fchips{display:flex;gap:7px;flex-wrap:wrap}
+  .fchips button{border:1px solid var(--line);background:var(--card);color:var(--sub);padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.25}
+  .fchips button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchips button:active{transform:scale(.95)}
+  /* 絞り込みブロックは折りたたむ */
+  .fbox{border:1px solid var(--line);border-radius:12px;background:var(--card);margin:2px 0 12px;overflow:hidden}
+  .fhead{display:flex;align-items:center;gap:9px;width:100%;padding:10px 13px;background:none;border:none;
+    font-family:inherit;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}
+  .fhead .icn{width:15px;height:15px;color:var(--gold);flex:none}
+  .fsum{color:var(--sub);font-size:12px;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fcar{transition:transform .2s ease;color:var(--sub);font-size:11px}
+  .fbox.on .fcar{transform:rotate(180deg)}
+  .fbody{display:none;padding:2px 13px 12px;border-top:1px solid var(--line2)}
+  .fbox.on .fbody{display:block}
   .dash{display:flex;flex-direction:column;gap:13px;margin-top:6px}
   .dashcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 4px 18px rgba(70,50,20,.05)}
   .dashcard h4{font-size:13px;color:var(--sub);font-weight:700;margin-bottom:10px}
@@ -918,7 +943,7 @@
     <div id="homeCards"></div>
   </div>
 
-  <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>単語カード・接頭辞のしくみ・敬語と口語。</p></div>
+  <div class="view" data-view="learn"><div class="shead"><div class="kick">Belajar</div><h2>学ぶ</h2><p>3,000語の単語カード、島パック、チャットの言葉、例文に出る言い回し、文法と接辞のしくみ。</p></div>
     <div class="subtabs" data-sub="learn"><button data-pane="l-words" class="active">単語カード</button><button data-pane="l-packs">島パック</button><button data-pane="l-gaul">Bahasa Gaul</button><button data-pane="l-pat">言い回し</button><button data-pane="l-gram">文法</button><button data-pane="l-prefix">接頭辞</button><button data-pane="l-suffix">接尾辞</button><button data-pane="l-confix">共接辞</button><button data-pane="l-reg">敬語⇔口語</button></div>
     <div class="pane active" id="l-words"><div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch"></span><span>暗記モード</span></label><button class="chip" id="wShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button><span style="font-size:12px;color:var(--sub)"><svg class="icn"><use href="#i-sound"/></svg>で発音／単語タップで意味</span></div>
       <div class="carousel"><div class="track" id="wTrack"></div><div class="cnav"><button class="arrow" data-nav="w:-1">←</button><span class="counter" id="wCount"></span><button class="arrow" data-nav="w:1">→</button></div><div class="swipehint">‹ スワイプ ›</div></div></div>
@@ -932,12 +957,18 @@
     <div class="pane" id="l-reg"></div>
   </div>
 
-  <div class="view" data-view="practice"><div class="shead"><div class="kick">Latihan</div><h2>練習</h2><p>フラッシュカード（記録つき）・クイズ・今日の5語・穴埋め。</p></div>
+  <div class="view" data-view="practice"><div class="shead"><div class="kick">Latihan</div><h2>練習</h2><p>カードをめくる、意味・聞き取り・苦手撲滅のクイズ、今日の5語、穴埋め。</p></div>
     <div class="subtabs" data-sub="practice"><button data-pane="p-flash" class="active">カード</button><button data-pane="p-quiz">クイズ</button><button data-pane="p-daily">今日の5語</button><button data-pane="p-fill">穴埋め</button></div>
     <div class="pane active" id="p-flash">
-      <div class="cfilters"><div class="frow"><span class="flabel">難易度</span><div class="subtabs" id="lvChips" style="margin:0"></div></div>
-        <div class="frow"><span class="flabel">分類</span><div class="subtabs" id="srcChips" style="margin:0"></div></div>
-        <div class="frow"><span class="flabel">状態</span><div class="subtabs" id="stChips" style="margin:0"></div></div></div>
+      <div class="fbox" id="fBox">
+        <button class="fhead" id="fHead" aria-expanded="false" aria-controls="fBody">
+          <svg class="icn"><use href="#i-target"/></svg><b>絞り込み</b>
+          <span class="fsum" id="fSum">すべての単語</span><span class="fcar">▼</span></button>
+        <div class="fbody" id="fBody">
+          <div class="frow"><span class="flabel">難易度</span><div class="fchips" id="lvChips"></div></div>
+          <div class="frow"><span class="flabel">分類</span><div class="fchips" id="srcChips"></div></div>
+          <div class="frow"><span class="flabel">状態</span><div class="fchips" id="stChips"></div></div>
+        </div></div>
       <div class="fcard panelcard" id="fcard"><div class="ftags" id="ftags"></div><div style="width:100%"><div class="fword" id="fword"></div><div class="fkata" id="fkata"></div><div class="fmean" id="fmean"></div><div class="fex" id="fex"></div></div><div class="fhint">タップで裏返す</div></div>
       <div class="fctrl"><button class="arrow" id="fPrev">←</button><button class="spk" id="fSpk"></button><span class="counter" id="fCount"></span><button class="arrow" id="fShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg></button><button class="arrow" id="fNext">→</button></div>
       <div class="srsrow"><button class="weak" id="srsWeak">✗ 苦手</button><button class="known" id="srsKnown">✓ 覚えた</button></div>
@@ -960,7 +991,7 @@
       <div class="spnav"><button class="arrow" id="spPrev" aria-label="前へ">←</button><span class="counter" id="spCount"></span><button class="arrow" id="spNext" aria-label="次へ">→</button></div>
     </div>
   </div>
-  <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話・ドライバー会話。通し再生対応。</p></div>
+  <div class="view" data-view="talk"><div class="shead"><div class="kick">Percakapan</div><h2>会話</h2><p>ミニ会話、現地で焦らないサバイバル、職場のオフィス表現、ドライバー・旅行・テーマ別、なりきり会話。</p></div>
     <div class="subtabs" data-sub="talk"><button data-pane="t-scene" class="active">ミニ会話</button><button data-pane="t-surv">サバイバル</button><button data-pane="t-office">オフィス</button><button data-pane="t-driver">ドライバー</button><button data-pane="t-travel">旅行</button><button data-pane="t-pack">テーマ別</button><button data-pane="t-say">言いたいこと</button><button data-pane="t-sim">なりきり会話</button></div>
     <div class="pane active" id="t-scene">
       <div class="toolbar"><label class="toggle" onclick="toggleHide()"><span class="switch" id="switch2"></span><span>暗記モード</span></label><button class="chip" id="rolePlay" aria-label="ロールプレイ"><svg class="icn"><use href="#i-mask"/></svg> ロールプレイ</button><button class="chip" id="scenePlayAll" aria-label="通し再生"><svg class="icn"><use href="#i-play"/></svg> 通し再生</button><button class="chip" id="sShuffle" aria-label="シャッフル"><svg class="icn"><use href="#i-shuffle"/></svg> シャッフル</button></div>
@@ -1068,6 +1099,6 @@
 <script src="packs.js?v=4"></script>
 <script src="cities.js?v=2"></script>
 <script src="news.js"></script>
-<script src="app.js?v=79"></script>
+<script src="app.js?v=80"></script>
 </body>
 </html>
