@@ -141,7 +141,7 @@ document.querySelectorAll(".subtabs[data-sub]").forEach(st=>{
   st.addEventListener("click",e=>{const b=e.target.closest("[data-pane]");if(!b)return;const box=b.closest(".view");
     st.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));
     box.querySelectorAll(".pane").forEach(p=>p.classList.toggle("active",p.id===b.dataset.pane));
-    initPane(b.dataset.pane);});
+    initPane(b.dataset.pane);_tabIntoView(b);});
 });
 
 /* ===== 各ビュー初期化 ===== */
@@ -155,6 +155,10 @@ function initView(v){
   if(v==="scan"){buildScan();}
 }
 const PANEI={};
+function _tabIntoView(btn){try{if(!btn||!btn.parentElement)return;
+  var s=btn.parentElement,r=btn.getBoundingClientRect(),p=s.getBoundingClientRect();
+  if(r.left<p.left+4||r.right>p.right-4)
+    s.scrollTo({left:s.scrollLeft+(r.left-p.left)-(p.width-r.width)/2,behavior:"smooth"});}catch(e){}}
 function initPane(id){
   if(PANEI[id])return;PANEI[id]=1;
   if(id==="l-packs")ensureCards(function(){buildIslandPacks();});
@@ -536,11 +540,18 @@ let status=LS("dks_status",{}),srs=LS("dks_srs",{}),fLevel="all",fSrc="all",fSt=
 const SRSIV={1:1,2:2,3:4,4:8,5:16,6:35};
 function todayNum(){var d=new Date();d.setHours(0,0,0,0);return Math.floor(d.getTime()/86400000);}
 function srsDue(w){return !!(srs[w]&&srs[w].due<=todayNum());}
+function fSummary(){var el=$("fSum");if(!el)return;
+  var L={all:"",1:"初級",2:"中級",3:"上級"},S={all:"",weak:"苦手",known:"覚えた",new:"未学習",due:"復習"};
+  var p=[L[fLevel]||"",(fSrc==="all"?"":fSrc),S[fSt]||""].filter(Boolean);
+  el.textContent=(p.length?p.join(" ・ "):"すべての単語")+"（"+deck.length+"枚）";}
+(function(){var b=$("fHead");if(!b)return;
+  b.onclick=function(){var box=$("fBox"),on=box.classList.toggle("on");
+    b.setAttribute("aria-expanded",on?"true":"false");};})();
 function buildFlash(){let _cardSwiped=false,_cx0=null,_cy0=null;
   const lv=$("lvChips"),sc=$("srcChips"),st=$("stChips");
   const mk=(box,arr,cb)=>{box.innerHTML="";arr.forEach(([v,l])=>{const b=document.createElement("button");b.textContent=l;if(v==="all")b.classList.add("active");b.dataset.v=v;b.onclick=()=>{[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");cb(v);};box.appendChild(b);});};
   mk(lv,[["all","すべて"],["1","初級"],["2","中級"],["3","上級"]],v=>{fLevel=v;rebuild();});
-  mk(sc,[["all","すべて"],["自分","自分の単語"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"],["島パック","島パック"]],v=>{fSrc=v;rebuild();});
+  mk(sc,[["all","すべて"],["自分","自分の単語"],["単語","単語"],["会話","会話"],["ニュース","ニュース"],["ドライバー","ドライバー"],["日本","日本"],["語彙","語彙"],["島パック","島パック"],["旅","旅"]],v=>{fSrc=v;rebuild();});
   mk(st,[["all","すべて"],["due","復習"],["new","未学習"],["weak","苦手"],["known","覚えた"]],v=>{fSt=v;rebuild();});
   $("fSpk").innerHTML=SPK;
   $("fcard").addEventListener("click",e=>{if(_cardSwiped){_cardSwiped=false;return;}if(e.target.closest("[data-audio]")||e.target.closest(".tok.known"))return;if(deck.length){fFlip=!fFlip;draw(false);}});
@@ -560,7 +571,7 @@ function myCards(){var out=[],seen={};
   Object.keys(bk).forEach(function(k){var b=bk[k];if(!b||!b.id||seen[b.id])return;seen[b.id]=1;
     out.push({w:b.id,ja:b.ja||"",audio:b.audio||"",lv:2,src:["自分"],ex:null});});
   return out;}
-function rebuild(){var pool=(fSrc==="自分")?myCards():CARDS;
+function rebuild(){if(typeof fSummary==="function")setTimeout(fSummary,0);var pool=(fSrc==="自分")?myCards():CARDS;
   deck=pool.filter(c=>(fLevel==="all"||c.lv===+fLevel)&&(fSrc==="all"||fSrc==="自分"||c.src.includes(fSrc))&&(fSt==="all"||(fSt==="due"?srsDue(c.w):fSt==="new"?!status[c.w]:status[c.w]===fSt)));fi=0;fFlip=false;draw(false);}
 function draw(auto){const fw=$("fword"),fm=$("fmean"),ft=$("ftags"),fx=$("fex"),fc=$("fCount");
   if(!deck.length){ft.innerHTML="";fw.textContent="該当なし";fm.textContent="";fx.innerHTML="";fc.textContent="0 / 0";return;}
