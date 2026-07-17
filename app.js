@@ -1652,7 +1652,7 @@ function newsPopup(){try{
 /* タブ間スワイプ（左右で移動） */
 (function(){let x0=null,y0=null,ok=false;
   document.addEventListener("touchstart",e=>{if(e.touches.length!==1){x0=null;ok=false;return;}const t=e.target;
-    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".wheelcol")||t.closest(".fcard")){x0=null;ok=false;return;}
+    if(t.closest(".track")||t.closest("input")||t.closest("select")||t.closest("textarea")||t.closest(".overlay")||t.closest(".splash")||t.closest(".datebar")||t.closest(".numpad")||t.closest(".wheelcol")||t.closest(".fcard")||t.closest(".subtabs")||t.closest(".maintabs")||t.closest(".botnav")||t.closest(".spfil")||t.closest(".chips")){x0=null;ok=false;return;}
     let n=(t instanceof Element)?t:null;
     while(n&&n!==document.body){const cs=getComputedStyle(n);
       if((cs.overflowX==="auto"||cs.overflowX==="scroll")&&n.scrollWidth>n.clientWidth+4){x0=null;ok=false;return;}
