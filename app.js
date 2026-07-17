@@ -1766,7 +1766,7 @@ function _gsUpload(){
       {method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},body:body});
   }).then(function(){SV("dks_gsync_last",Date.now());_gsPaint();}).catch(function(){});
 }
-function _gsStale(){return (Date.now()-(LS("dks_gsync_last",0)||0))>20*3600*1000;}
+function _gsStale(){return (Date.now()-(LS("dks_gsync_last",0)||0))>7*86400*1000;}
 function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){
   if(_gsTok&&Date.now()<_gsExp)_gsUpload();
   else if(_gsStale())_gsToken(_gsUpload,false);
