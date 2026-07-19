@@ -370,7 +370,10 @@ function sayMatch(idText){var toks=(idText||"").toLowerCase().replace(/[^a-z ]/g
     .filter(function(x){return x.score>0.15;})
     .sort(function(a,b){return b.score-a.score;}).slice(0,3);}
 var MYPHR=LS("dks_myphrases",{});
-function myPhraseCards(){return Object.keys(MYPHR).map(function(id){return {w:id,ja:MYPHR[id].ja,lv:1,audio:"",phrase:true};});}
+function myPhraseCards(){var out={};
+  Object.keys(MYPHR).forEach(function(id){out[id]={w:id,ja:MYPHR[id].ja,lv:1,audio:"",phrase:true};});
+  try{Object.keys(BOOK).forEach(function(id){var b=BOOK[id];if(!b||!b.ja||out[id]||_isCardWord(id))return;out[id]={w:id,ja:b.ja,lv:1,audio:b.audio||"",phrase:true};});}catch(e){}
+  return Object.keys(out).map(function(k){return out[k];});}
 function addPhrase(id,ja){if(!id||!ja)return;MYPHR[id]={ja:ja,t:Date.now()};SV("dks_myphrases",MYPHR);srsUpdate(id,"unknown");renderMyPhrases();}
 function delPhrase(id){delete MYPHR[id];SV("dks_myphrases",MYPHR);
   try{delete status[id];SV("dks_status",status);delete srs[id];SV("dks_srs",srs);}catch(e){}
@@ -1171,8 +1174,8 @@ function buildDaily(){const seed=new Date();const key=seed.getFullYear()+"-"+(se
   var dd=LS("dks_daily",{});if(dd.day!==key){dd={day:key,jd:{}};}
   const jbtns=(w)=>dd.jd[w]?`<div class="djdone">判定ずみ: ${dd.jd[w]==="known"?"✓ 覚えた":dd.jd[w]==="seen"?"△ 見たことある":"✗ 知らない"}</div>`:`<div class="srsrow djrow" data-dw="${esc(w)}"><button class="weak" data-j="unknown">✗ 知らない</button><button class="seen" data-j="seen">△ 見たことある</button><button class="known" data-j="known">✓ 覚えた</button></div>`;
   $("p-daily").innerHTML=`<div style="font-size:13px;color:var(--sub);margin:6px 0 12px">📅 ${key} の5語 — それぞれ判定すると完了です（${Object.keys(dd.jd).length} / 5）</div>`+
-   pick.map((c,i)=>`<div class="lesson panelcard" data-reveal><div style="display:flex;align-items:center;gap:10px"><span class="amark" style="background:var(--hl)">${i+1}</span>${spkBtn(c.audio,c.w)}<span class="lp" style="font-size:20px">${esc(c.w)}</span></div>
-     <div class="lt2" style="margin-top:6px">${esc(c.ja)}</div>${c.ex?`<div class="lex" style="margin-top:6px">${spkBtn(c.ex[2],c.ex[0])}<span class="m">${wrapWords(c.ex[0])}｜${esc(c.ex[1])}</span></div>`:""}${jbtns(c.w)}</div>`).join("");
+   pick.map((c,i)=>`<div class="lesson panelcard" data-reveal>${c.ex?`<div class="dphr"><span class="amark" style="background:var(--hl)">${i+1}</span>${spkBtn(c.ex[2],c.ex[0])}<span class="dphr-t">${wrapWords(c.ex[0])}</span></div><div class="dphr-ja">${esc(c.ex[1])}</div>`:""}
+     <div class="dword">${spkBtn(c.audio,c.w)}<b>${esc(c.w)}</b><span class="dword-ja">${esc(c.ja)}</span></div>${jbtns(c.w)}</div>`).join("");
   SV("dks_daily",dd);
   $("p-daily").querySelectorAll(".djrow button").forEach(function(b){b.onclick=function(){
     var row=b.closest(".djrow"),w=row.dataset.dw,s=b.dataset.j;
@@ -1309,7 +1312,13 @@ function katakanaWord(w){
 }
 let BOOK=LS("dks_book",{});
 const isBooked=id=>!!BOOK[id];
-function toggleBook(item){if(!item||!item.id)return;if(BOOK[item.id])delete BOOK[item.id];else BOOK[item.id]={id:item.id,ja:item.ja||"",audio:item.audio||""};SV("dks_book",BOOK);renderBookCount();refreshBookBtns();}
+var _cardWSet=null;function _isCardWord(id){if(!_cardWSet){_cardWSet={};CARDS.forEach(function(c){_cardWSet[c.w]=1;});}return !!_cardWSet[id];}
+function toggleBook(item){if(!item||!item.id)return;
+  if(BOOK[item.id]){delete BOOK[item.id];
+    if(!_isCardWord(item.id)&&!MYPHR[item.id]){try{delete status[item.id];SV("dks_status",status);delete srs[item.id];SV("dks_srs",srs);}catch(e){}}}
+  else{BOOK[item.id]={id:item.id,ja:item.ja||"",audio:item.audio||""};
+    if(!_isCardWord(item.id)&&item.ja){srsUpdate(item.id,"unknown");}}
+  SV("dks_book",BOOK);renderBookCount();refreshBookBtns();}
 function renderBookCount(){const n=Object.keys(BOOK).length;if($("btnBook"))$("btnBook").textContent=n?("★"+n):"★";}
 function refreshBookBtns(){document.querySelectorAll("[data-book]").forEach(b=>{try{b.classList.toggle("on",isBooked(JSON.parse(b.getAttribute("data-book")).id));}catch(e){}});if(typeof deck!=="undefined"&&deck.length&&$("fBook"))$("fBook").classList.toggle("on",isBooked(deck[fi].w));}
 function renderBookmarks(){const arr=Object.values(BOOK);$("bookWrap").innerHTML=arr.length?arr.map(it=>`<div class="dictrow">${spkBtn(it.audio,it.id)}<div class="dw"><b>${esc(it.id)}</b><span>${esc(it.ja)}</span></div><button class="bkbtn on" data-book='${esc(JSON.stringify(it))}'>★</button></div>`).join(""):`<div style="color:var(--sub);font-size:13px;padding:10px 0">まだありません。辞書・検索・カードの ★ で保存できます。</div>`;}
@@ -1375,8 +1384,8 @@ function flowState(){var t=_d(0),f=LS("dks_flow",{});
   if(f.day!==t){var due=_dueCount();f={day:t,step:due>0?"review":"daily",rev:0,revT:Math.min(10,due),qz:0};SV("dks_flow",f);}
   return f;}
 function flowSave(f){SV("dks_flow",f);}
-var FLOW_STEPS={review:["①","忘れかけの復習"],daily:["②","新しい5語"],quiz:["③","定着クイズ 10問"]};
-function flowTarget(step){return step==="review"?["practice:p-quiz","review"]:step==="daily"?["practice:p-daily",null]:["practice:p-quiz","mean"];}
+var FLOW_STEPS={review:["①","忘れかけの復習"],daily:["②","新しい5フレーズ"],quiz:["③","穴埋めクイズ 10問"]};
+function flowTarget(step){return step==="review"?["practice:p-quiz","review"]:step==="daily"?["practice:p-daily",null]:["practice:p-fill",null];}
 function flowStepDone(step){var f=flowState();if(f.step!==step)return;
   var next=step==="review"?"daily":step==="daily"?"quiz":"done";
   f.step=next;flowSave(f);homeCTA();
