@@ -369,21 +369,35 @@ function sayMatch(idText){var toks=(idText||"").toLowerCase().replace(/[^a-z ]/g
       return {i:i,s:s,score:hit/toks.length};})
     .filter(function(x){return x.score>0.15;})
     .sort(function(a,b){return b.score-a.score;}).slice(0,3);}
+var MYPHR=LS("dks_myphrases",{});
+function myPhraseCards(){return Object.keys(MYPHR).map(function(id){return {w:id,ja:MYPHR[id].ja,lv:1,audio:"",phrase:true};});}
+function addPhrase(id,ja){if(!id||!ja)return;MYPHR[id]={ja:ja,t:Date.now()};SV("dks_myphrases",MYPHR);srsUpdate(id,"unknown");renderMyPhrases();}
+function delPhrase(id){delete MYPHR[id];SV("dks_myphrases",MYPHR);
+  try{delete status[id];SV("dks_status",status);delete srs[id];SV("dks_srs",srs);}catch(e){}
+  renderMyPhrases();}
+function renderMyPhrases(){var el=$("myPhrases");if(!el)return;var ks=Object.keys(MYPHR).sort(function(a,b){return MYPHR[b].t-MYPHR[a].t;});
+  if(!ks.length){el.innerHTML="";return;}
+  el.innerHTML='<div class="saysec">登録したフレーズ（'+ks.length+'）— 復習クイズに出ます</div>'+ks.map(function(id){
+    return '<div class="myphr">'+spkBtn("",id)+'<span class="mp-t"><span class="mp-id">'+esc(id)+'</span><span class="mp-ja">'+esc(MYPHR[id].ja)+'</span></span><button class="mp-del" data-delphr="'+esc(id)+'" aria-label="削除">✕</button></div>';}).join("");
+  el.querySelectorAll("[data-delphr]").forEach(function(b){b.onclick=function(){if(confirm("このフレーズを削除しますか？（復習からも外れます）"))delPhrase(b.dataset.delphr);};});}
 function buildSay(){var w=$("sayWrap");if(!w||w.dataset.done)return;w.dataset.done=1;
   w.innerHTML='<div class="simcard panelcard"><input class="sayin" id="sayIn" placeholder="例：水をください／いくらですか？"><button class="simmic" id="sayGo" style="margin-top:10px"><svg class="icn"><use href="#i-search"/></svg> インドネシア語にする</button><div id="sayOut"></div></div>';
   $("sayGo").onclick=sayRun;
-  $("sayIn").addEventListener("keydown",function(e){if(e.key==="Enter")sayRun();});}
+  $("sayIn").addEventListener("keydown",function(e){if(e.key==="Enter")sayRun();});
+  w.insertAdjacentHTML("beforeend",'<div id="myPhrases"></div>');renderMyPhrases();}
 function sayRun(){var q=($("sayIn").value||"").trim(),out=$("sayOut");
   if(!q){out.innerHTML="";return;}
   out.innerHTML='<div class="sayload">翻訳中…</div>';
   jaToId(q).then(function(id){
     if(!id){out.innerHTML='<div class="sayload">翻訳できませんでした。通信環境をご確認ください。</div>';return;}
-    var html='<div class="saycard"><div class="sayid">'+spkBtn("",id)+'<span class="t">'+wrapWords(id)+'</span></div><div class="sayja">'+esc(q)+'</div></div>';
+    var saved=!!MYPHR[id];
+    var html='<div class="saycard"><div class="sayid">'+spkBtn("",id)+'<span class="t">'+wrapWords(id)+'</span></div><div class="sayja">'+esc(q)+'</div><button class="mp-add'+(saved?" done":"")+'" id="sayAdd" '+(saved?"disabled":"")+'>'+(saved?"登録ずみ":"＋ 復習に登録")+'</button></div>';
     var ms=sayMatch(id);
     if(ms.length){html+='<div class="saysec">この表現が出てくる場面</div>'+ms.map(function(m){
       return '<div class="sayscene" data-simscene="'+m.i+'"><span class="ss-e">'+(m.s.emoji||"💬")+'</span><span class="ss-n">'+esc(m.s.name)+'</span><span class="ss-go">この場面で会話する →</span></div>';}).join("");}
     else html+='<div class="saysec">近い場面は見つかりませんでした。上の文はタップで意味・発音が確認できます。</div>';
-    out.innerHTML=html;});}
+    out.innerHTML=html;
+    var ab=$("sayAdd");if(ab&&!ab.disabled)ab.onclick=function(){addPhrase(id,q);ab.textContent="登録ずみ";ab.disabled=true;ab.classList.add("done");celebrate("復習リストに登録しました。明日から出題されます");};});}
 (function(){document.addEventListener("click",function(e){
   var b=e.target.closest("[data-simscene]");if(!b)return;
   var i=+b.dataset.simscene;
@@ -1113,7 +1127,7 @@ const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const withEx=()=>CARDS.filter(c=>c.ex);
 function nextQ(){if(qMode==="arrange")return arrangeQ();if(qMode==="type")return typeQ();mcQ();}
 function mcQ(){const listen=qMode==="listen",review=qMode==="review",weak=qMode==="weak";
-  const full=CARDS.filter(c=>c.ja);let src=full;
+  const full=CARDS.filter(c=>c.ja).concat(myPhraseCards());let src=full;
   const tn=(typeof todayNum==="function")?todayNum():0;
   if(weak){const wp=full.filter(x=>status[x.w]==="unknown");
     if(wp.length<5){$("qBody").innerHTML='<div class="quizbox panelcard">'+lockCard({cls:"qlock",title:"知らない語",
