@@ -381,26 +381,50 @@ function delPhrase(id){delete MYPHR[id];SV("dks_myphrases",MYPHR);
 function renderMyPhrases(){var el=$("myPhrases");if(!el)return;var ks=Object.keys(MYPHR).sort(function(a,b){return MYPHR[b].t-MYPHR[a].t;});
   if(!ks.length){el.innerHTML="";return;}
   el.innerHTML='<div class="saysec">登録したフレーズ（'+ks.length+'）— 復習クイズに出ます</div>'+ks.map(function(id){
-    return '<div class="myphr">'+spkBtn("",id)+'<span class="mp-t"><span class="mp-id">'+esc(id)+'</span><span class="mp-ja">'+esc(MYPHR[id].ja)+'</span></span><button class="mp-del" data-delphr="'+esc(id)+'" aria-label="削除">✕</button></div>';}).join("");
-  el.querySelectorAll("[data-delphr]").forEach(function(b){b.onclick=function(){if(confirm("このフレーズを削除しますか？（復習からも外れます）"))delPhrase(b.dataset.delphr);};});}
+    var un=USED[id]?'<span class="ur-n">⚡×'+USED[id].n+'</span>':"";
+    return '<div class="myphr">'+spkBtn("",id)+'<span class="mp-t"><span class="mp-id">'+esc(id)+' '+un+'</span><span class="mp-ja">'+esc(MYPHR[id].ja)+'</span></span><button class="mp-use" data-usephr="'+esc(id)+'" aria-label="街で使った">⚡</button><button class="mp-del" data-delphr="'+esc(id)+'" aria-label="削除">✕</button></div>';}).join("");
+  el.querySelectorAll("[data-delphr]").forEach(function(b){b.onclick=function(){if(confirm("このフレーズを削除しますか？（復習からも外れます）"))delPhrase(b.dataset.delphr);};});
+  el.querySelectorAll("[data-usephr]").forEach(function(b){b.onclick=function(){var id=b.dataset.usephr;addUsed(id,(MYPHR[id]||{}).ja||"");};});}
+var USED=LS("dks_used",{});
+function addUsed(id,ja){if(!id)return;
+  if(!USED[id])USED[id]={ja:ja||"",n:0,ts:[]};
+  USED[id].n++;USED[id].ts.push(Date.now());if(USED[id].ts.length>30)USED[id].ts=USED[id].ts.slice(-30);
+  if(ja&&!USED[id].ja)USED[id].ja=ja;
+  SV("dks_used",USED);
+  if(!MYPHR[id]&&!_isCardWord(id)){MYPHR[id]={ja:ja||"",t:Date.now()};SV("dks_myphrases",MYPHR);}
+  srsUpdate(id,"known");
+  celebrate("⚡ 実戦で使えた！ Hebat! —「覚えた」に昇格しました");
+  renderMyPhrases();renderUsedCard();}
+function usedTotal(){var n=0;Object.keys(USED).forEach(function(k){n+=USED[k].n;});return n;}
+function renderUsedCard(){var el=$("homeUsed");if(!el)return;var ks=Object.keys(USED);
+  if(!ks.length){el.innerHTML='<div class="dashcard"><h4>⚡ 街で使ったことば</h4><div class="usednote">実際に使えたフレーズを記録しましょう。使えた表現は「覚えた」に昇格します。<br>記録は 調べる → 言いたいこと から。</div></div>';return;}
+  ks.sort(function(a,b){return USED[b].ts[USED[b].ts.length-1]-USED[a].ts[USED[a].ts.length-1];});
+  el.innerHTML='<div class="dashcard"><h4>⚡ 街で使ったことば <span class="usedn">'+usedTotal()+'回</span></h4>'+
+    ks.slice(0,3).map(function(id){return '<div class="usedrow"><span class="ur-t">'+esc(id)+'</span><span class="ur-n">×'+USED[id].n+'</span></div>';}).join("")+
+    (ks.length>3?'<div class="usednote">ほか '+(ks.length-3)+' フレーズ</div>':'')+'</div>';}
 function buildSay(){var w=$("sayWrap");if(!w||w.dataset.done)return;w.dataset.done=1;
   w.innerHTML='<div class="simcard panelcard"><input class="sayin" id="sayIn" placeholder="例：水をください／いくらですか？"><button class="simmic" id="sayGo" style="margin-top:10px"><svg class="icn"><use href="#i-search"/></svg> インドネシア語にする</button><div id="sayOut"></div></div>';
   $("sayGo").onclick=sayRun;
   $("sayIn").addEventListener("keydown",function(e){if(e.key==="Enter")sayRun();});
-  w.insertAdjacentHTML("beforeend",'<div id="myPhrases"></div>');renderMyPhrases();}
+  w.insertAdjacentHTML("beforeend",'<div class="saysec">街で使った文を記録する</div><div class="simcard panelcard"><input class="sayin" id="usedIn" placeholder="使ったインドネシア語（例：Boleh minta bon?）"><input class="sayin" id="usedJa" style="margin-top:8px" placeholder="意味（例：レシートをもらえますか)"><button class="mp-used" id="usedGo" style="margin-top:10px;width:100%">⚡ 使った！を記録</button></div><div id="myPhrases"></div>');
+  $("usedGo").onclick=function(){var id=($("usedIn").value||"").trim(),ja=($("usedJa").value||"").trim();
+    if(!id){alert("使ったインドネシア語の文を入力してください");return;}
+    addUsed(id,ja);$("usedIn").value="";$("usedJa").value="";};
+  renderMyPhrases();}
 function sayRun(){var q=($("sayIn").value||"").trim(),out=$("sayOut");
   if(!q){out.innerHTML="";return;}
   out.innerHTML='<div class="sayload">翻訳中…</div>';
   jaToId(q).then(function(id){
     if(!id){out.innerHTML='<div class="sayload">翻訳できませんでした。通信環境をご確認ください。</div>';return;}
     var saved=!!MYPHR[id];
-    var html='<div class="saycard"><div class="sayid">'+spkBtn("",id)+'<span class="t">'+wrapWords(id)+'</span></div><div class="sayja">'+esc(q)+'</div><button class="mp-add'+(saved?" done":"")+'" id="sayAdd" '+(saved?"disabled":"")+'>'+(saved?"登録ずみ":"＋ 復習に登録")+'</button></div>';
+    var html='<div class="saycard"><div class="sayid">'+spkBtn("",id)+'<span class="t">'+wrapWords(id)+'</span></div><div class="sayja">'+esc(q)+'</div><div class="sayrow2"><button class="mp-add'+(saved?" done":"")+'" id="sayAdd" '+(saved?"disabled":"")+'>'+(saved?"登録ずみ":"＋ 復習に登録")+'</button><button class="mp-used" id="sayUsed">⚡ 街で使った！</button></div></div>';
     var ms=sayMatch(id);
     if(ms.length){html+='<div class="saysec">この表現が出てくる場面</div>'+ms.map(function(m){
       return '<div class="sayscene" data-simscene="'+m.i+'"><span class="ss-e">'+(m.s.emoji||"💬")+'</span><span class="ss-n">'+esc(m.s.name)+'</span><span class="ss-go">この場面で会話する →</span></div>';}).join("");}
     else html+='<div class="saysec">近い場面は見つかりませんでした。上の文はタップで意味・発音が確認できます。</div>';
     out.innerHTML=html;
-    var ab=$("sayAdd");if(ab&&!ab.disabled)ab.onclick=function(){addPhrase(id,q);ab.textContent="登録ずみ";ab.disabled=true;ab.classList.add("done");celebrate("復習リストに登録しました。明日から出題されます");};});}
+    var ab=$("sayAdd");if(ab&&!ab.disabled)ab.onclick=function(){addPhrase(id,q);ab.textContent="登録ずみ";ab.disabled=true;ab.classList.add("done");celebrate("復習リストに登録しました。明日から出題されます");};
+    var ub=$("sayUsed");if(ub)ub.onclick=function(){addUsed(id,q);ub.disabled=true;ub.textContent="⚡ 記録しました";};});}
 (function(){document.addEventListener("click",function(e){
   var b=e.target.closest("[data-simscene]");if(!b)return;
   var i=+b.dataset.simscene;
@@ -1026,7 +1050,7 @@ function buildStats(){const el=$("statsWrap");if(!el)return;const tn=todayNum();
   el.insertAdjacentHTML("beforeend",'<div class="dashcard"><h4>実績バッジ</h4><div class="badges">'+_bd.map(function(b){return '<div class="bdg '+(b[2]?"got":"")+'"><span class="be">'+b[0]+'</span><span class="bn">'+b[1]+'</span></div>';}).join("")+'</div></div>');
   var _af=$("homeArchFull");if(_af){_af.innerHTML="";renderArch(_af);}
   if(typeof buildJelajah==="function")buildJelajah();
-  if(typeof buildKata==="function")buildKata();if(typeof buildWarung==="function")buildWarung();}
+  if(typeof buildKata==="function")buildKata();if(typeof buildWarung==="function")buildWarung();if(typeof renderUsedCard==="function")renderUsedCard();}
 
 /* ===== 群島シェアカード ===== */
 function _cssv(n,f){try{var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||f;}catch(e){return f;}}

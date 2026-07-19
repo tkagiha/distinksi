@@ -524,6 +524,15 @@
   .mp-id{font-size:14.5px}
   .mp-ja{font-size:11.5px;color:var(--sub)}
   .mp-del{border:none;background:none;color:var(--sub);font-size:14px;cursor:pointer;padding:6px}
+  .sayrow2{display:flex;gap:8px}
+  .sayrow2 .mp-add{flex:1;margin-top:10px}
+  .mp-used{flex:1;margin-top:10px;padding:10px;border:1px solid var(--gold);border-radius:10px;background:none;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .mp-used:disabled{opacity:.55}
+  .mp-use{border:none;background:none;color:var(--gold);font-size:15px;cursor:pointer;padding:6px 2px}
+  .usedrow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .ur-n{color:var(--gold);font-size:11.5px;font-weight:700;white-space:nowrap}
+  .usedn{font-size:12px;color:var(--gold);margin-left:6px}
+  .usednote{font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6}
   .dphr{display:flex;align-items:flex-start;gap:9px}
   .dphr-t{font-size:17px;line-height:1.5;padding-top:4px}
   .dphr-ja{font-size:12.5px;color:var(--sub);margin:5px 0 0 2px}
@@ -1003,6 +1012,7 @@
     <div id="homeVisited" class="dash"></div>
     <div class="homesep">Warung ・ 食堂</div>
     <div id="homeWarung" class="dash"></div>
+    <div id="homeUsed" class="dash"></div>
     <button class="moretog" id="moreTog" aria-expanded="false">くわしい記録・そのほか ▾</button>
     <div id="homeMore" class="homemore" hidden>
     <div id="statsWrap" class="dash"></div>
