@@ -1928,8 +1928,10 @@ function _gsPaint(){_appVerPaint();
   if(!gsEnabled()){bt.textContent="連携する";st.textContent="未連携。連携すると、学習データがあなたのGoogleドライブに自動保存され、機種変更やデータ消去後も復元できます。";return;}
   bt.textContent="連携を解除";
   var last=LS("dks_gsync_last",0);
-  st.textContent=last?("同期中 ・ 最終同期: "+new Date(last).toLocaleString("ja-JP")):(_gsTok?"同期中 ・ まだ同期していません":"接続待ち。次に学習データが変わったとき自動で再接続します。");
+  var sa=_gsStandalone();
+  st.textContent=last?("同期中 ・ 最終同期: "+new Date(last).toLocaleString("ja-JP")+(sa?"（ホーム画面版では自動再接続できないため、ときどきこの画面の「復元する」の上の連携ボタンから接続し直してください）":"")):(_gsTok?"同期中 ・ まだ同期していません":(sa?"ホーム画面版では自動接続できません。この画面の連携ボタンから接続すると、その間は同期されます。":"接続待ち。次に学習データが変わったとき自動で再接続します。"));
 }
+function _gsStandalone(){try{return /iP(hone|ad|od)/.test(navigator.userAgent)&&((navigator.standalone===true)||matchMedia("(display-mode: standalone)").matches);}catch(e){return false;}}
 function _gsToken(cb,interactive){
   if(_gsTok&&Date.now()<_gsExp){if(cb)cb();return;}
   if(!(window.google&&google.accounts&&google.accounts.oauth2)){if(interactive)alert("Googleの読み込みが完了していません。数秒後にもう一度お試しください。");return;}
@@ -1942,6 +1944,10 @@ function _gsToken(cb,interactive){
     });
   }
   _gsCb=cb;
+  if(!interactive){
+    if(_gsStandalone()){_gsCb=null;return;}
+    SV("dks_gsync_snz",Date.now()+24*3600*1000);
+  }
   try{_gsClient.requestAccessToken(interactive?{}:{prompt:""});}catch(e){_gsCb=null;}
 }
 function _gsFetch(url,opt){opt=opt||{};opt.headers=Object.assign({},opt.headers||{},{"Authorization":"Bearer "+_gsTok});
