@@ -1928,8 +1928,7 @@ function _gsPaint(){_appVerPaint();
   if(!gsEnabled()){bt.textContent="連携する";st.textContent="未連携。連携すると、学習データがあなたのGoogleドライブに自動保存され、機種変更やデータ消去後も復元できます。";return;}
   bt.textContent="連携を解除";
   var last=LS("dks_gsync_last",0);
-  var sa=_gsStandalone();
-  st.textContent=last?("同期中 ・ 最終同期: "+new Date(last).toLocaleString("ja-JP")+(sa?"（ホーム画面版では自動再接続できないため、ときどきこの画面の「復元する」の上の連携ボタンから接続し直してください）":"")):(_gsTok?"同期中 ・ まだ同期していません":(sa?"ホーム画面版では自動接続できません。この画面の連携ボタンから接続すると、その間は同期されます。":"接続待ち。次に学習データが変わったとき自動で再接続します。"));
+  st.textContent=(last?("最終同期: "+new Date(last).toLocaleString("ja-JP")+" ・ "):"")+(_gsTok?"接続中（学習すると自動で同期されます）":"ログイン画面が勝手に出ることはありません。ときどき「今すぐ同期」を押してください。");
 }
 function _gsStandalone(){try{return /iP(hone|ad|od)/.test(navigator.userAgent)&&((navigator.standalone===true)||matchMedia("(display-mode: standalone)").matches);}catch(e){return false;}}
 function _gsToken(cb,interactive){
@@ -1973,7 +1972,6 @@ function _gsSnoozed(){return (LS("dks_gsync_snz",0)||0)>Date.now();}
 function _gsStale(){return (Date.now()-(LS("dks_gsync_last",0)||0))>7*86400*1000;}
 function _gsSoon(){if(!gsEnabled())return;clearTimeout(_gsTmr);_gsTmr=setTimeout(function(){
   if(_gsTok&&Date.now()<_gsExp)_gsUpload();
-  else if(_gsStale()&&!_gsSnoozed())_gsToken(_gsUpload,false);
 },5000);}
 function _gsRestore(interactive){
   _gsToken(function(){
@@ -2011,11 +2009,10 @@ function gsConnect(done){
   };
   if(pl)pl.onclick=function(){_gsRestore(true);};
   var sb=$("btnSettings");if(sb)sb.addEventListener("click",_gsPaint);
-  if(gsEnabled()){
-    document.addEventListener("click",function(){
-      if(!_gsTok&&!_gsSnoozed())_gsToken(function(){if(_gsStale())_gsUpload();},false);
-    },{once:true});
-  }
+  var nb=$("btnGsyncNow");if(nb)nb.onclick=function(){
+    if(!gsEnabled()){alert("先に「Googleドライブ同期」を連携してください。");return;}
+    _gsToken(function(){_gsUpload();celebrate("同期しました");_gsPaint();},true);};
+
   _gsPaint();
 })();
 window.addEventListener("pagehide",function(){if(gsEnabled()&&_gsTok)_gsUpload();});
